@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   scriptsApi,
   elementsApi,
@@ -81,7 +82,14 @@ export default function ScriptViewerPage() {
   return (
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{script.title}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">{script.title}</h1>
+          {script.version && (
+            <span className="rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+              v{script.version}
+            </span>
+          )}
+        </div>
         <div className="mt-2 flex items-center gap-3">
           <span className="rounded bg-zinc-200 px-2 py-1 text-xs font-medium uppercase">
             {script.status}
@@ -90,6 +98,12 @@ export default function ScriptViewerPage() {
             <span className="text-sm text-zinc-500">{script.pageCount} pages</span>
           )}
           <span className="text-sm text-zinc-400">{script.fileName}</span>
+          <Link
+            href={`/productions/${productionId}/scripts/${scriptId}/versions`}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Version History
+          </Link>
         </div>
       </div>
 
@@ -101,16 +115,38 @@ export default function ScriptViewerPage() {
         </div>
       )}
 
+      {script.status === 'RECONCILING' && (
+        <div className="mb-6 rounded border border-orange-300 bg-orange-50 p-4">
+          <p className="text-orange-800">
+            This script revision needs reconciliation. Some elements could not be auto-matched.
+          </p>
+          <Link
+            href={`/productions/${productionId}/scripts/${scriptId}/reconcile`}
+            className="mt-2 inline-block text-sm font-medium text-orange-700 underline"
+          >
+            Review and Reconcile
+          </Link>
+        </div>
+      )}
+
       {script.status === 'READY' && (
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">Elements ({script.elements.length})</h2>
-            <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="rounded bg-black px-3 py-1 text-sm text-white"
-            >
-              Add Element
-            </button>
+            <div className="flex gap-2">
+              <Link
+                href={`/productions/${productionId}/scripts/${scriptId}/revisions/upload`}
+                className="rounded border border-black px-3 py-1 text-sm"
+              >
+                Upload New Draft
+              </Link>
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="rounded bg-black px-3 py-1 text-sm text-white"
+              >
+                Add Element
+              </button>
+            </div>
           </div>
 
           {showAddForm && (
