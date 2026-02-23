@@ -43,6 +43,19 @@ enum ElementSource {
   MANUAL
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  PDF
+  LINK
+}
+
+enum OptionStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -56,6 +69,7 @@ model User {
   createdProductions  Production[]       @relation("CreatedProductions")
   productionMembers   ProductionMember[]
   uploadedScripts     Script[]
+  uploadedOptions     Option[]           @relation("UploadedOptions")
 
   @@map("users")
 }
@@ -121,6 +135,28 @@ model Element {
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
   script      Script        @relation(fields: [scriptId], references: [id])
+  options     Option[]
 
   @@map("elements")
+}
+
+model Option {
+  id              String       @id @default(cuid())
+  elementId       String       @map("element_id")
+  mediaType       MediaType    @map("media_type")
+  description     String?
+  s3Key           String?      @map("s3_key")
+  fileName        String?      @map("file_name")
+  externalUrl     String?      @map("external_url")
+  thumbnailS3Key  String?      @map("thumbnail_s3_key")
+  status          OptionStatus @default(ACTIVE)
+  readyForReview  Boolean      @default(false) @map("ready_for_review")
+  uploadedById    String       @map("uploaded_by_id")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  element         Element      @relation(fields: [elementId], references: [id])
+  uploadedBy      User         @relation("UploadedOptions", fields: [uploadedById], references: [id])
+
+  @@map("options")
 }
