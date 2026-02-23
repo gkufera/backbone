@@ -1,4 +1,4 @@
-⚠️ BACKBONE MANDATORY RULES — ACTIVE EVERY PROMPT ⚠️
+⚠️ SLUG MAX MANDATORY RULES — ACTIVE EVERY PROMPT ⚠️
 
 TDD: Write failing test FIRST → run it (prove fail) → implement → run it (prove pass). Never code without test.
 COMMITS: Git commit at every logical step. Small, frequent, descriptive messages.

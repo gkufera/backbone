@@ -44,7 +44,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Backbone is a unified production collaboration platform built around the film/TV script. It connects every **script element** (locations, props, wardrobe items, cast, etc) with multiple creative **options** (photos, videos, audio clips, storyboards, links, etc) and provides a coordinated **approval workflow**. Instead of wading through emails, a director sees a **news feed** of new options tagged to script elements. She can **approve, reject or tentatively approve** each option with comments. Until one option per element is approved, that element remains unresolved, and all relevant departments are notified once a choice is made.
+Slug Max is a unified production collaboration platform built around the film/TV script. It connects every **script element** (locations, props, wardrobe items, cast, etc) with multiple creative **options** (photos, videos, audio clips, storyboards, links, etc) and provides a coordinated **approval workflow**. Instead of wading through emails, a director sees a **news feed** of new options tagged to script elements. She can **approve, reject or tentatively approve** each option with comments. Until one option per element is approved, that element remains unresolved, and all relevant departments are notified once a choice is made.
 
 The system never deletes element/option records, ensuring an immutable audit trail.
 

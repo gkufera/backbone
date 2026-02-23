@@ -1,4 +1,4 @@
-# Backbone MVP Roadmap
+# Slug Max MVP Roadmap
 
 All bugs, features, and planned work are tracked here. Check this file before starting work to understand current priorities.
 

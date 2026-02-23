@@ -1,7 +1,23 @@
 # Current Plan
 
 ## Active Task
-**Sprint 7: Notifications & Workflow Logic — Complete**
+**Sprint 8: Rebrand to Slug Max + Deployment Setup**
+
+## Completed (Sprint 8 — Rebrand + Deploy)
+
+### Phases
+
+| Phase | Focus | Commit | Notes |
+|-------|-------|--------|-------|
+| 1 | Rebrand UI + emails + tests | `rebrand: rename Backbone to Slug Max in UI, emails, and tests` | TDD: tests updated first, proved fail, source updated, proved pass |
+| 2 | Documentation rebrand | `docs: rebrand documentation to Slug Max` | CLAUDE.md, roadmap.md, rules.txt |
+| 3 | CORS configuration | `fix: configure CORS from CORS_ORIGINS environment variable` | Production-ready CORS |
+| 4 | Production branch | Branch creation | main + production branch strategy |
+| 5 | Railway setup | Infrastructure | Frontend, backend, PostgreSQL services |
+| 6 | Cloudflare DNS | Infrastructure | slugmax.com + api.slugmax.com CNAMEs |
+| 7 | Deployment docs | `docs: add Slug Max deployment instructions` | CLAUDE.md deployment section |
+
+## Previous: Sprint 7 — Complete
 
 ## Completed (Sprint 7)
 
