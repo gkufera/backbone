@@ -43,6 +43,13 @@ vi.mock('../lib/api', () => ({
     update: vi.fn(),
     getDownloadUrl: vi.fn(),
   },
+  approvalsApi: {
+    create: vi.fn(),
+    list: vi.fn(),
+  },
+  feedApi: {
+    list: vi.fn(),
+  },
 }));
 
 vi.mock('../lib/thumbnail', () => ({
@@ -50,10 +57,11 @@ vi.mock('../lib/thumbnail', () => ({
   generateVideoThumbnail: vi.fn().mockResolvedValue(new Blob(['thumb'], { type: 'image/jpeg' })),
 }));
 
-import { elementsApi, optionsApi } from '../lib/api';
+import { elementsApi, optionsApi, approvalsApi } from '../lib/api';
 
 const mockedElementsApi = vi.mocked(elementsApi);
 const mockedOptionsApi = vi.mocked(optionsApi);
+const mockedApprovalsApi = vi.mocked(approvalsApi);
 
 import ElementDetailPage from '../app/productions/[id]/scripts/[scriptId]/elements/[elementId]/page';
 
@@ -237,5 +245,125 @@ describe('Element detail page', () => {
     await user.click(screen.getByRole('button', { name: /archive/i }));
 
     expect(mockedOptionsApi.update).toHaveBeenCalledWith('opt-1', { status: 'ARCHIVED' });
+  });
+
+  it('calls approvalsApi.create when approving an option', async () => {
+    const user = userEvent.setup();
+    const readyOptions = [{ ...mockOptions[0], readyForReview: true }];
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: readyOptions });
+    mockedApprovalsApi.create.mockResolvedValue({
+      approval: {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-1',
+        decision: 'APPROVED',
+        note: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+    mockedApprovalsApi.list.mockResolvedValue({ approvals: [] });
+
+    render(<ElementDetailPage />);
+
+    await screen.findByText('Costume reference');
+    await user.click(screen.getByRole('button', { name: /approve/i }));
+
+    expect(mockedApprovalsApi.create).toHaveBeenCalledWith('opt-1', {
+      decision: 'APPROVED',
+      note: undefined,
+    });
+  });
+
+  it('refreshes after approval submission', async () => {
+    const user = userEvent.setup();
+    const readyOptions = [{ ...mockOptions[0], readyForReview: true }];
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: readyOptions });
+    mockedApprovalsApi.create.mockResolvedValue({
+      approval: {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-1',
+        decision: 'APPROVED',
+        note: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+    mockedApprovalsApi.list.mockResolvedValue({ approvals: [] });
+
+    render(<ElementDetailPage />);
+
+    await screen.findByText('Costume reference');
+    await user.click(screen.getByRole('button', { name: /approve/i }));
+
+    // Should re-fetch options after approval
+    // Initial load + refresh after approval = at least 2 calls
+    await vi.waitFor(() => {
+      expect(mockedOptionsApi.list.mock.calls.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it('shows Locked banner when element has approved option', async () => {
+    const approvedOptions = [
+      {
+        ...mockOptions[0],
+        readyForReview: true,
+        approvals: [
+          {
+            id: 'appr-1',
+            optionId: 'opt-1',
+            userId: 'user-1',
+            decision: 'APPROVED',
+            note: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            user: { id: 'user-1', name: 'Jane Director' },
+          },
+        ],
+      },
+    ];
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: approvedOptions });
+    mockedApprovalsApi.list.mockResolvedValue({
+      approvals: approvedOptions[0].approvals,
+    });
+
+    render(<ElementDetailPage />);
+
+    expect(await screen.findByText(/locked/i)).toBeInTheDocument();
+  });
+
+  it('hides Add Option button when element is locked', async () => {
+    const approvedOptions = [
+      {
+        ...mockOptions[0],
+        readyForReview: true,
+        approvals: [
+          {
+            id: 'appr-1',
+            optionId: 'opt-1',
+            userId: 'user-1',
+            decision: 'APPROVED',
+            note: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            user: { id: 'user-1', name: 'Jane Director' },
+          },
+        ],
+      },
+    ];
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: approvedOptions });
+    mockedApprovalsApi.list.mockResolvedValue({
+      approvals: approvedOptions[0].approvals,
+    });
+
+    render(<ElementDetailPage />);
+
+    await screen.findByText('Costume reference');
+    expect(screen.queryByRole('button', { name: /add option/i })).not.toBeInTheDocument();
   });
 });

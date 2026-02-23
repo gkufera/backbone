@@ -116,4 +116,34 @@ describe('OptionCard', () => {
     await user.click(screen.getByRole('button', { name: /archive/i }));
     expect(mockOnArchive).toHaveBeenCalledWith('opt-1');
   });
+
+  it('renders approval decision badge when latestDecision is provided', () => {
+    render(
+      <OptionCard
+        option={mockOption}
+        onToggleReady={mockOnToggleReady}
+        onArchive={mockOnArchive}
+        latestDecision="APPROVED"
+      />,
+    );
+
+    expect(screen.getByText('APPROVED')).toBeInTheDocument();
+  });
+
+  it('renders approval buttons when onApprove is provided', () => {
+    const mockOnApprove = vi.fn();
+
+    render(
+      <OptionCard
+        option={mockOption}
+        onToggleReady={mockOnToggleReady}
+        onArchive={mockOnArchive}
+        onApprove={mockOnApprove}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /reject/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /maybe/i })).toBeInTheDocument();
+  });
 });

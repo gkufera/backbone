@@ -5,8 +5,10 @@ import { useParams } from 'next/navigation';
 import {
   elementsApi,
   optionsApi,
+  approvalsApi,
   type ElementResponse,
   type OptionResponse,
+  type ApprovalResponse,
 } from '../../../../../../../lib/api';
 import { OptionGallery } from '../../../../../../../components/option-gallery';
 import { OptionUploadForm } from '../../../../../../../components/option-upload-form';
@@ -17,6 +19,9 @@ export default function ElementDetailPage() {
 
   const [element, setElement] = useState<ElementResponse | null>(null);
   const [options, setOptions] = useState<OptionResponse[]>([]);
+  const [optionApprovals, setOptionApprovals] = useState<
+    Record<string, { latestDecision?: string; approvals: ApprovalResponse[] }>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
@@ -37,6 +42,8 @@ export default function ElementDetailPage() {
 
       const { options: opts } = await optionsApi.list(elementId);
       setOptions(opts);
+
+      await loadApprovals(opts);
     } catch {
       setError('Failed to load element');
     } finally {
@@ -44,9 +51,38 @@ export default function ElementDetailPage() {
     }
   }
 
+  async function loadApprovals(opts: OptionResponse[]) {
+    const approvalMap: Record<string, { latestDecision?: string; approvals: ApprovalResponse[] }> =
+      {};
+
+    for (const opt of opts) {
+      // Check if option already has approvals inline (from feed-style response)
+      const optAny = opt as OptionResponse & { approvals?: ApprovalResponse[] };
+      if (optAny.approvals && optAny.approvals.length > 0) {
+        approvalMap[opt.id] = {
+          latestDecision: optAny.approvals[0].decision,
+          approvals: optAny.approvals,
+        };
+      } else if (opt.readyForReview) {
+        try {
+          const { approvals } = await approvalsApi.list(opt.id);
+          approvalMap[opt.id] = {
+            latestDecision: approvals.length > 0 ? approvals[0].decision : undefined,
+            approvals,
+          };
+        } catch {
+          approvalMap[opt.id] = { approvals: [] };
+        }
+      }
+    }
+
+    setOptionApprovals(approvalMap);
+  }
+
   async function refreshOptions() {
     const { options: opts } = await optionsApi.list(elementId);
     setOptions(opts);
+    await loadApprovals(opts);
   }
 
   async function handleToggleReady(optionId: string) {
@@ -70,6 +106,15 @@ export default function ElementDetailPage() {
     }
   }
 
+  async function handleApprove(optionId: string, decision: string, note?: string) {
+    try {
+      await approvalsApi.create(optionId, { decision, note });
+      await refreshOptions();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit approval');
+    }
+  }
+
   async function handleOptionCreated() {
     setShowUploadForm(false);
     await refreshOptions();
@@ -90,6 +135,11 @@ export default function ElementDetailPage() {
   const optionCount = options.length;
   const optionLabel = optionCount === 1 ? '1 option' : `${optionCount} options`;
 
+  const isLocked = options.some((opt) => {
+    const approval = optionApprovals[opt.id];
+    return approval?.latestDecision === 'APPROVED';
+  });
+
   return (
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6">
@@ -102,18 +152,26 @@ export default function ElementDetailPage() {
         </div>
       </div>
 
+      {isLocked && (
+        <div className="mb-4 rounded bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+          Element is locked — an option has been approved.
+        </div>
+      )}
+
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Options ({optionLabel})</h2>
-          <button
-            onClick={() => setShowUploadForm(!showUploadForm)}
-            className="rounded bg-black px-3 py-1 text-sm text-white"
-          >
-            Add Option
-          </button>
+          {!isLocked && (
+            <button
+              onClick={() => setShowUploadForm(!showUploadForm)}
+              className="rounded bg-black px-3 py-1 text-sm text-white"
+            >
+              Add Option
+            </button>
+          )}
         </div>
 
-        {showUploadForm && (
+        {showUploadForm && !isLocked && (
           <div className="mb-4">
             <OptionUploadForm elementId={elementId} onOptionCreated={handleOptionCreated} />
           </div>
@@ -123,6 +181,8 @@ export default function ElementDetailPage() {
           options={options}
           onToggleReady={handleToggleReady}
           onArchive={handleArchiveOption}
+          optionApprovals={optionApprovals}
+          onApprove={handleApprove}
         />
       </section>
     </div>
