@@ -5,6 +5,7 @@ import type {
   Element,
   Option,
   Approval,
+  RevisionMatch,
 } from '@backbone/shared/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
@@ -132,6 +133,30 @@ export const scriptsApi = {
     scriptId: string,
   ): Promise<{ script: ScriptResponse & { elements: ElementWithCountResponse[] } }> {
     return request(`/api/productions/${productionId}/scripts/${scriptId}`);
+  },
+
+  uploadRevision(
+    productionId: string,
+    scriptId: string,
+    data: { title: string; fileName: string; s3Key: string },
+  ): Promise<{ script: ScriptResponse }> {
+    return request(`/api/productions/${productionId}/scripts/${scriptId}/revisions`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  getVersions(
+    productionId: string,
+    scriptId: string,
+  ): Promise<{
+    versions: Array<
+      Pick<ScriptResponse, 'id' | 'title' | 'version' | 'status' | 'pageCount' | 'createdAt'> & {
+        parentScriptId: string | null;
+      }
+    >;
+  }> {
+    return request(`/api/productions/${productionId}/scripts/${scriptId}/versions`);
   },
 };
 
@@ -278,5 +303,30 @@ export const approvalsApi = {
 export const feedApi = {
   list(productionId: string): Promise<{ elements: FeedElementResponse[] }> {
     return request(`/api/productions/${productionId}/feed`);
+  },
+};
+
+export type RevisionMatchResponse = JsonSerialized<RevisionMatch> & {
+  oldElement?: ElementResponse & {
+    _count?: { options: number };
+    options?: Array<{
+      approvals: Array<{ decision: string }>;
+    }>;
+  };
+};
+
+export const revisionMatchesApi = {
+  get(scriptId: string): Promise<{ matches: RevisionMatchResponse[] }> {
+    return request(`/api/scripts/${scriptId}/revision-matches`);
+  },
+
+  resolve(
+    scriptId: string,
+    decisions: Array<{ matchId: string; decision: 'map' | 'create_new' | 'keep' | 'archive' }>,
+  ): Promise<{ message: string }> {
+    return request(`/api/scripts/${scriptId}/revision-matches/resolve`, {
+      method: 'POST',
+      body: JSON.stringify({ decisions }),
+    });
   },
 };
