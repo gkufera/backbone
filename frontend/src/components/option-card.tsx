@@ -11,6 +11,7 @@ interface OptionCardProps {
   latestDecision?: string;
   onApprove?: (optionId: string, decision: string, note?: string) => void;
   approvals?: ApprovalResponse[];
+  disableApproval?: boolean;
 }
 
 const decisionColors: Record<string, string> = {
@@ -26,6 +27,7 @@ export function OptionCard({
   latestDecision,
   onApprove,
   approvals,
+  disableApproval,
 }: OptionCardProps) {
   return (
     <div className="rounded border p-3">
@@ -67,6 +69,7 @@ export function OptionCard({
           <ApprovalButtons
             onSubmit={(decision, note) => onApprove(option.id, decision, note)}
             currentDecision={latestDecision}
+            disabled={disableApproval}
           />
         </div>
       )}

@@ -25,6 +25,7 @@ export default function ElementDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [submittingApproval, setSubmittingApproval] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -108,10 +109,13 @@ export default function ElementDetailPage() {
 
   async function handleApprove(optionId: string, decision: string, note?: string) {
     try {
+      setSubmittingApproval(true);
       await approvalsApi.create(optionId, { decision, note });
       await refreshOptions();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit approval');
+    } finally {
+      setSubmittingApproval(false);
     }
   }
 
@@ -183,6 +187,7 @@ export default function ElementDetailPage() {
           onArchive={handleArchiveOption}
           optionApprovals={optionApprovals}
           onApprove={handleApprove}
+          disableApproval={submittingApproval}
         />
       </section>
     </div>

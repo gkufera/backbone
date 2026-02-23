@@ -9,6 +9,7 @@ interface OptionGalleryProps {
   onArchive: (optionId: string) => void;
   optionApprovals?: Record<string, { latestDecision?: string; approvals?: ApprovalResponse[] }>;
   onApprove?: (optionId: string, decision: string, note?: string) => void;
+  disableApproval?: boolean;
 }
 
 export function OptionGallery({
@@ -17,6 +18,7 @@ export function OptionGallery({
   onArchive,
   optionApprovals,
   onApprove,
+  disableApproval,
 }: OptionGalleryProps) {
   if (options.length === 0) {
     return <p className="text-zinc-500">No options yet. Add an option to get started.</p>;
@@ -33,6 +35,7 @@ export function OptionGallery({
           latestDecision={optionApprovals?.[opt.id]?.latestDecision}
           onApprove={onApprove}
           approvals={optionApprovals?.[opt.id]?.approvals}
+          disableApproval={disableApproval}
         />
       ))}
     </div>

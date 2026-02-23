@@ -5,9 +5,10 @@ import { useState } from 'react';
 interface ApprovalButtonsProps {
   onSubmit: (decision: string, note?: string) => void;
   currentDecision?: string;
+  disabled?: boolean;
 }
 
-export function ApprovalButtons({ onSubmit, currentDecision }: ApprovalButtonsProps) {
+export function ApprovalButtons({ onSubmit, currentDecision, disabled }: ApprovalButtonsProps) {
   const [showNote, setShowNote] = useState(false);
   const [note, setNote] = useState('');
 
@@ -20,31 +21,34 @@ export function ApprovalButtons({ onSubmit, currentDecision }: ApprovalButtonsPr
       <div className="flex gap-2">
         <button
           onClick={() => handleDecision('APPROVED')}
+          disabled={disabled}
           className={`rounded px-3 py-1 text-xs font-medium ${
             currentDecision === 'APPROVED'
               ? 'bg-green-600 text-white'
               : 'bg-green-100 text-green-800 hover:bg-green-200'
-          }`}
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Approve
         </button>
         <button
           onClick={() => handleDecision('REJECTED')}
+          disabled={disabled}
           className={`rounded px-3 py-1 text-xs font-medium ${
             currentDecision === 'REJECTED'
               ? 'bg-red-600 text-white'
               : 'bg-red-100 text-red-800 hover:bg-red-200'
-          }`}
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Reject
         </button>
         <button
           onClick={() => handleDecision('MAYBE')}
+          disabled={disabled}
           className={`rounded px-3 py-1 text-xs font-medium ${
             currentDecision === 'MAYBE'
               ? 'bg-yellow-600 text-white'
               : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-          }`}
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Maybe
         </button>

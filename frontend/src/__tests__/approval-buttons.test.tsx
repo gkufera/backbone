@@ -65,4 +65,12 @@ describe('ApprovalButtons', () => {
     const approveBtn = screen.getByRole('button', { name: /approve/i });
     expect(approveBtn.className).toMatch(/bg-green/);
   });
+
+  it('disables all decision buttons when disabled prop is true', () => {
+    render(<ApprovalButtons onSubmit={mockOnSubmit} disabled={true} />);
+
+    expect(screen.getByRole('button', { name: /approve/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /reject/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /maybe/i })).toBeDisabled();
+  });
 });
