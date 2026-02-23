@@ -1,3 +1,5 @@
+export const DEPARTMENT_NAME_MAX_LENGTH = 100;
+
 export const DEFAULT_DEPARTMENTS = [
   'Costume',
   'Props',

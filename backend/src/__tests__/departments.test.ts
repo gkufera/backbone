@@ -180,6 +180,19 @@ describe('POST /api/productions/:id/departments', () => {
     expect(res.body.error).toMatch(/name/i);
   });
 
+  it('returns 400 when department name exceeds max length', async () => {
+    mockOwnerMembership();
+
+    const longName = 'A'.repeat(101);
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader())
+      .send({ name: longName });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/100/);
+  });
+
   it('returns 409 for duplicate department name', async () => {
     mockOwnerMembership();
 

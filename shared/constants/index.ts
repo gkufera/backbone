@@ -9,4 +9,4 @@ export {
   mediaTypeFromMime,
 } from './option.js';
 export { APPROVAL_NOTE_MAX_LENGTH } from './approval.js';
-export { DEFAULT_DEPARTMENTS } from './departments.js';
+export { DEFAULT_DEPARTMENTS, DEPARTMENT_NAME_MAX_LENGTH } from './departments.js';
