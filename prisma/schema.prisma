@@ -14,6 +14,35 @@ enum Role {
   ASSISTANT
 }
 
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ScriptStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  ERROR
+}
+
+enum ElementType {
+  CHARACTER
+  LOCATION
+  OTHER
+}
+
+enum ElementStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ElementSource {
+  AUTO
+  MANUAL
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -24,5 +53,74 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  createdProductions  Production[]       @relation("CreatedProductions")
+  productionMembers   ProductionMember[]
+  uploadedScripts     Script[]
+
   @@map("users")
+}
+
+model Production {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  createdBy   User               @relation("CreatedProductions", fields: [createdById], references: [id])
+  members     ProductionMember[]
+  scripts     Script[]
+
+  @@map("productions")
+}
+
+model ProductionMember {
+  id           String     @id @default(cuid())
+  productionId String     @map("production_id")
+  userId       String     @map("user_id")
+  role         MemberRole @default(MEMBER)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  production   Production @relation(fields: [productionId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@unique([productionId, userId])
+  @@map("production_members")
+}
+
+model Script {
+  id           String       @id @default(cuid())
+  productionId String       @map("production_id")
+  title        String
+  fileName     String       @map("file_name")
+  s3Key        String       @map("s3_key")
+  pageCount    Int?         @map("page_count")
+  status       ScriptStatus @default(UPLOADING)
+  uploadedById String       @map("uploaded_by_id")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  production   Production   @relation(fields: [productionId], references: [id])
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
+  elements     Element[]
+
+  @@map("scripts")
+}
+
+model Element {
+  id          String        @id @default(cuid())
+  scriptId    String        @map("script_id")
+  name        String
+  type        ElementType   @default(OTHER)
+  pageNumbers Int[]         @map("page_numbers")
+  status      ElementStatus @default(ACTIVE)
+  source      ElementSource @default(AUTO)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  script      Script        @relation(fields: [scriptId], references: [id])
+
+  @@map("elements")
 }
