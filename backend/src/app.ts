@@ -4,6 +4,7 @@ import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { productionsRouter } from './routes/productions.js';
 import { scriptsRouter } from './routes/scripts.js';
+import { elementsRouter } from './routes/elements.js';
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(healthRouter);
 app.use(authRouter);
 app.use(productionsRouter);
 app.use(scriptsRouter);
+app.use(elementsRouter);
 
 // Global error handler — safety net for any unhandled errors
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
