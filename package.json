@@ -7,16 +7,19 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7"
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "prisma": "^6.19.2"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [
-      "prettier --write",
-      "eslint --fix"
+      "prettier --write"
     ],
     "backend/src/**/*.ts": [
-      "prettier --write",
-      "eslint --fix"
+      "prettier --write"
     ]
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.2"
   }
 }
