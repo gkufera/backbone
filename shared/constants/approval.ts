@@ -1,0 +1,1 @@
+export const APPROVAL_NOTE_MAX_LENGTH = 500;

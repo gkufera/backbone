@@ -9,3 +9,4 @@ export {
   OPTION_ALLOWED_CONTENT_TYPES,
   mediaTypeFromMime,
 } from './option.js';
+export { APPROVAL_NOTE_MAX_LENGTH } from './approval.js';

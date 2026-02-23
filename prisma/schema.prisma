@@ -56,6 +56,12 @@ enum OptionStatus {
   ARCHIVED
 }
 
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+  MAYBE
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -70,6 +76,7 @@ model User {
   productionMembers   ProductionMember[]
   uploadedScripts     Script[]
   uploadedOptions     Option[]           @relation("UploadedOptions")
+  approvals           Approval[]
 
   @@map("users")
 }
@@ -157,6 +164,22 @@ model Option {
 
   element         Element      @relation(fields: [elementId], references: [id])
   uploadedBy      User         @relation("UploadedOptions", fields: [uploadedById], references: [id])
+  approvals       Approval[]
 
   @@map("options")
+}
+
+model Approval {
+  id        String           @id @default(cuid())
+  optionId  String           @map("option_id")
+  userId    String           @map("user_id")
+  decision  ApprovalDecision
+  note      String?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  option    Option           @relation(fields: [optionId], references: [id])
+  user      User             @relation(fields: [userId], references: [id])
+
+  @@map("approvals")
 }

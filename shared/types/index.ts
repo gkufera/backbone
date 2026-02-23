@@ -12,3 +12,6 @@ export type { Element } from './element.js';
 
 export { MediaType, OptionStatus } from './option.js';
 export type { Option } from './option.js';
+
+export { ApprovalDecision } from './approval.js';
+export type { Approval } from './approval.js';
