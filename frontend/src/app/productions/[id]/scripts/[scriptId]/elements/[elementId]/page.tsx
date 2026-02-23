@@ -44,14 +44,18 @@ export default function ElementDetailPage() {
     }
   }
 
+  async function refreshOptions() {
+    const { options: opts } = await optionsApi.list(elementId);
+    setOptions(opts);
+  }
+
   async function handleToggleReady(optionId: string) {
     const option = options.find((o) => o.id === optionId);
     if (!option) return;
 
     try {
       await optionsApi.update(optionId, { readyForReview: !option.readyForReview });
-      const { options: opts } = await optionsApi.list(elementId);
-      setOptions(opts);
+      await refreshOptions();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update option');
     }
@@ -60,8 +64,7 @@ export default function ElementDetailPage() {
   async function handleArchiveOption(optionId: string) {
     try {
       await optionsApi.update(optionId, { status: 'ARCHIVED' });
-      const { options: opts } = await optionsApi.list(elementId);
-      setOptions(opts);
+      await refreshOptions();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to archive option');
     }
@@ -69,8 +72,7 @@ export default function ElementDetailPage() {
 
   async function handleOptionCreated() {
     setShowUploadForm(false);
-    const { options: opts } = await optionsApi.list(elementId);
-    setOptions(opts);
+    await refreshOptions();
   }
 
   if (isLoading) {
