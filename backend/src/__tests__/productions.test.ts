@@ -240,13 +240,13 @@ describe('GET /api/productions/:id', () => {
           user: { id: 'user-1', name: 'Test User', email: 'test@example.com' },
           departmentMembers: [
             {
-              department: { id: 'dept-1', name: 'Art' },
+              department: { id: 'dept-1', name: 'Production Design' },
             },
           ],
         },
       ],
       scripts: [],
-      departments: [{ id: 'dept-1', name: 'Art', createdAt: new Date(), updatedAt: new Date() }],
+      departments: [{ id: 'dept-1', name: 'Production Design', createdAt: new Date(), updatedAt: new Date() }],
     } as any);
 
     const res = await request(app).get('/api/productions/prod-1').set(authHeader());

@@ -8,5 +8,5 @@ export const DEFAULT_DEPARTMENTS = [
   'Hair & Makeup',
   'VFX',
   'Sound',
-  'Art',
+  'Production Design',
 ] as const;

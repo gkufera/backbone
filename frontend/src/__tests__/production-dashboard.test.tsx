@@ -58,14 +58,14 @@ const mockProduction = {
       role: 'OWNER',
       title: 'Director',
       user: { id: 'user-1', name: 'Test Owner', email: 'owner@example.com' },
-      departmentMembers: [{ department: { id: 'dept-1', name: 'Art' } }],
+      departmentMembers: [{ department: { id: 'dept-1', name: 'Production Design' } }],
     },
   ],
   scripts: [],
   departments: [
     {
       id: 'dept-1',
-      name: 'Art',
+      name: 'Production Design',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -76,7 +76,7 @@ const mockDepartments = [
   {
     id: 'dept-1',
     productionId: 'prod-1',
-    name: 'Art',
+    name: 'Production Design',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     members: [],
@@ -123,8 +123,8 @@ describe('Production dashboard', () => {
     render(<ProductionDashboard />);
 
     await screen.findByText('Test Owner');
-    // The member has department badge "Art"
-    const badges = screen.getAllByText('Art');
+    // The member has department badge "Production Design"
+    const badges = screen.getAllByText('Production Design');
     expect(badges.length).toBeGreaterThan(0);
   });
 
