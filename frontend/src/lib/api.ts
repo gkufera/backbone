@@ -152,6 +152,42 @@ export const scriptsApi = {
   },
 };
 
+export interface ElementResponse {
+  id: string;
+  name: string;
+  type: string;
+  pageNumbers: number[];
+  status: string;
+  source: string;
+}
+
+export const elementsApi = {
+  list(scriptId: string, includeArchived = false): Promise<{ elements: ElementResponse[] }> {
+    const qs = includeArchived ? '?includeArchived=true' : '';
+    return request(`/api/scripts/${scriptId}/elements${qs}`);
+  },
+
+  create(
+    scriptId: string,
+    data: { name: string; type?: string; pageNumbers?: number[] },
+  ): Promise<{ element: ElementResponse }> {
+    return request(`/api/scripts/${scriptId}/elements`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  update(
+    elementId: string,
+    data: { name?: string; type?: string; status?: string; pageNumbers?: number[] },
+  ): Promise<{ element: ElementResponse }> {
+    return request(`/api/elements/${elementId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export const authApi = {
   signup(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
     return request<AuthResponse>('/api/auth/signup', {

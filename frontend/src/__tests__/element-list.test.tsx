@@ -1,0 +1,91 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ElementList } from '../components/element-list';
+
+describe('Element list', () => {
+  const mockElements = [
+    {
+      id: 'elem-1',
+      name: 'JOHN',
+      type: 'CHARACTER',
+      pageNumbers: [1, 5, 12],
+      status: 'ACTIVE',
+      source: 'AUTO',
+    },
+    {
+      id: 'elem-2',
+      name: 'MARY',
+      type: 'CHARACTER',
+      pageNumbers: [3],
+      status: 'ACTIVE',
+      source: 'AUTO',
+    },
+    {
+      id: 'elem-3',
+      name: 'INT. OFFICE - DAY',
+      type: 'LOCATION',
+      pageNumbers: [1],
+      status: 'ACTIVE',
+      source: 'AUTO',
+    },
+    {
+      id: 'elem-4',
+      name: 'MAGIC RING',
+      type: 'OTHER',
+      pageNumbers: [7],
+      status: 'ACTIVE',
+      source: 'MANUAL',
+    },
+  ];
+
+  const mockOnArchive = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('groups elements by type (Characters, Locations, Other)', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    expect(screen.getByText('Characters')).toBeInTheDocument();
+    expect(screen.getByText('Locations')).toBeInTheDocument();
+    expect(screen.getByText('Other')).toBeInTheDocument();
+  });
+
+  it('shows page numbers for each element', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    // JOHN appears on pages 1, 5, 12
+    expect(screen.getByText('p. 1, 5, 12')).toBeInTheDocument();
+    // MARY appears on page 3
+    expect(screen.getByText('p. 3')).toBeInTheDocument();
+  });
+
+  it('renders archive button for each element', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    const archiveButtons = screen.getAllByRole('button', { name: /archive/i });
+    expect(archiveButtons.length).toBe(4);
+  });
+
+  it('calls onArchive when archive button is clicked', async () => {
+    const user = userEvent.setup();
+
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    const archiveButtons = screen.getAllByRole('button', { name: /archive/i });
+    await user.click(archiveButtons[0]);
+
+    expect(mockOnArchive).toHaveBeenCalledWith('elem-1');
+  });
+
+  it('renders element names', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    expect(screen.getByText('JOHN')).toBeInTheDocument();
+    expect(screen.getByText('MARY')).toBeInTheDocument();
+    expect(screen.getByText('INT. OFFICE - DAY')).toBeInTheDocument();
+    expect(screen.getByText('MAGIC RING')).toBeInTheDocument();
+  });
+});
