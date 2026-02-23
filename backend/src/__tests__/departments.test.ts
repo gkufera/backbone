@@ -46,6 +46,11 @@ const memberUser = {
   email: 'member@example.com',
 };
 
+const adminUser = {
+  userId: 'user-admin',
+  email: 'admin@example.com',
+};
+
 const nonMemberUser = {
   userId: 'user-nonmember',
   email: 'nonmember@example.com',
@@ -62,6 +67,18 @@ function mockOwnerMembership() {
     productionId: 'prod-1',
     userId: 'user-owner',
     role: 'OWNER',
+    title: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any);
+}
+
+function mockAdminMembership() {
+  mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+    id: 'pm-admin',
+    productionId: 'prod-1',
+    userId: 'user-admin',
+    role: 'ADMIN',
     title: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -219,6 +236,38 @@ describe('POST /api/productions/:id/departments', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('ADMIN can create a department', async () => {
+    mockAdminMembership();
+
+    mockedPrisma.department.create.mockResolvedValue({
+      id: 'dept-new',
+      productionId: 'prod-1',
+      name: 'Stunts',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader(adminUser))
+      .send({ name: 'Stunts' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.department.name).toBe('Stunts');
+  });
+
+  it('returns 400 when department name is only whitespace', async () => {
+    mockOwnerMembership();
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader())
+      .send({ name: '   ' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/name/i);
+  });
 });
 
 describe('DELETE /api/productions/:id/departments/:departmentId', () => {
@@ -303,6 +352,45 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
       .set(authHeader(memberUser));
 
     expect(res.status).toBe(403);
+  });
+
+  it('ADMIN can delete a department', async () => {
+    mockAdminMembership();
+
+    // Verify department belongs to production
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        departmentMember: {
+          deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+        },
+        department: {
+          delete: vi.fn().mockResolvedValue({
+            id: 'dept-1',
+            productionId: 'prod-1',
+            name: 'Costume',
+          }),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(adminUser));
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/deleted/i);
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app).delete('/api/productions/prod-1/departments/dept-1');
+
+    expect(res.status).toBe(401);
   });
 });
 
@@ -467,6 +555,14 @@ describe('POST /api/productions/:id/departments/:departmentId/members', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments/dept-1/members')
+      .send({ productionMemberId: 'pm-member' });
+
+    expect(res.status).toBe(401);
+  });
 });
 
 describe('DELETE /api/productions/:id/departments/:departmentId/members/:memberId', () => {
@@ -545,5 +641,13 @@ describe('DELETE /api/productions/:id/departments/:departmentId/members/:memberI
       .set(authHeader(nonMemberUser));
 
     expect(res.status).toBe(403);
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app).delete(
+      '/api/productions/prod-1/departments/dept-1/members/dm-1',
+    );
+
+    expect(res.status).toBe(401);
   });
 });
