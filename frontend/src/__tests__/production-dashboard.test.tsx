@@ -102,4 +102,52 @@ describe('Production dashboard', () => {
 
     expect(await screen.findByText(/failed to load production/i)).toBeInTheDocument();
   });
+
+  it('calls addMember API when form is submitted', async () => {
+    const user = userEvent.setup();
+    const updatedProduction = {
+      ...mockProduction,
+      members: [
+        ...mockProduction.members,
+        {
+          id: 'member-2',
+          userId: 'user-2',
+          role: 'MEMBER',
+          user: { id: 'user-2', name: 'New Person', email: 'new@example.com' },
+        },
+      ],
+    };
+
+    mockedApi.get.mockResolvedValueOnce({ production: mockProduction });
+    mockedApi.addMember.mockResolvedValue({
+      member: { id: 'member-2', productionId: 'prod-1', userId: 'user-2', role: 'MEMBER' },
+    });
+    mockedApi.get.mockResolvedValueOnce({ production: updatedProduction });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Film One');
+
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    await user.type(emailInput, 'new@example.com');
+    await user.click(screen.getByRole('button', { name: /add member/i }));
+
+    expect(mockedApi.addMember).toHaveBeenCalledWith('prod-1', 'new@example.com');
+  });
+
+  it('shows error when addMember fails', async () => {
+    const user = userEvent.setup();
+    mockedApi.get.mockResolvedValue({ production: mockProduction });
+    mockedApi.addMember.mockRejectedValue(new Error('No user found with that email'));
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Film One');
+
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    await user.type(emailInput, 'bad@example.com');
+    await user.click(screen.getByRole('button', { name: /add member/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/no user found/i);
+  });
 });

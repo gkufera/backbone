@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next/navigation', () => ({
@@ -179,5 +180,92 @@ describe('Script viewer', () => {
     render(<ScriptViewerPage />);
 
     expect(await screen.findByText(/failed to load script/i)).toBeInTheDocument();
+  });
+
+  it('calls elementsApi.create when add element form is submitted', async () => {
+    const user = userEvent.setup();
+    const mockScript = {
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'Test Script',
+      fileName: 'test.pdf',
+      s3Key: 'scripts/uuid/test.pdf',
+      pageCount: 120,
+      status: 'READY',
+      uploadedById: 'user-1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      elements: [],
+    };
+
+    mockedScriptsApi.get.mockResolvedValue({ script: mockScript });
+    mockedElementsApi.create.mockResolvedValue({
+      element: {
+        id: 'elem-new',
+        name: 'NEW CHARACTER',
+        type: 'CHARACTER',
+        pageNumbers: [],
+        status: 'ACTIVE',
+        source: 'MANUAL',
+        scriptId: 'script-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('Test Script');
+
+    await user.click(screen.getByRole('button', { name: /add element/i }));
+    await user.type(screen.getByPlaceholderText(/element name/i), 'NEW CHARACTER');
+    await user.click(screen.getByRole('button', { name: /^add$/i }));
+
+    expect(mockedElementsApi.create).toHaveBeenCalledWith('script-1', {
+      name: 'NEW CHARACTER',
+      type: 'CHARACTER',
+    });
+  });
+
+  it('calls elementsApi.update with ARCHIVED when archive button clicked', async () => {
+    const user = userEvent.setup();
+    const mockScript = {
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'Test Script',
+      fileName: 'test.pdf',
+      s3Key: 'scripts/uuid/test.pdf',
+      pageCount: 120,
+      status: 'READY',
+      uploadedById: 'user-1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      elements: [
+        {
+          id: 'elem-1',
+          name: 'JOHN',
+          type: 'CHARACTER',
+          pageNumbers: [1, 5],
+          status: 'ACTIVE',
+          source: 'AUTO',
+          scriptId: 'script-1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    };
+
+    mockedScriptsApi.get.mockResolvedValue({ script: mockScript });
+    mockedElementsApi.update.mockResolvedValue({
+      element: { ...mockScript.elements[0], status: 'ARCHIVED' },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('JOHN');
+
+    await user.click(screen.getByRole('button', { name: /archive john/i }));
+
+    expect(mockedElementsApi.update).toHaveBeenCalledWith('elem-1', { status: 'ARCHIVED' });
   });
 });
