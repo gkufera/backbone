@@ -54,6 +54,10 @@
           {
             "type": "agent",
             "prompt": "Read PLAN.md and verify: 1) Was each planned step completed? 2) Was TDD followed (failing test first, then implementation, then passing test)? 3) Were commits made at each logical step? 4) Do all Tier 1 tests pass? If ANY step was skipped or incomplete, DO NOT approve stopping. List what is missing and explain what still needs to be done. Only if everything is 100% complete, confirm all plan steps are verified complete."
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/notify.sh 'Claude Code' 'Task complete' 'default' 'white_check_mark'"
           }
         ]
       }
