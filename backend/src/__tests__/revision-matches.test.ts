@@ -367,6 +367,40 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
     );
   });
 
+  it('returns 400 when matchId not found', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-2',
+      productionId: 'prod-1',
+      status: 'RECONCILING',
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(mockMembership as any);
+
+    // Only match-1 exists in DB
+    mockedPrisma.revisionMatch.findMany.mockResolvedValue([
+      {
+        id: 'match-1',
+        matchStatus: 'FUZZY',
+        oldElementId: 'elem-1',
+        detectedName: 'JOHN',
+        detectedType: 'CHARACTER',
+        detectedPages: [1],
+      },
+    ] as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-2/revision-matches/resolve')
+      .set(authHeader())
+      .send({
+        decisions: [
+          { matchId: 'match-1', decision: 'map' },
+          { matchId: 'nonexistent-id', decision: 'archive' },
+        ],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/nonexistent-id/);
+  });
+
   it('returns 400 for invalid decisions', async () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-2',

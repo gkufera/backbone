@@ -133,11 +133,21 @@ revisionMatchesRouter.post(
 
       const matchMap = new Map(matches.map((m) => [m.id, m]));
 
+      // Validate all matchIds exist
+      const unknownIds = decisions
+        .map((d: { matchId: string }) => d.matchId)
+        .filter((id: string) => !matchMap.has(id));
+      if (unknownIds.length > 0) {
+        res.status(400).json({
+          error: `Unknown matchIds: ${unknownIds.join(', ')}`,
+        });
+        return;
+      }
+
       // Process decisions in a transaction
       await prisma.$transaction(async (tx) => {
         for (const { matchId, decision } of decisions) {
-          const match = matchMap.get(matchId);
-          if (!match) continue;
+          const match = matchMap.get(matchId)!;
 
           switch (decision) {
             case 'map':
