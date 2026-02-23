@@ -1,7 +1,8 @@
 'use client';
 
-import type { OptionResponse } from '../lib/api';
+import type { OptionResponse, ApprovalResponse } from '../lib/api';
 import { ApprovalButtons } from './approval-buttons';
+import { ApprovalHistory } from './approval-history';
 
 interface OptionCardProps {
   option: OptionResponse;
@@ -9,6 +10,7 @@ interface OptionCardProps {
   onArchive: (optionId: string) => void;
   latestDecision?: string;
   onApprove?: (optionId: string, decision: string, note?: string) => void;
+  approvals?: ApprovalResponse[];
 }
 
 const decisionColors: Record<string, string> = {
@@ -23,6 +25,7 @@ export function OptionCard({
   onArchive,
   latestDecision,
   onApprove,
+  approvals,
 }: OptionCardProps) {
   return (
     <div className="rounded border p-3">
@@ -67,6 +70,8 @@ export function OptionCard({
           />
         </div>
       )}
+
+      {approvals && approvals.length > 0 && <ApprovalHistory approvals={approvals} />}
 
       <div className="flex gap-2">
         <button

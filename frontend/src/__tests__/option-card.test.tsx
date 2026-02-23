@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OptionCard } from '../components/option-card';
+import type { ApprovalResponse } from '../lib/api';
 
 const mockOption = {
   id: 'opt-1',
@@ -145,5 +146,32 @@ describe('OptionCard', () => {
     expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /reject/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /maybe/i })).toBeInTheDocument();
+  });
+
+  it('renders approval history when approvals are provided', () => {
+    const approvals: ApprovalResponse[] = [
+      {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-1',
+        decision: 'APPROVED',
+        note: 'Looks great',
+        createdAt: '2026-02-23T12:00:00Z',
+        updatedAt: '2026-02-23T12:00:00Z',
+        user: { id: 'user-1', name: 'Jane Director' },
+      },
+    ];
+
+    render(
+      <OptionCard
+        option={mockOption}
+        onToggleReady={mockOnToggleReady}
+        onArchive={mockOnArchive}
+        approvals={approvals}
+      />,
+    );
+
+    expect(screen.getByText('Jane Director')).toBeInTheDocument();
+    expect(screen.getByText(/Looks great/)).toBeInTheDocument();
   });
 });

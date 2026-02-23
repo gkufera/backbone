@@ -1,13 +1,13 @@
 'use client';
 
-import type { OptionResponse } from '../lib/api';
+import type { OptionResponse, ApprovalResponse } from '../lib/api';
 import { OptionCard } from './option-card';
 
 interface OptionGalleryProps {
   options: OptionResponse[];
   onToggleReady: (optionId: string) => void;
   onArchive: (optionId: string) => void;
-  optionApprovals?: Record<string, { latestDecision?: string }>;
+  optionApprovals?: Record<string, { latestDecision?: string; approvals?: ApprovalResponse[] }>;
   onApprove?: (optionId: string, decision: string, note?: string) => void;
 }
 
@@ -32,6 +32,7 @@ export function OptionGallery({
           onArchive={onArchive}
           latestDecision={optionApprovals?.[opt.id]?.latestDecision}
           onApprove={onApprove}
+          approvals={optionApprovals?.[opt.id]?.approvals}
         />
       ))}
     </div>
