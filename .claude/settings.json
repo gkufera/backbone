@@ -52,8 +52,8 @@
         "matcher": "",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Verify against PLAN.md: 1) Was each planned step completed? 2) Was TDD followed (failing test first, then implementation, then passing test)? 3) Were commits made at each logical step? 4) Do all Tier 1 tests pass? If ANY check fails, respond with {\"ok\": false, \"reason\": \"what is missing or incomplete\"}. Only if everything is 100% complete, respond with {\"ok\": true}. You MUST respond with ONLY valid JSON, no other text."
+            "type": "agent",
+            "prompt": "Read PLAN.md and verify: 1) Was each planned step completed? 2) Was TDD followed (failing test first, then implementation, then passing test)? 3) Were commits made at each logical step? 4) Do all Tier 1 tests pass? If ANY step was skipped or incomplete, DO NOT approve stopping. List what is missing and explain what still needs to be done. Only if everything is 100% complete, confirm all plan steps are verified complete."
           }
         ]
       }
