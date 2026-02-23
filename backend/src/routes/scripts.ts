@@ -4,6 +4,7 @@ import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { generateUploadUrl } from '../lib/s3.js';
 import { processScript } from '../services/script-processor.js';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
+import { ScriptStatus, ElementStatus } from '@backbone/shared/types';
 
 const scriptsRouter = Router();
 
@@ -68,7 +69,7 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
         title,
         fileName,
         s3Key,
-        status: 'PROCESSING',
+        status: ScriptStatus.PROCESSING,
         uploadedById: authReq.user.userId,
       },
     });
@@ -143,7 +144,7 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
       where: { id: scriptId, productionId: id },
       include: {
         elements: {
-          where: { status: 'ACTIVE' },
+          where: { status: ElementStatus.ACTIVE },
           orderBy: { name: 'asc' },
         },
       },

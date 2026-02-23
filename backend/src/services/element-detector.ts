@@ -1,3 +1,5 @@
+import { ElementType } from '@backbone/shared/types';
+
 export interface PageText {
   pageNumber: number;
   text: string;
@@ -5,7 +7,7 @@ export interface PageText {
 
 export interface DetectedElement {
   name: string;
-  type: 'CHARACTER' | 'LOCATION';
+  type: ElementType.CHARACTER | ElementType.LOCATION;
   pageNumbers: number[];
 }
 
@@ -74,7 +76,7 @@ export function detectElements(pages: PageText[]): DetectedElement[] {
       if (SLUGLINE_REGEX.test(line)) {
         // Clean up the slugline - remove trailing colons or numbers
         const cleanName = line.replace(/:\s*$/, '').trim();
-        addElement(elementMap, cleanName, 'LOCATION', page.pageNumber);
+        addElement(elementMap, cleanName, ElementType.LOCATION, page.pageNumber);
         continue;
       }
 
@@ -91,7 +93,7 @@ export function detectElements(pages: PageText[]): DetectedElement[] {
 
         if (isNoiseWord(normalized)) continue;
 
-        addElement(elementMap, normalized, 'CHARACTER', page.pageNumber);
+        addElement(elementMap, normalized, ElementType.CHARACTER, page.pageNumber);
       }
     }
   }
@@ -102,7 +104,7 @@ export function detectElements(pages: PageText[]): DetectedElement[] {
 function addElement(
   map: Map<string, DetectedElement>,
   name: string,
-  type: 'CHARACTER' | 'LOCATION',
+  type: ElementType.CHARACTER | ElementType.LOCATION,
   pageNumber: number,
 ): void {
   const existing = map.get(name);

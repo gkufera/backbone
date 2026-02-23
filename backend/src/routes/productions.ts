@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { PRODUCTION_TITLE_MAX_LENGTH } from '@backbone/shared/constants';
+import { MemberRole } from '@backbone/shared/types';
 
 const productionsRouter = Router();
 
@@ -38,7 +39,7 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
         data: {
           productionId: production.id,
           userId: authReq.user.userId,
-          role: 'OWNER',
+          role: MemberRole.OWNER,
         },
       });
 
@@ -144,7 +145,10 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
       },
     });
 
-    if (!requesterMembership || !['OWNER', 'ADMIN'].includes(requesterMembership.role)) {
+    if (
+      !requesterMembership ||
+      ![MemberRole.OWNER, MemberRole.ADMIN].includes(requesterMembership.role as MemberRole)
+    ) {
       res.status(403).json({ error: 'Only OWNER or ADMIN can add members' });
       return;
     }
@@ -180,7 +184,7 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
       data: {
         productionId: id,
         userId: userToAdd.id,
-        role: role || 'MEMBER',
+        role: role || MemberRole.MEMBER,
       },
     });
 
@@ -247,7 +251,10 @@ productionsRouter.delete(
         },
       });
 
-      if (!requesterMembership || !['OWNER', 'ADMIN'].includes(requesterMembership.role)) {
+      if (
+        !requesterMembership ||
+        ![MemberRole.OWNER, MemberRole.ADMIN].includes(requesterMembership.role as MemberRole)
+      ) {
         res.status(403).json({ error: 'Only OWNER or ADMIN can remove members' });
         return;
       }
@@ -262,7 +269,7 @@ productionsRouter.delete(
         return;
       }
 
-      if (memberToRemove[0].role === 'OWNER') {
+      if (memberToRemove[0].role === MemberRole.OWNER) {
         res.status(403).json({ error: 'Cannot remove the OWNER of a production' });
         return;
       }

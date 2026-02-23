@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { ElementType, ElementStatus, ElementSource } from '@backbone/shared/types';
 
 const elementsRouter = Router();
 
@@ -45,10 +46,10 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
       data: {
         scriptId,
         name: String(name).trim(),
-        type: type || 'OTHER',
+        type: type || ElementType.OTHER,
         pageNumbers: pageNumbers || [],
-        status: 'ACTIVE',
-        source: 'MANUAL',
+        status: ElementStatus.ACTIVE,
+        source: ElementSource.MANUAL,
       },
     });
 
@@ -91,9 +92,9 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
       return;
     }
 
-    const where: any = { scriptId };
+    const where: { scriptId: string; status?: ElementStatus } = { scriptId };
     if (!includeArchived) {
-      where.status = 'ACTIVE';
+      where.status = ElementStatus.ACTIVE;
     }
 
     const elements = await prisma.element.findMany({
@@ -141,7 +142,8 @@ elementsRouter.patch('/api/elements/:id', requireAuth, async (req, res) => {
       return;
     }
 
-    const updateData: any = {};
+    const updateData: { name?: string; type?: string; status?: string; pageNumbers?: number[] } =
+      {};
     if (name !== undefined) updateData.name = String(name).trim();
     if (type !== undefined) updateData.type = type;
     if (status !== undefined) updateData.status = status;
