@@ -1,0 +1,348 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import request from 'supertest';
+import { app } from '../app.js';
+import { signToken } from '../lib/jwt.js';
+
+// Mock Prisma client
+vi.mock('../lib/prisma.js', () => ({
+  prisma: {
+    user: {
+      findUnique: vi.fn(),
+    },
+    production: {
+      findUnique: vi.fn(),
+    },
+    productionMember: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+    },
+    department: {
+      findMany: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
+    departmentMember: {
+      create: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    $transaction: vi.fn(),
+  },
+}));
+
+import { prisma } from '../lib/prisma.js';
+
+const mockedPrisma = vi.mocked(prisma);
+
+const ownerUser = {
+  userId: 'user-owner',
+  email: 'owner@example.com',
+};
+
+const memberUser = {
+  userId: 'user-member',
+  email: 'member@example.com',
+};
+
+const nonMemberUser = {
+  userId: 'user-nonmember',
+  email: 'nonmember@example.com',
+};
+
+function authHeader(user = ownerUser) {
+  const token = signToken(user);
+  return { Authorization: `Bearer ${token}` };
+}
+
+function mockOwnerMembership() {
+  mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+    id: 'pm-owner',
+    productionId: 'prod-1',
+    userId: 'user-owner',
+    role: 'OWNER',
+    title: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any);
+}
+
+function mockMemberMembership() {
+  mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+    id: 'pm-member',
+    productionId: 'prod-1',
+    userId: 'user-member',
+    role: 'MEMBER',
+    title: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any);
+}
+
+function mockNonMembership() {
+  mockedPrisma.productionMember.findUnique.mockResolvedValueOnce(null);
+  mockedPrisma.production.findUnique.mockResolvedValueOnce({
+    id: 'prod-1',
+    title: 'Test Production',
+  } as any);
+}
+
+describe('GET /api/productions/:id/departments', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns department list for a production member', async () => {
+    mockOwnerMembership();
+
+    mockedPrisma.department.findMany.mockResolvedValue([
+      {
+        id: 'dept-1',
+        productionId: 'prod-1',
+        name: 'Costume',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [
+          {
+            id: 'dm-1',
+            departmentId: 'dept-1',
+            productionMemberId: 'pm-owner',
+            createdAt: new Date(),
+            productionMember: {
+              id: 'pm-owner',
+              user: { id: 'user-owner', name: 'Owner', email: 'owner@example.com' },
+            },
+          },
+        ],
+      },
+    ] as any);
+
+    const res = await request(app).get('/api/productions/prod-1/departments').set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.departments).toHaveLength(1);
+    expect(res.body.departments[0].name).toBe('Costume');
+    expect(res.body.departments[0].members).toHaveLength(1);
+  });
+
+  it('returns 403 for non-member', async () => {
+    mockNonMembership();
+
+    const res = await request(app)
+      .get('/api/productions/prod-1/departments')
+      .set(authHeader(nonMemberUser));
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app).get('/api/productions/prod-1/departments');
+
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('POST /api/productions/:id/departments', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('creates a custom department', async () => {
+    mockOwnerMembership();
+
+    mockedPrisma.department.create.mockResolvedValue({
+      id: 'dept-new',
+      productionId: 'prod-1',
+      name: 'Stunts',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader())
+      .send({ name: 'Stunts' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.department.name).toBe('Stunts');
+  });
+
+  it('returns 400 when name is missing', async () => {
+    mockOwnerMembership();
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader())
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/name/i);
+  });
+
+  it('returns 409 for duplicate department name', async () => {
+    mockOwnerMembership();
+
+    const prismaError = new Error('Unique constraint failed') as any;
+    prismaError.code = 'P2002';
+    mockedPrisma.department.create.mockRejectedValue(prismaError);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader())
+      .send({ name: 'Costume' });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/already exists/i);
+  });
+
+  it('returns 403 for non-OWNER/ADMIN', async () => {
+    mockMemberMembership();
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader(memberUser))
+      .send({ name: 'Stunts' });
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('DELETE /api/productions/:id/departments/:departmentId', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('deletes a department and its assignments', async () => {
+    mockOwnerMembership();
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        departmentMember: {
+          deleteMany: vi.fn().mockResolvedValue({ count: 2 }),
+        },
+        department: {
+          delete: vi.fn().mockResolvedValue({
+            id: 'dept-1',
+            productionId: 'prod-1',
+            name: 'Costume',
+          }),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/deleted/i);
+  });
+
+  it('returns 403 for non-OWNER/ADMIN', async () => {
+    mockMemberMembership();
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(memberUser));
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('POST /api/productions/:id/departments/:departmentId/members', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('assigns a production member to a department', async () => {
+    mockOwnerMembership();
+
+    mockedPrisma.departmentMember.create.mockResolvedValue({
+      id: 'dm-new',
+      departmentId: 'dept-1',
+      productionMemberId: 'pm-member',
+      createdAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments/dept-1/members')
+      .set(authHeader())
+      .send({ productionMemberId: 'pm-member' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.departmentMember.departmentId).toBe('dept-1');
+    expect(res.body.departmentMember.productionMemberId).toBe('pm-member');
+  });
+
+  it('returns 400 when productionMemberId is missing', async () => {
+    mockOwnerMembership();
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments/dept-1/members')
+      .set(authHeader())
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/productionMemberId/i);
+  });
+
+  it('returns 409 for duplicate assignment', async () => {
+    mockOwnerMembership();
+
+    const prismaError = new Error('Unique constraint failed') as any;
+    prismaError.code = 'P2002';
+    mockedPrisma.departmentMember.create.mockRejectedValue(prismaError);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments/dept-1/members')
+      .set(authHeader())
+      .send({ productionMemberId: 'pm-member' });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/already/i);
+  });
+
+  it('returns 403 for non-member', async () => {
+    mockNonMembership();
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments/dept-1/members')
+      .set(authHeader(nonMemberUser))
+      .send({ productionMemberId: 'pm-member' });
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('DELETE /api/productions/:id/departments/:departmentId/members/:memberId', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('removes a member from a department', async () => {
+    mockOwnerMembership();
+
+    mockedPrisma.departmentMember.delete.mockResolvedValue({
+      id: 'dm-1',
+      departmentId: 'dept-1',
+      productionMemberId: 'pm-member',
+      createdAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1/members/dm-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/removed/i);
+  });
+
+  it('returns 403 for non-member', async () => {
+    mockNonMembership();
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1/members/dm-1')
+      .set(authHeader(nonMemberUser));
+
+    expect(res.status).toBe(403);
+  });
+});

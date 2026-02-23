@@ -8,6 +8,7 @@ import { elementsRouter } from './routes/elements.js';
 import { optionsRouter } from './routes/options.js';
 import { approvalsRouter } from './routes/approvals.js';
 import { revisionMatchesRouter } from './routes/revision-matches.js';
+import { departmentsRouter } from './routes/departments.js';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(elementsRouter);
 app.use(optionsRouter);
 app.use(approvalsRouter);
 app.use(revisionMatchesRouter);
+app.use(departmentsRouter);
 
 // Global error handler — safety net for any unhandled errors
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
