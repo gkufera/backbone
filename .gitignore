@@ -24,6 +24,9 @@ prisma/*.db-journal
 # IDE
 .vscode/
 .idea/
+
+# Local Claude settings (machine-specific)
+.claude/settings.local.json
 *.swp
 *.swo
 *~
@@ -40,5 +43,3 @@ npm-debug.log*
 playwright-report/
 test-results/
 
-# Sample scripts (large binary files)
-sample_scripts/
