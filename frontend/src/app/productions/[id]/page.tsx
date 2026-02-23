@@ -1,0 +1,120 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { productionsApi, type ProductionDetailResponse } from '../../../lib/api';
+
+export default function ProductionDashboard() {
+  const params = useParams();
+  const id = params.id as string;
+
+  const [production, setProduction] = useState<ProductionDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [memberEmail, setMemberEmail] = useState('');
+  const [memberError, setMemberError] = useState('');
+
+  useEffect(() => {
+    productionsApi
+      .get(id)
+      .then((data) => setProduction(data.production))
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [id]);
+
+  async function handleAddMember(e: React.FormEvent) {
+    e.preventDefault();
+    setMemberError('');
+
+    try {
+      await productionsApi.addMember(id, memberEmail);
+      setMemberEmail('');
+      // Refresh production data
+      const data = await productionsApi.get(id);
+      setProduction(data.production);
+    } catch (err) {
+      setMemberError(err instanceof Error ? err.message : 'Failed to add member');
+    }
+  }
+
+  if (isLoading) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  if (!production) {
+    return <div className="p-6">Production not found.</div>;
+  }
+
+  return (
+    <div className="mx-auto max-w-3xl p-6">
+      <h1 className="mb-6 text-3xl font-bold">{production.title}</h1>
+      {production.description && <p className="mb-6 text-zinc-500">{production.description}</p>}
+
+      {/* Team Members */}
+      <section className="mb-8">
+        <h2 className="mb-3 text-xl font-semibold">Team Members</h2>
+        <ul className="mb-4 space-y-2">
+          {production.members.map((m) => (
+            <li key={m.id} className="flex items-center justify-between rounded border p-3">
+              <div>
+                <span className="font-medium">{m.user.name}</span>
+                <span className="ml-2 text-sm text-zinc-500">{m.user.email}</span>
+              </div>
+              <span className="text-xs uppercase text-zinc-400">{m.role}</span>
+            </li>
+          ))}
+        </ul>
+
+        <form onSubmit={handleAddMember} className="flex gap-2">
+          <input
+            type="email"
+            placeholder="Enter email to invite"
+            value={memberEmail}
+            onChange={(e) => setMemberEmail(e.target.value)}
+            className="flex-1 rounded border p-2"
+            required
+          />
+          <button type="submit" className="rounded bg-black px-4 py-2 text-white">
+            Add Member
+          </button>
+        </form>
+        {memberError && (
+          <p role="alert" className="mt-2 text-sm text-red-600">
+            {memberError}
+          </p>
+        )}
+      </section>
+
+      {/* Scripts */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Scripts</h2>
+          <Link
+            href={`/productions/${id}/scripts/upload`}
+            className="rounded bg-black px-4 py-2 text-white"
+          >
+            Upload Script
+          </Link>
+        </div>
+
+        {production.scripts.length === 0 ? (
+          <p className="text-zinc-500">No scripts uploaded yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {production.scripts.map((s) => (
+              <li key={s.id}>
+                <Link
+                  href={`/productions/${id}/scripts/${s.id}`}
+                  className="block rounded border p-3 hover:bg-zinc-50"
+                >
+                  <span className="font-medium">{s.title}</span>
+                  <span className="ml-2 text-xs uppercase text-zinc-400">{s.status}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}

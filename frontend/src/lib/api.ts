@@ -34,6 +34,80 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export interface ProductionResponse {
+  id: string;
+  title: string;
+  description: string | null;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  memberRole?: string;
+}
+
+export interface ProductionDetailResponse extends ProductionResponse {
+  members: Array<{
+    id: string;
+    userId: string;
+    role: string;
+    user: { id: string; name: string; email: string };
+  }>;
+  scripts: Array<{
+    id: string;
+    title: string;
+    fileName: string;
+    status: string;
+    createdAt: string;
+  }>;
+}
+
+export interface MemberResponse {
+  id: string;
+  productionId: string;
+  userId: string;
+  role: string;
+}
+
+export const productionsApi = {
+  create(data: {
+    title: string;
+    description?: string;
+  }): Promise<{ production: ProductionResponse; member: MemberResponse }> {
+    return request('/api/productions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  list(): Promise<{ productions: ProductionResponse[] }> {
+    return request('/api/productions');
+  },
+
+  get(id: string): Promise<{ production: ProductionDetailResponse }> {
+    return request(`/api/productions/${id}`);
+  },
+
+  addMember(productionId: string, email: string): Promise<{ member: MemberResponse }> {
+    return request(`/api/productions/${productionId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  listMembers(
+    productionId: string,
+  ): Promise<{
+    members: Array<MemberResponse & { user: { id: string; name: string; email: string } }>;
+  }> {
+    return request(`/api/productions/${productionId}/members`);
+  },
+
+  removeMember(productionId: string, memberId: string): Promise<{ message: string }> {
+    return request(`/api/productions/${productionId}/members/${memberId}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
 export const authApi = {
   signup(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
     return request<AuthResponse>('/api/auth/signup', {
