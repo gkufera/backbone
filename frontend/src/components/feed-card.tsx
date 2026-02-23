@@ -28,15 +28,7 @@ export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
   const optionCount = element.options.length;
   const optionLabel = optionCount === 1 ? '1 option' : `${optionCount} options`;
 
-  const workflowState = (element as any).workflowState as string | undefined;
-  const badge = workflowState ? WORKFLOW_BADGE[workflowState] : null;
-
-  // Fallback: compute from approvals if workflowState not present
-  const hasApproved =
-    !badge &&
-    element.options.some(
-      (opt) => opt.approvals.length > 0 && opt.approvals[0].decision === 'APPROVED',
-    );
+  const badge = WORKFLOW_BADGE[element.workflowState] ?? null;
 
   return (
     <Link
@@ -60,11 +52,6 @@ export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
               className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${badge.className}`}
             >
               {badge.label}
-            </span>
-          )}
-          {hasApproved && (
-            <span className="ml-2 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-              Approved
             </span>
           )}
         </div>

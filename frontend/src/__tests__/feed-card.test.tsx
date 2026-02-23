@@ -10,6 +10,7 @@ const mockElement = {
   pageNumbers: [1, 5, 12],
   status: 'ACTIVE',
   source: 'AUTO',
+  workflowState: 'OUTSTANDING',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   options: [
@@ -81,10 +82,11 @@ describe('FeedCard', () => {
     expect(screen.getByText(/2 options/i)).toBeInTheDocument();
   });
 
-  it('shows approved badge when an option is approved', () => {
-    render(<FeedCard element={mockElement} productionId="prod-1" scriptId="script-1" />);
+  it('shows approved badge when workflowState is APPROVED', () => {
+    const approvedElement = { ...mockElement, workflowState: 'APPROVED' };
+    render(<FeedCard element={approvedElement} productionId="prod-1" scriptId="script-1" />);
 
-    expect(screen.getByText(/approved/i)).toBeInTheDocument();
+    expect(screen.getByText('Approved')).toBeInTheDocument();
   });
 
   it('displays workflow state badge on feed elements', () => {
