@@ -15,8 +15,8 @@ RUN cd frontend && npm ci
 # Copy frontend source
 COPY frontend/ ./frontend/
 
-# Build Next.js app
-RUN cd frontend && npm run build
+# Build Next.js app (use webpack mode for reliable shared alias resolution)
+RUN cd frontend && npx next build --webpack
 
 # --- Production stage ---
 FROM node:20-alpine
