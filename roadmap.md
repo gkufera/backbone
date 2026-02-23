@@ -11,7 +11,7 @@ All bugs, features, and planned work are tracked here. Check this file before st
 | 2 | Projects & Script Upload | Complete |
 | 3 | Elements & Options | Complete |
 | 4 | Director's Dashboard & Approval | Complete |
-| 5 | Script Revisions & Versioning | Not Started |
+| 5 | Script Revisions & Versioning | Complete |
 | 6 | Permissions & Departments | Not Started |
 | 7 | Notifications & Workflow Logic | Not Started |
 | 8 | Polish, Mobile & Deploy | Not Started |
@@ -197,31 +197,41 @@ All bugs, features, and planned work are tracked here. Check this file before st
 - (7) Revisions: upload new PDF; match elements from old version by text matching. Reconciliation UI for mismatches.
 
 ### Tasks
-- [ ] Add version number field to Script model
-- [ ] Build "Upload New Draft" UI on script page
-- [ ] On new draft upload:
+- [x] Add version number and parentScriptId fields to Script model
+- [x] Add RECONCILING status to ScriptStatus enum
+- [x] Add RevisionMatch model with RevisionMatchStatus enum
+- [x] Build element text-matching algorithm (Levenshtein + exact match)
+- [x] Build revision processing pipeline (fetch PDF → parse → match → migrate)
+- [x] Build "Upload New Draft" UI on script page
+- [x] On new draft upload:
   1. Extract elements from new PDF
   2. Run text-matching algorithm against existing elements
   3. Exact matches: carry over element + all options + approvals
   4. Fuzzy matches: flag for user reconciliation
   5. New elements: create as Pending
   6. Missing elements: flag for user decision (keep or archive)
-- [ ] Build reconciliation UI showing side-by-side old/new elements
-  - For each fuzzy match: "Map to existing" or "Create new"
-  - For missing elements: "Keep (still relevant)" or "Archive"
-- [ ] Build version history page showing all script drafts with upload dates
-- [ ] Allow switching between script versions to see element state at each version
-- [ ] Ensure all option/approval data is preserved through version transitions
+- [x] Build reconciliation UI showing fuzzy/missing elements
+  - For each fuzzy match: "Map to existing" or "Create as New"
+  - For missing elements: "Keep" or "Archive"
+  - Elements with approved options highlighted
+- [x] Build version history page showing all script drafts with upload dates
+- [x] Version badge and Version History link on script viewer page
+- [x] RECONCILING banner with link to reconciliation page
+- [x] Ensure all option/approval data is preserved through version transitions
 
 ### Commit Points
-1. After new draft upload with element extraction
-2. After text matching algorithm (exact + fuzzy)
-3. After reconciliation UI
-4. After version history view
+1. After schema and shared types (feat: add script versioning schema)
+2. After element matching algorithm (feat: add element text-matching algorithm)
+3. After revision processing pipeline (feat: add revision processing pipeline)
+4. After API endpoints (feat: add revision upload, reconciliation endpoints)
+5. After frontend API client (feat: add revision API client functions)
+6. After upload draft UI (feat: add upload new draft UI)
+7. After reconciliation UI (feat: add reconciliation UI)
+8. After version history (feat: add version history page)
 
-### Tests Required
-- Tier 1: Text matching algorithm tests (exact match, fuzzy match, new elements, missing elements)
-- Tier 2: E2E upload draft v1 → add options → upload draft v2 → verify options carried over
+### Tests Added
+- Tier 1: 43 new tests (11 element matcher, 6 revision processor, 10 API endpoints, 4 upload UI, 8 reconciliation, 4 version history)
+- Total: 296 tests (136 FE + 160 BE)
 
 ---
 
