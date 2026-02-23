@@ -1,7 +1,40 @@
 # Current Plan
 
 ## Active Task
-**Sprint 6: Departments & Member Titles — Complete**
+**Sprint 7: Notifications & Workflow Logic — Complete**
+
+## Completed (Sprint 7)
+
+### Phases
+
+| Phase | Focus | Commit | New Tests |
+|-------|-------|--------|-----------|
+| 1 | Schema + Shared Types | `feat: add notification and workflow state schema with shared types` | 0 |
+| 2 | Workflow State Machine | `feat: update element workflow state on approval and readyForReview` | +5 |
+| 3 | Notification Service + API | `feat: add notification service and API endpoints` | +10 |
+| 4 | Notification Triggers | `feat: trigger notifications on approval decisions and readyForReview` | +4 |
+| 5 | Email Service | `feat: add email notification service with Nodemailer` | +3 |
+| 6 | Frontend Bell + API Client | `feat: add notification bell component with dropdown` | +4 |
+| 7 | Notifications Page + Workflow Badge | `feat: add notifications page and element workflow state badges` | +5 |
+
+### Test Counts (Post Sprint 7)
+
+- **Frontend**: 151 tests (was 142, +9 new)
+- **Backend**: 213 tests (was 191, +22 new)
+- **Total**: 364 tests (was 333, +31 new)
+
+### Architecture
+
+- Element workflow state machine: PENDING → OUTSTANDING → APPROVED
+  - PENDING: no options marked ready for review
+  - OUTSTANDING: at least one option ready for review
+  - APPROVED: an option has been approved
+  - State transitions in approvals.ts and options.ts
+- Notification model with type, message, link, read status
+- Notification triggers: approval decisions notify uploader, readyForReview notifies all members
+- Email service via Nodemailer (controlled by EMAIL_ENABLED env var)
+- Frontend: NotificationBell component in production dashboard, full notifications page
+- Workflow state badges on feed cards (Pending=gray, Outstanding=yellow, Approved=green)
 
 ## Completed (Sprint 6)
 
@@ -104,4 +137,4 @@ Elements migrate between script versions by updating `scriptId`:
 | 7 | Wire into Detail | `feat: wire approval workflow into element detail page` | +6 |
 
 ## Next Up
-Sprint 7: Notifications & Workflow Logic
+Sprint 8: Slack Webhook Integration
