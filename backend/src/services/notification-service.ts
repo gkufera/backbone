@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { sendNotificationEmail } from './email-service.js';
 
 export async function createNotification(
   userId: string,
@@ -7,7 +8,7 @@ export async function createNotification(
   message: string,
   link?: string,
 ) {
-  return prisma.notification.create({
+  const notification = await prisma.notification.create({
     data: {
       userId,
       productionId,
@@ -16,6 +17,21 @@ export async function createNotification(
       link: link ?? null,
     },
   });
+
+  // Send email notification (non-blocking)
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (user?.email) {
+      await sendNotificationEmail(user.email, { type, message });
+    }
+  } catch (error) {
+    console.error('Failed to send notification email:', error);
+  }
+
+  return notification;
 }
 
 export async function notifyProductionMembers(
