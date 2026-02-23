@@ -13,17 +13,18 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock the auth API
-vi.mock('../lib/api', () => ({
-  authApi: {
+// Mock the auth context
+const mockLogin = vi.fn();
+vi.mock('../lib/auth-context', () => ({
+  useAuth: () => ({
+    login: mockLogin,
     signup: vi.fn(),
-    login: vi.fn(),
-    me: vi.fn(),
-  },
+    logout: vi.fn(),
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+  }),
 }));
-
-import { authApi } from '../lib/api';
-const mockedAuthApi = vi.mocked(authApi);
 
 describe('Login page', () => {
   beforeEach(() => {
@@ -44,18 +45,10 @@ describe('Login page', () => {
     expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument();
   });
 
-  it('calls login API with form data on submit', async () => {
+  it('calls auth context login and redirects to /productions on submit', async () => {
     const user = userEvent.setup();
 
-    mockedAuthApi.login.mockResolvedValue({
-      token: 'test-token',
-      user: {
-        id: 'test-id',
-        name: 'Test User',
-        email: 'test@example.com',
-        createdAt: new Date().toISOString(),
-      },
-    });
+    mockLogin.mockResolvedValue(undefined);
 
     render(<LoginPage />);
 
@@ -63,16 +56,14 @@ describe('Login page', () => {
     await user.type(screen.getByLabelText(/password/i), 'securepassword123');
     await user.click(screen.getByRole('button', { name: /log in/i }));
 
-    expect(mockedAuthApi.login).toHaveBeenCalledWith({
-      email: 'test@example.com',
-      password: 'securepassword123',
-    });
+    expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'securepassword123');
+    expect(mockPush).toHaveBeenCalledWith('/productions');
   });
 
   it('displays an error message when login fails', async () => {
     const user = userEvent.setup();
 
-    mockedAuthApi.login.mockRejectedValue(new Error('Invalid email or password'));
+    mockLogin.mockRejectedValue(new Error('Invalid email or password'));
 
     render(<LoginPage />);
 

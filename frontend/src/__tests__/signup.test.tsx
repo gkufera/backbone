@@ -13,17 +13,18 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock the auth API
-vi.mock('../lib/api', () => ({
-  authApi: {
-    signup: vi.fn(),
+// Mock the auth context
+const mockSignup = vi.fn();
+vi.mock('../lib/auth-context', () => ({
+  useAuth: () => ({
+    signup: mockSignup,
     login: vi.fn(),
-    me: vi.fn(),
-  },
+    logout: vi.fn(),
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+  }),
 }));
-
-import { authApi } from '../lib/api';
-const mockedAuthApi = vi.mocked(authApi);
 
 describe('Signup page', () => {
   beforeEach(() => {
@@ -45,18 +46,10 @@ describe('Signup page', () => {
     expect(screen.getByRole('link', { name: /log in/i })).toBeInTheDocument();
   });
 
-  it('calls signup API with form data on submit', async () => {
+  it('calls auth context signup and redirects to /productions on submit', async () => {
     const user = userEvent.setup();
 
-    mockedAuthApi.signup.mockResolvedValue({
-      token: 'test-token',
-      user: {
-        id: 'test-id',
-        name: 'Test User',
-        email: 'test@example.com',
-        createdAt: new Date().toISOString(),
-      },
-    });
+    mockSignup.mockResolvedValue(undefined);
 
     render(<SignupPage />);
 
@@ -65,17 +58,14 @@ describe('Signup page', () => {
     await user.type(screen.getByLabelText(/password/i), 'securepassword123');
     await user.click(screen.getByRole('button', { name: /sign up/i }));
 
-    expect(mockedAuthApi.signup).toHaveBeenCalledWith({
-      name: 'Test User',
-      email: 'test@example.com',
-      password: 'securepassword123',
-    });
+    expect(mockSignup).toHaveBeenCalledWith('Test User', 'test@example.com', 'securepassword123');
+    expect(mockPush).toHaveBeenCalledWith('/productions');
   });
 
   it('displays an error message when signup fails', async () => {
     const user = userEvent.setup();
 
-    mockedAuthApi.signup.mockRejectedValue(new Error('A user with this email already exists'));
+    mockSignup.mockRejectedValue(new Error('A user with this email already exists'));
 
     render(<SignupPage />);
 

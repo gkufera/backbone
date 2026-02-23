@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authApi } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { signup } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,9 +20,8 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.signup({ name, email, password });
-      localStorage.setItem('token', response.token);
-      router.push('/');
+      await signup(name, email, password);
+      router.push('/productions');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {

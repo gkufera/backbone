@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authApi } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,9 +19,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
-      localStorage.setItem('token', response.token);
-      router.push('/');
+      await login(email, password);
+      router.push('/productions');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
