@@ -127,4 +127,154 @@ productionsRouter.get('/api/productions/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Add a team member by email
+productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { id } = req.params;
+    const { email, role } = req.body;
+
+    // Check requester is OWNER or ADMIN
+    const requesterMembership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: id,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!requesterMembership || !['OWNER', 'ADMIN'].includes(requesterMembership.role)) {
+      res.status(403).json({ error: 'Only OWNER or ADMIN can add members' });
+      return;
+    }
+
+    if (!email) {
+      res.status(400).json({ error: 'Email is required' });
+      return;
+    }
+
+    // Find user by email
+    const userToAdd = await prisma.user.findUnique({ where: { email } });
+    if (!userToAdd) {
+      res.status(404).json({ error: 'No user found with that email' });
+      return;
+    }
+
+    // Check if already a member
+    const existingMember = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: id,
+          userId: userToAdd.id,
+        },
+      },
+    });
+
+    if (existingMember) {
+      res.status(409).json({ error: 'User is already a member of this production' });
+      return;
+    }
+
+    const member = await prisma.productionMember.create({
+      data: {
+        productionId: id,
+        userId: userToAdd.id,
+        role: role || 'MEMBER',
+      },
+    });
+
+    res.status(201).json({ member });
+  } catch (error) {
+    console.error('Add member error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// List production members
+productionsRouter.get('/api/productions/:id/members', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { id } = req.params;
+
+    // Check requester is a member
+    const requesterMembership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: id,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!requesterMembership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    const members = await prisma.productionMember.findMany({
+      where: { productionId: id },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    res.json({ members });
+  } catch (error) {
+    console.error('List members error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Remove a team member
+productionsRouter.delete(
+  '/api/productions/:id/members/:memberId',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { id, memberId } = req.params;
+
+      // Check requester is OWNER or ADMIN
+      const requesterMembership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: id,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (!requesterMembership || !['OWNER', 'ADMIN'].includes(requesterMembership.role)) {
+        res.status(403).json({ error: 'Only OWNER or ADMIN can remove members' });
+        return;
+      }
+
+      // Find the member to remove
+      const memberToRemove = await prisma.productionMember.findMany({
+        where: { id: memberId, productionId: id },
+      });
+
+      if (!memberToRemove.length) {
+        res.status(404).json({ error: 'Member not found' });
+        return;
+      }
+
+      if (memberToRemove[0].role === 'OWNER') {
+        res.status(403).json({ error: 'Cannot remove the OWNER of a production' });
+        return;
+      }
+
+      await prisma.productionMember.delete({ where: { id: memberId } });
+
+      res.json({ message: 'Member removed' });
+    } catch (error) {
+      console.error('Remove member error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
+
 export { productionsRouter };
