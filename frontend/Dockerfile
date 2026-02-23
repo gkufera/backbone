@@ -2,8 +2,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy shared types (needed for build-time resolution)
+# Copy shared types source and compile them
 COPY shared/ ./shared/
+RUN cd shared && npx -y typescript --project tsconfig.json
 
 # Copy frontend package files
 COPY frontend/package.json frontend/package-lock.json ./frontend/
@@ -22,8 +23,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy shared types (referenced at runtime by Next.js)
-COPY shared/ ./shared/
+# Copy compiled shared types
+COPY --from=builder /app/shared ./shared
 
 # Copy frontend package files and install production deps
 COPY frontend/package.json frontend/package-lock.json ./frontend/
