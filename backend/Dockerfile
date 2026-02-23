@@ -20,7 +20,7 @@ RUN npm ci --ignore-scripts && cd backend && npm ci
 # Copy backend source
 COPY backend/ ./backend/
 
-# Generate Prisma client
+# Generate Prisma client (output goes to backend/node_modules/.prisma/client)
 RUN npx prisma generate --schema=prisma/schema.prisma
 
 # Build backend
@@ -41,7 +41,6 @@ RUN cd backend && npm ci --omit=dev
 
 # Copy prisma schema, migrations, and CLI from builder
 COPY prisma/ ./prisma/
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
