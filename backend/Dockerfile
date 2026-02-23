@@ -5,7 +5,7 @@ WORKDIR /app
 # Copy root package files (for prisma CLI)
 COPY package.json package-lock.json ./
 
-# Copy prisma schema
+# Copy prisma schema and migrations
 COPY prisma/ ./prisma/
 
 # Copy shared types
@@ -39,8 +39,11 @@ RUN npm ci --omit=dev --ignore-scripts
 COPY backend/package.json backend/package-lock.json ./backend/
 RUN cd backend && npm ci --omit=dev
 
-# Copy prisma schema (needed for migrate deploy)
+# Copy prisma schema, migrations, and CLI from builder
 COPY prisma/ ./prisma/
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy generated Prisma client from builder
 COPY --from=builder /app/backend/node_modules/.prisma ./backend/node_modules/.prisma
@@ -49,7 +52,10 @@ COPY --from=builder /app/backend/node_modules/@prisma ./backend/node_modules/@pr
 # Copy built backend
 COPY --from=builder /app/backend/dist ./backend/dist
 
+# Copy startup script
+COPY backend/start.sh ./backend/start.sh
+RUN chmod +x ./backend/start.sh
+
 EXPOSE 8000
 
-# Run migrations then start the server
-CMD npx prisma migrate deploy --schema=prisma/schema.prisma && node backend/dist/index.js
+CMD ["./backend/start.sh"]
