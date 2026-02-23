@@ -27,7 +27,7 @@ export default function ElementDetailPage() {
 
   async function loadData() {
     try {
-      const { elements } = await elementsApi.list(params.scriptId as string, true);
+      const { elements } = await elementsApi.list(params.scriptId as string);
       const found = elements.find((e) => e.id === elementId);
       if (!found) {
         setError('Element not found');
