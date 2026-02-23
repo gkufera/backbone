@@ -13,7 +13,8 @@ import { notificationsRouter } from './routes/notifications.js';
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = process.env.CORS_ORIGINS?.split(',') ?? [];
+app.use(cors(allowedOrigins.length > 0 ? { origin: allowedOrigins } : undefined));
 app.use(express.json());
 
 app.use(healthRouter);
