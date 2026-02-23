@@ -52,8 +52,8 @@
         "matcher": "",
         "hooks": [
           {
-            "type": "command",
-            "command": "echo '[stop-hook] Reminder: Verify against PLAN.md — all steps completed, TDD followed, commits at each step, Tier 1 tests pass.'"
+            "type": "prompt",
+            "prompt": "Before finishing, verify against PLAN.md: 1) Was each planned step completed? 2) Was TDD followed (failing test first, then implementation, then passing test)? 3) Were commits made at each logical step? 4) Do all Tier 1 tests pass? If ANY step was skipped or incomplete, DO NOT stop. List what's missing and continue working. Only if everything is 100% complete, confirm '✅ All plan steps verified complete.'"
           }
         ]
       }
