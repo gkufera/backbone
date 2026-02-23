@@ -339,16 +339,17 @@ What remained:
 ### Completed
 - [x] Rebrand from Backbone to Slug Max (UI text, emails, tests, docs)
 - [x] Configure CORS from CORS_ORIGINS environment variable
+- [x] Add CORS configuration tests (TDD: 3 tests with createApp factory)
+- [x] Rebrand S3 default bucket, agent docs, Docker script
 - [x] Create production branch (main = development, production = auto-deploy)
 - [x] Write deployment documentation in CLAUDE.md (Railway + Cloudflare)
 
-### In Progress
-- [ ] Set up Railway deployment:
+- [ ] Set up Railway deployment (blocked: needs RAILWAY_TOKEN):
   - Frontend service (Next.js) — custom domain: slugmax.com
   - Backend service (Express) — custom domain: api.slugmax.com
   - PostgreSQL database service
   - Environment variables configured
-- [ ] Configure Cloudflare DNS (slugmax.com + api.slugmax.com CNAMEs)
+- [ ] Configure Cloudflare DNS (blocked: needs CLOUDFLARE_API_TOKEN)
 
 ### Remaining
 - [ ] Mobile-responsive audit of all pages:

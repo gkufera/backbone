@@ -16,6 +16,17 @@
 | 5 | Railway setup | Infrastructure | Frontend, backend, PostgreSQL services |
 | 6 | Cloudflare DNS | Infrastructure | slugmax.com + api.slugmax.com CNAMEs |
 | 7 | Deployment docs | `docs: add Slug Max deployment instructions` | CLAUDE.md deployment section |
+| 8 | CORS tests (TDD) | `test: add CORS configuration tests with app factory refactor` | 3 new tests, createApp factory |
+| 9 | S3 bucket rebrand | `fix: rebrand S3 default bucket name to slugmax-uploads` | Default fallback constant |
+| 10 | Agent docs + Docker | `docs: rebrand agent docs and Docker script to Slug Max` | pm-orchestrator, qa-reviewer, claude-docker.sh |
+
+### Blocked
+- Railway + Cloudflare CLI setup: requires RAILWAY_TOKEN and CLOUDFLARE_API_TOKEN env vars
+
+### Test Counts (Post Sprint 8 Cleanup)
+- **Frontend**: 156 tests
+- **Backend**: 219 tests (+3 CORS tests)
+- **Total**: 375 tests
 
 ## Previous: Sprint 7 — Complete
 
