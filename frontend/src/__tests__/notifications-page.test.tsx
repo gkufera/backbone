@@ -2,9 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: mockPush,
     replace: vi.fn(),
     prefetch: vi.fn(),
   }),
@@ -34,7 +35,7 @@ const mockNotifications = [
     productionId: 'prod-1',
     type: 'OPTION_APPROVED',
     message: 'Your option on JOHN was approved',
-    link: null,
+    link: '/productions/prod-1/scripts/script-1/elements/elem-1',
     read: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -93,6 +94,42 @@ describe('Notifications page', () => {
     await waitFor(() => {
       expect(mockedNotificationsApi.markAsRead).toHaveBeenCalledWith('notif-1');
     });
+  });
+
+  it('navigates to link when notification with link is clicked', async () => {
+    const user = userEvent.setup();
+    mockedNotificationsApi.list.mockResolvedValue({
+      notifications: mockNotifications,
+    });
+    mockedNotificationsApi.markAsRead.mockResolvedValue({
+      notification: { ...mockNotifications[0], read: true },
+    });
+
+    render(<NotificationsPage />);
+
+    await screen.findByText(/your option on john was approved/i);
+    await user.click(screen.getByText(/your option on john was approved/i));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        '/productions/prod-1/scripts/script-1/elements/elem-1',
+      );
+    });
+  });
+
+  it('does not navigate when notification has no link', async () => {
+    const user = userEvent.setup();
+    mockedNotificationsApi.list.mockResolvedValue({
+      notifications: mockNotifications,
+    });
+
+    render(<NotificationsPage />);
+
+    await screen.findByText(/new option on beach house is ready/i);
+    await user.click(screen.getByText(/new option on beach house is ready/i));
+
+    // Already read, so markAsRead not called, and no link so no navigation
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('distinguishes read vs unread notifications', async () => {

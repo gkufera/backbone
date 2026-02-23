@@ -2,9 +2,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: mockPush,
     replace: vi.fn(),
     prefetch: vi.fn(),
   }),
@@ -168,6 +169,59 @@ describe('NotificationBell', () => {
 
     await waitFor(() => {
       expect(mockedNotificationsApi.markAsRead).toHaveBeenCalledWith('notif-1');
+    });
+  });
+
+  it('navigates to link when notification with link is clicked', async () => {
+    const user = userEvent.setup();
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 1 });
+    mockedNotificationsApi.list.mockResolvedValue({
+      notifications: [
+        {
+          id: 'notif-1',
+          userId: 'user-1',
+          productionId: 'prod-1',
+          type: 'OPTION_APPROVED',
+          message: 'Your option on JOHN was approved',
+          link: '/productions/prod-1/scripts/script-1/elements/elem-1',
+          read: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    });
+    mockedNotificationsApi.markAsRead.mockResolvedValue({
+      notification: {
+        id: 'notif-1',
+        userId: 'user-1',
+        productionId: 'prod-1',
+        type: 'OPTION_APPROVED',
+        message: 'Your option on JOHN was approved',
+        link: '/productions/prod-1/scripts/script-1/elements/elem-1',
+        read: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<NotificationBell productionId="prod-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('1')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /notifications/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/your option on john was approved/i)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText(/your option on john was approved/i));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        '/productions/prod-1/scripts/script-1/elements/elem-1',
+      );
     });
   });
 });

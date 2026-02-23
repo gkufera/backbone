@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { notificationsApi, type NotificationResponse } from '../../../../lib/api';
 
 export default function NotificationsPage() {
   const params = useParams();
+  const router = useRouter();
   const productionId = params.id as string;
 
   const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
@@ -26,6 +27,9 @@ export default function NotificationsPage() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n)),
       );
+    }
+    if (notification.link) {
+      router.push(notification.link);
     }
   }
 

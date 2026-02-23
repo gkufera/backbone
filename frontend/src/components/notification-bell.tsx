@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { notificationsApi, type NotificationResponse } from '../lib/api';
 
 interface NotificationBellProps {
@@ -8,6 +9,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ productionId }: NotificationBellProps) {
+  const router = useRouter();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -37,6 +39,10 @@ export function NotificationBell({ productionId }: NotificationBellProps) {
         prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n)),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
+    if (notification.link) {
+      setIsOpen(false);
+      router.push(notification.link);
     }
   }
 
