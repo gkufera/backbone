@@ -1,4 +1,11 @@
-import type { Production, ProductionMember, Script, Element, Option } from '@backbone/shared/types';
+import type {
+  Production,
+  ProductionMember,
+  Script,
+  Element,
+  Option,
+  Approval,
+} from '@backbone/shared/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -237,5 +244,39 @@ export const authApi = {
 
   me(): Promise<{ user: AuthResponse['user'] }> {
     return request<{ user: AuthResponse['user'] }>('/api/auth/me');
+  },
+};
+
+export type ApprovalResponse = JsonSerialized<Approval> & {
+  user?: { id: string; name: string };
+};
+
+export type FeedOptionResponse = OptionResponse & {
+  approvals: ApprovalResponse[];
+};
+
+export type FeedElementResponse = JsonSerialized<Element> & {
+  options: FeedOptionResponse[];
+};
+
+export const approvalsApi = {
+  create(
+    optionId: string,
+    data: { decision: string; note?: string },
+  ): Promise<{ approval: ApprovalResponse }> {
+    return request(`/api/options/${optionId}/approvals`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  list(optionId: string): Promise<{ approvals: ApprovalResponse[] }> {
+    return request(`/api/options/${optionId}/approvals`);
+  },
+};
+
+export const feedApi = {
+  list(productionId: string): Promise<{ elements: FeedElementResponse[] }> {
+    return request(`/api/productions/${productionId}/feed`);
   },
 };
