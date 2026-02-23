@@ -64,6 +64,7 @@ export default function ProductionDashboard() {
   }
 
   async function handleDeleteDepartment(departmentId: string) {
+    if (!window.confirm('Delete this department? All member assignments will be removed.')) return;
     try {
       await departmentsApi.delete(id, departmentId);
       setDepartments((prev) => prev.filter((d) => d.id !== departmentId));

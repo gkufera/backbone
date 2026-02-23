@@ -233,6 +233,55 @@ describe('Production dashboard', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/no user found/i);
   });
 
+  it('confirms before deleting a department', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+
+    render(<ProductionDashboard />);
+    await screen.findByText('Departments');
+
+    // First: cancel the confirm — API should NOT be called
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
+
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    await user.click(deleteButtons[0]);
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(mockedDepartmentsApi.delete).not.toHaveBeenCalled();
+
+    // Second: accept the confirm — API should be called
+    confirmSpy.mockReturnValueOnce(true);
+    mockedDepartmentsApi.delete.mockResolvedValueOnce({});
+
+    await user.click(deleteButtons[0]);
+
+    expect(mockedDepartmentsApi.delete).toHaveBeenCalledWith('prod-1', 'dept-1');
+
+    confirmSpy.mockRestore();
+  });
+
+  it('removes department from list after successful deletion', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    mockedDepartmentsApi.delete.mockResolvedValueOnce({});
+
+    render(<ProductionDashboard />);
+    await screen.findByText('Departments');
+
+    expect(screen.getByText('Costume')).toBeInTheDocument();
+
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    // Delete Costume (second item, index 1)
+    await user.click(deleteButtons[1]);
+
+    // Costume should be removed from the DOM
+    expect(screen.queryByText('Costume')).not.toBeInTheDocument();
+
+    confirmSpy.mockRestore();
+  });
+
   it('creates a department when form is submitted', async () => {
     const user = userEvent.setup();
     setupMocks();
