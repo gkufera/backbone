@@ -60,6 +60,68 @@ describe('POST /api/auth/signup', () => {
     expect(res.body).toHaveProperty('error');
   });
 
+  it('returns 400 for invalid email format', async () => {
+    const res = await request(app).post('/api/auth/signup').send({
+      name: 'Test User',
+      email: 'notanemail',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/email/i);
+  });
+
+  it('returns 400 for password shorter than 8 characters', async () => {
+    const res = await request(app).post('/api/auth/signup').send({
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'short',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/password/i);
+  });
+
+  it('returns 400 for whitespace-only name', async () => {
+    const res = await request(app).post('/api/auth/signup').send({
+      name: '   ',
+      email: 'test@example.com',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/name/i);
+  });
+
+  it('trims name whitespace before creating user', async () => {
+    const mockUser = {
+      id: 'test-id-123',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      role: 'CONTRIBUTOR' as const,
+      departmentId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+    mockedPrisma.user.create.mockResolvedValue(mockUser);
+
+    const res = await request(app).post('/api/auth/signup').send({
+      name: '  Test User  ',
+      email: 'test@example.com',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ name: 'Test User' }),
+      }),
+    );
+  });
+
   it('returns 409 when email already exists', async () => {
     const existingUser = {
       id: 'existing-id',
@@ -156,6 +218,16 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('error');
+  });
+
+  it('returns 400 for invalid email format', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'notanemail',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/email/i);
   });
 
   it('returns 400 when required fields are missing', async () => {

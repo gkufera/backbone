@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { signToken } from '../lib/jwt.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { VALIDATION } from '@backbone/shared/constants';
 
 const authRouter = Router();
 
@@ -16,6 +17,24 @@ authRouter.post('/api/auth/signup', async (req, res) => {
     return;
   }
 
+  const trimmedName = String(name).trim();
+  if (!trimmedName) {
+    res.status(400).json({ error: 'Name cannot be blank' });
+    return;
+  }
+
+  if (!VALIDATION.EMAIL_REGEX.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
+    return;
+  }
+
+  if (String(password).length < VALIDATION.PASSWORD_MIN_LENGTH) {
+    res
+      .status(400)
+      .json({ error: `Password must be at least ${VALIDATION.PASSWORD_MIN_LENGTH} characters` });
+    return;
+  }
+
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
     res.status(409).json({ error: 'A user with this email already exists' });
@@ -26,7 +45,7 @@ authRouter.post('/api/auth/signup', async (req, res) => {
 
   const user = await prisma.user.create({
     data: {
-      name,
+      name: trimmedName,
       email,
       passwordHash,
     },
@@ -56,6 +75,11 @@ authRouter.post('/api/auth/login', async (req, res) => {
 
   if (!email || !password) {
     res.status(400).json({ error: 'Email and password are required' });
+    return;
+  }
+
+  if (!VALIDATION.EMAIL_REGEX.test(email)) {
+    res.status(400).json({ error: 'Invalid email format' });
     return;
   }
 
