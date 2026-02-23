@@ -296,3 +296,49 @@ describe('GET /api/auth/me', () => {
     expect(res.body).toHaveProperty('error');
   });
 });
+
+describe('Error handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 500 when Prisma throws on signup', async () => {
+    mockedPrisma.user.findUnique.mockRejectedValue(new Error('DB connection failed'));
+
+    const res = await request(app).post('/api/auth/signup').send({
+      name: 'Test User',
+      email: 'test@example.com',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: 'Internal server error' });
+  });
+
+  it('returns 500 when Prisma throws on login', async () => {
+    mockedPrisma.user.findUnique.mockRejectedValue(new Error('DB connection failed'));
+
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'test@example.com',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: 'Internal server error' });
+  });
+
+  it('returns 500 when Prisma throws on /me', async () => {
+    mockedPrisma.user.findUnique.mockRejectedValue(new Error('DB connection failed'));
+
+    const token = signToken({
+      userId: 'test-id-123',
+      email: 'test@example.com',
+      role: 'CONTRIBUTOR',
+    });
+
+    const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: 'Internal server error' });
+  });
+});

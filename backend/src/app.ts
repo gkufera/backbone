@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 
@@ -10,5 +10,11 @@ app.use(express.json());
 
 app.use(healthRouter);
 app.use(authRouter);
+
+// Global error handler — safety net for any unhandled errors
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 export { app };
