@@ -191,6 +191,58 @@ describe('POST /api/options/:optionId/approvals', () => {
 
     expect(res.status).toBe(404);
   });
+
+  it('returns 400 when option is archived', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ARCHIVED',
+      element: {
+        status: 'ACTIVE',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'OWNER',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/archived/i);
+  });
+
+  it('returns 400 when element is archived', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      element: {
+        status: 'ARCHIVED',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'OWNER',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/archived/i);
+  });
 });
 
 // ── GET /api/options/:optionId/approvals ──────────────────────────

@@ -38,6 +38,17 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
       return;
     }
 
+    // Validate option and element are not archived
+    if (option.status === 'ARCHIVED') {
+      res.status(400).json({ error: 'Cannot approve an archived option' });
+      return;
+    }
+
+    if (option.element.status === 'ARCHIVED') {
+      res.status(400).json({ error: 'Cannot approve an option on an archived element' });
+      return;
+    }
+
     // Check membership
     const membership = await prisma.productionMember.findUnique({
       where: {
