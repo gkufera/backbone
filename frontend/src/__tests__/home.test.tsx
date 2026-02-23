@@ -36,13 +36,13 @@ describe('Home page', () => {
     expect(screen.getByRole('heading', { name: /slug max/i })).toBeInTheDocument();
   });
 
-  it('renders tagline', () => {
+  it('does not render tagline', () => {
     render(
       <AuthProvider>
         <Home />
       </AuthProvider>,
     );
-    expect(screen.getByText(/production collaboration platform/i)).toBeInTheDocument();
+    expect(screen.queryByText(/production collaboration platform/i)).not.toBeInTheDocument();
   });
 
   it('shows login and signup links when not authenticated', async () => {
