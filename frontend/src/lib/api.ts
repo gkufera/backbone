@@ -93,9 +93,7 @@ export const productionsApi = {
     });
   },
 
-  listMembers(
-    productionId: string,
-  ): Promise<{
+  listMembers(productionId: string): Promise<{
     members: Array<MemberResponse & { user: { id: string; name: string; email: string } }>;
   }> {
     return request(`/api/productions/${productionId}/members`);
@@ -105,6 +103,52 @@ export const productionsApi = {
     return request(`/api/productions/${productionId}/members/${memberId}`, {
       method: 'DELETE',
     });
+  },
+};
+
+export interface ScriptResponse {
+  id: string;
+  productionId: string;
+  title: string;
+  fileName: string;
+  s3Key: string;
+  pageCount: number | null;
+  status: string;
+  uploadedById: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const scriptsApi = {
+  getUploadUrl(
+    fileName: string,
+    contentType: string,
+  ): Promise<{ uploadUrl: string; s3Key: string }> {
+    return request('/api/scripts/upload-url', {
+      method: 'POST',
+      body: JSON.stringify({ fileName, contentType }),
+    });
+  },
+
+  create(
+    productionId: string,
+    data: { title: string; fileName: string; s3Key: string },
+  ): Promise<{ script: ScriptResponse }> {
+    return request(`/api/productions/${productionId}/scripts`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  list(productionId: string): Promise<{ scripts: ScriptResponse[] }> {
+    return request(`/api/productions/${productionId}/scripts`);
+  },
+
+  get(
+    productionId: string,
+    scriptId: string,
+  ): Promise<{ script: ScriptResponse & { elements: any[] } }> {
+    return request(`/api/productions/${productionId}/scripts/${scriptId}`);
   },
 };
 
