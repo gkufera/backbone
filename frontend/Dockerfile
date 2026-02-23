@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy shared types source and compile them
 COPY shared/ ./shared/
-RUN cd shared && npx -y typescript --project tsconfig.json
+RUN npm install -g typescript && cd shared && tsc --project tsconfig.json
 
 # Copy frontend package files
 COPY frontend/package.json frontend/package-lock.json ./frontend/
