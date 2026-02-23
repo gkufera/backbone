@@ -9,7 +9,7 @@ All bugs, features, and planned work are tracked here. Check this file before st
 | 0 | Project Scaffolding | Complete |
 | 1 | Auth & User Management | Complete |
 | 2 | Projects & Script Upload | Complete |
-| 3 | Elements & Options | Not Started |
+| 3 | Elements & Options | Complete |
 | 4 | Director's Dashboard & Approval | Not Started |
 | 5 | Script Revisions & Versioning | Not Started |
 | 6 | Permissions & Departments | Not Started |
@@ -126,21 +126,21 @@ All bugs, features, and planned work are tracked here. Check this file before st
 - (11) Mark Ready for Review: options stay hidden from director until department signals completion
 
 ### Tasks
-- [ ] Create Prisma `Option` model: `{id, element_id, media_type, url, thumbnail_url, description, status, uploaded_by, ready_for_review, created_at}`
-- [ ] Build element detail page (`/productions/[id]/elements/[elementId]`)
-- [ ] Build option upload UI supporting multiple media types:
+- [x] Create Prisma `Option` model: `{id, element_id, media_type, url, thumbnail_url, description, status, uploaded_by, ready_for_review, created_at}`
+- [x] Build element detail page (`/productions/[id]/scripts/[scriptId]/elements/[elementId]`)
+- [x] Build option upload UI supporting multiple media types:
   - Images (jpg, png, webp)
   - Videos (mp4, mov)
   - Audio clips (mp3, wav)
   - PDFs (reference documents)
   - External links (URLs)
-- [ ] Implement S3 upload for media files with presigned URLs
-- [ ] Generate thumbnails for images and video (server-side or client-side)
-- [ ] Build option card component showing thumbnail, description, media type badge
-- [ ] Implement option gallery view (grid of all options for an element)
-- [ ] Add "Mark Ready for Review" button per option or per element
-- [ ] Options default to `draft` status, hidden from director until marked ready
-- [ ] Build department view showing their elements and option status
+- [x] Implement S3 upload for media files with presigned URLs
+- [x] Generate thumbnails for images and video (client-side Canvas API)
+- [x] Build option card component showing thumbnail, description, media type badge
+- [x] Implement option gallery view (grid of all options for an element)
+- [x] Add "Mark Ready for Review" button per option
+- [x] Options default to `ACTIVE` status with `readyForReview: false`, hidden from director until marked ready
+- [ ] Build department view showing their elements and option status (deferred to Sprint 6)
 
 ### Commit Points
 1. After Option model and basic CRUD API

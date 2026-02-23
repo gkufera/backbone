@@ -1,48 +1,83 @@
 # Current Plan
 
 ## Active Task
-**Check of Sprint 2** -- COMPLETE
+**Sprint 3: Elements & Options** -- COMPLETE
 
-## Steps
+## Phases
 
-### Step 1: Use shared enums in backend routes and services
-1. [x] Replace hardcoded enum strings with shared enums in productions.ts, scripts.ts, elements.ts, element-detector.ts
-2. [x] Replace `any` types in elements.ts with proper typed objects
-3. [x] All 134 tests pass (50 frontend + 84 backend)
-4. [x] COMMIT: "refactor: use shared enums in backend routes and services"
+### Phase 1: Prisma Schema + Shared Types & Constants
+- [x] Created `shared/types/option.ts` with MediaType, OptionStatus enums and Option interface
+- [x] Created `shared/constants/option.ts` with MIME types, max file size, mediaTypeFromMime()
+- [x] Updated barrel exports in shared/types/index.ts and shared/constants/index.ts
+- [x] Updated prisma/schema.prisma with Option model, MediaType/OptionStatus enums
+- [x] Created migration SQL
+- [x] All 141 existing tests pass
+- [x] COMMIT: "feat: add Option model, shared types, and constants"
 
-### Step 2: Use shared types in frontend API client and components
-5. [x] Derive response types from shared types using JsonSerialized utility
-6. [x] Remove duplicate type defs from ScriptViewerPage and ElementList
-7. [x] Fix `any[]` on scriptsApi.get() to use ElementResponse[]
-8. [x] All 134 tests pass (50 frontend + 84 backend)
-9. [x] COMMIT: "refactor: use shared types in frontend API client and components"
+### Phase 2: Backend Upload URL + Download URL Endpoints (TDD)
+- [x] Added generateMediaUploadUrl and generateDownloadUrl to s3.ts
+- [x] Created options.ts router with POST /api/options/upload-url and GET /api/options/download-url
+- [x] Registered optionsRouter in app.ts
+- [x] 9 new tests (all pass): upload-url (7) + download-url (2)
+- [x] 150 total tests (57 frontend + 93 backend)
+- [x] COMMIT: "feat: add presigned URL endpoints for option media uploads"
 
-### Step 3: Fix silent error handling in frontend pages (TDD)
-10. [x] Write 3 failing tests for error states on ProductionsPage, ProductionDashboard, ScriptViewerPage
-11. [x] Verify tests fail (TDD red phase)
-12. [x] Implement error states and try/catch on all pages
-13. [x] All 137 tests pass (53 frontend + 84 backend)
-14. [x] COMMIT: "fix: add error handling to frontend pages with tests"
+### Phase 3: Backend Option CRUD Endpoints (TDD)
+- [x] Added POST /api/elements/:elementId/options, GET /api/elements/:elementId/options, PATCH /api/options/:id
+- [x] 14 new tests (all pass): create (8) + list (4) + update (2)
+- [x] 164 total tests (57 frontend + 107 backend)
+- [x] COMMIT: "feat: add option CRUD API endpoints"
 
-### Step 4: Add missing interaction tests
-15. [x] Add 2 tests for addMember form submission and error on production dashboard
-16. [x] Add 2 tests for add element form and archive button on script viewer
-17. [x] All 141 tests pass (57 frontend + 84 backend)
-18. [x] COMMIT: "test: add missing interaction tests for dashboard and script viewer"
+### Phase 4: Frontend API Client + Element Detail Page (TDD)
+- [x] Added OptionResponse type and optionsApi to frontend api.ts
+- [x] Created element detail page at /productions/[id]/scripts/[scriptId]/elements/[elementId]/page.tsx
+- [x] 8 new tests (all pass)
+- [x] 172 total tests (65 frontend + 107 backend)
+- [x] COMMIT: "feat: add element detail page with options listing"
 
-### Step 5: Final verification
-19. [x] All 141 Tier 1 tests pass (57 frontend + 84 backend)
-20. [x] Update PLAN.md
-21. [x] COMMIT: "docs: complete Check of Sprint 2"
+### Phase 5: Option Card + Gallery Components (TDD)
+- [x] Created option-card.tsx and option-gallery.tsx components
+- [x] 8 new tests (all pass): card (6) + gallery (2)
+- [x] 180 total tests (73 frontend + 107 backend)
+- [x] COMMIT: "feat: add option card and gallery components"
+
+### Phase 6: Option Upload Form + Thumbnails (TDD)
+- [x] Created thumbnail.ts with image and video thumbnail generation
+- [x] Created option-upload-form.tsx with file/link modes
+- [x] 9 new tests (all pass): form (7) + thumbnail (2)
+- [x] 189 total tests (82 frontend + 107 backend)
+- [x] COMMIT: "feat: add option upload form with multi-media support"
+
+### Phase 7: Wire Everything Together (TDD)
+- [x] Integrated upload form into detail page
+- [x] Wired ready-for-review and archive handlers
+- [x] Made element names clickable links in element-list.tsx
+- [x] Updated script viewer to pass productionId and scriptId to ElementList
+- [x] 5 new tests (all pass)
+- [x] 194 total tests (87 frontend + 107 backend)
+- [x] COMMIT: "feat: wire option upload flow and ready-for-review toggle"
+
+### Phase 8: Option Counts on Element List (TDD)
+- [x] Added _count include to elements.ts GET route (ACTIVE options only)
+- [x] Added _count include to scripts.ts GET script route
+- [x] Added option count badge rendering to element-list.tsx
+- [x] 2 new tests (all pass): backend (1) + frontend (1)
+- [x] 196 total tests (88 frontend + 108 backend)
+- [x] COMMIT: "feat: show option counts on element list"
+
+### Phase 9: Final Verification
+- [x] All 196 Tier 1 tests pass (88 frontend + 108 backend)
+- [x] Updated PLAN.md and roadmap.md
+- [x] COMMIT: "docs: mark Sprint 3 (Elements & Options) as complete"
 
 ## Summary
-- **Before check**: 134 tests (50 frontend + 84 backend)
-- **After check**: 141 tests (57 frontend + 84 backend), +7 new tests
-- No hardcoded enum strings in backend
-- No duplicate type definitions in frontend
-- All frontend pages show errors to users on API failure
-- All form interactions tested
+- **Before Sprint 3**: 141 tests (57 frontend + 84 backend)
+- **After Sprint 3**: 196 tests (88 frontend + 108 backend), +55 new tests
+- 8 implementation commits + 1 documentation commit
+- Option model with full CRUD, presigned S3 URLs, multimedia upload
+- Element detail page with option gallery, upload form, ready-for-review toggle
+- Client-side thumbnail generation for images and videos
+- Option count badges on element list
 
 ## Notes / Blockers
-- Check of Sprint 2 is complete. Ready for Sprint 3 (Elements & Options).
+- Sprint 3 is complete. Ready for Sprint 4 (Director's Dashboard & Approval).
