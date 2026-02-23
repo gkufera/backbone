@@ -10,7 +10,7 @@ const s3Client = new S3Client({
   },
 });
 
-const BUCKET = process.env.S3_BUCKET_NAME ?? 'backbone-uploads';
+const BUCKET = process.env.S3_BUCKET_NAME ?? 'slugmax-uploads';
 
 export async function generateUploadUrl(
   fileName: string,
