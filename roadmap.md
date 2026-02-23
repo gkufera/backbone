@@ -12,7 +12,7 @@ All bugs, features, and planned work are tracked here. Check this file before st
 | 3 | Elements & Options | Complete |
 | 4 | Director's Dashboard & Approval | Complete |
 | 5 | Script Revisions & Versioning | Complete |
-| 6 | Permissions & Departments | Not Started |
+| 6 | Departments & Member Titles | Complete |
 | 7 | Notifications & Workflow Logic | Not Started |
 | 8 | Polish, Mobile & Deploy | Not Started |
 
@@ -235,40 +235,52 @@ All bugs, features, and planned work are tracked here. Check this file before st
 
 ---
 
-## Sprint 6: Permissions & Departments
+## Sprint 6: Departments & Member Titles (Simplified)
 
-**Goal:** Department-based access control. Users see only their department's elements/options. Role-based action permissions.
+**Goal:** Organizational structure with departments and member titles. No department-based gatekeeping — if you're on a production, you can see and modify everything. The immutable audit trail provides accountability.
 
-### Features (from Executive Summary)
-- (19) Permissions
-- (20) By Department: e.g. Costume can only upload and view costume-related elements/options
-- (21) Role-based: Director/Producer can approve; Heads can add options; Assistants can triage
+### Scope Change
+Original Sprint 6 planned department-scoped visibility and role-based permissions. These were removed:
+- Department-scoped element visibility
+- Role-based action permissions (Director can approve, Contributor can only upload, etc.)
+- Permission middleware for API routes
+- UI guards hiding buttons/pages by role
+- Element-level department tagging
+
+What remained:
+- Department model (per-production, with 8 defaults + custom)
+- Department member assignment (many-to-many)
+- Member title field on ProductionMember (replaces unused global User.role)
+- Removal of unused global Role enum and User.role/departmentId
 
 ### Tasks
-- [ ] Create standard departments: Costume, Props, Set Design, Locations, Hair/Makeup, VFX, Sound, Art
-- [ ] Allow production creator to define custom departments
-- [ ] Assign users to departments on invite/join
-- [ ] Implement department-scoped element visibility:
-  - Department members see only elements tagged to their department
-  - Directors/Producers see all elements across all departments
-- [ ] Implement role-based action permissions:
-  - Director/Producer: approve, reject, maybe, view all
-  - Department Head: upload options, mark ready, manage dept members, view dept elements
-  - Contributor: upload options within their dept
-  - Assistant: triage elements (tag, categorize), add comments, view dept elements
-- [ ] Add element-level department tagging (element belongs to one or more departments)
-- [ ] Build permission middleware for API routes
-- [ ] Build UI guards (hide buttons/pages users can't access)
-- [ ] Build department management page for Heads (view members, remove members)
+- [x] Add Department and DepartmentMember models to Prisma schema
+- [x] Add title field to ProductionMember
+- [x] Remove global Role enum, User.role, and User.departmentId
+- [x] Add DEFAULT_DEPARTMENTS constant (Costume, Props, Set Design, Locations, Hair & Makeup, VFX, Sound, Art)
+- [x] Remove requireRole middleware
+- [x] Remove role from JWT payload and auth responses
+- [x] Build department CRUD endpoints (list, create, delete)
+- [x] Build department member assignment endpoints (add, remove)
+- [x] Seed 8 default departments on production create
+- [x] Accept title on member invite
+- [x] Include departments and member titles in production detail response
+- [x] Build department management UI on production dashboard
+- [x] Show member titles and department badges in member list
 
 ### Commit Points
-1. After department model and user assignment
-2. After department-scoped queries working
-3. After role-based permissions on API and UI
+1. `feat: add Department schema and member title, remove global Role enum`
+2. `feat: add department CRUD and member assignment endpoints`
+3. `feat: seed default departments on production create, add member title`
+4. `feat: add department management UI and member titles`
 
-### Tests Required
-- Tier 1: Permission middleware tests (each role × each action), department scoping query tests
-- Tier 2: E2E contributor can upload but not approve, director can approve, cross-dept visibility blocked
+### Tests Added
+- 15 new backend tests (department CRUD + member assignment)
+- 2 new backend tests (department seeding, member title on add)
+- 4 new frontend tests (department list, create, member title, badges)
+- 4 deleted tests (role-auth.test.ts removal)
+- Net: +17 new tests
+- Total: 316 tests (140 FE + 176 BE)
 
 ---
 

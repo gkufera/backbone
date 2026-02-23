@@ -1,7 +1,34 @@
 # Current Plan
 
 ## Active Task
-**Sprint 5 Review — Complete**
+**Sprint 6: Departments & Member Titles — Complete**
+
+## Completed (Sprint 6)
+
+### Phases
+
+| Phase | Focus | Commit | New Tests |
+|-------|-------|--------|-----------|
+| 1 | Schema + Types + Auth Cleanup | `feat: add Department schema and member title, remove global Role enum` | -4 (deleted role-auth) |
+| 2 | Department CRUD API | `feat: add department CRUD and member assignment endpoints` | +15 |
+| 3 | Production Endpoint Updates | `feat: seed default departments on production create, add member title` | +2 |
+| 4 | Frontend API + UI | `feat: add department management UI and member titles` | +4 |
+
+### Test Counts (Post Sprint 6)
+
+- **Frontend**: 140 tests (was 136, +4 new)
+- **Backend**: 176 tests (was 164, -4 deleted +16 new)
+- **Total**: 316 tests (was 300, +16 net)
+
+### Architecture
+
+Departments are purely organizational — no access control:
+- Each Production has a set of Departments (8 defaults auto-created)
+- Departments can be created/deleted by OWNER/ADMIN
+- ProductionMembers have an optional `title` field (e.g., "Director", "Costume Designer")
+- Many-to-many: a member can be in multiple departments via DepartmentMember
+- Global User.role enum removed; auth uses only JWT with userId/email
+- Any production member can access any endpoint (no department-based gatekeeping)
 
 ## Completed (Sprint 5 Review)
 
@@ -77,4 +104,4 @@ Elements migrate between script versions by updating `scriptId`:
 | 7 | Wire into Detail | `feat: wire approval workflow into element detail page` | +6 |
 
 ## Next Up
-Sprint 6: Permissions & Departments
+Sprint 7: Notifications & Workflow Logic
