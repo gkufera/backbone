@@ -26,11 +26,15 @@
 | 14 | Custom domains | Infrastructure | slugmax.com (frontend), api.slugmax.com (backend) |
 | 15 | Cloudflare DNS | Infrastructure | CNAME + TXT verification records for both domains |
 | 16 | Dockerfiles | `feat: add Dockerfiles for Railway deployment` | Multi-stage builds for backend and frontend |
+| 17 | Deploy branch | Infrastructure | Set Railway deploy branch to `production` for both services |
+| 18 | S3 credentials | Infrastructure | AWS S3 credentials added to Railway backend via Railway CLI |
+| 19 | Home page links | `feat: add login and signup links to home page` | Login/signup navigation on landing page |
+| 20 | Fix API URL in Docker build | `fix: bake NEXT_PUBLIC_API_BASE_URL into frontend Docker build` | ARG/ENV in Dockerfile + TDD test |
 
 ### Test Counts (Post Sprint 8 Deployment)
-- **Frontend**: 156 tests
+- **Frontend**: 159 tests (+2 api-config tests)
 - **Backend**: 220 tests (+1 pdf-parser destroy test)
-- **Total**: 376 tests
+- **Total**: 379 tests
 
 ## Previous: Sprint 7 — Complete
 
@@ -168,4 +172,4 @@ Elements migrate between script versions by updating `scriptId`:
 | 7 | Wire into Detail | `feat: wire approval workflow into element detail page` | +6 |
 
 ## Next Up
-Sprint 8: Slack Webhook Integration
+Sprint 8 remaining polish: mobile-responsive audit, error handling (error boundaries + toast system), loading states (skeleton loaders), rate limiting, security headers, seed data script, account settings page, element status dashboard, final QA pass

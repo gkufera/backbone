@@ -15,6 +15,10 @@ RUN cd frontend && npm ci
 # Copy frontend source
 COPY frontend/ ./frontend/
 
+# Set production API URL so Next.js inlines it at build time
+ARG NEXT_PUBLIC_API_BASE_URL=https://api.slugmax.com
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
 # Build Next.js app (use webpack mode for reliable shared alias resolution)
 RUN cd frontend && npx next build --webpack
 
