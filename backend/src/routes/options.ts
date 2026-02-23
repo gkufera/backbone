@@ -7,7 +7,7 @@ import {
   OPTION_ALLOWED_CONTENT_TYPES,
   OPTION_DESCRIPTION_MAX_LENGTH,
 } from '@backbone/shared/constants';
-import { MediaType, OptionStatus } from '@backbone/shared/types';
+import { MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service.js';
 
 const optionsRouter = Router();
@@ -292,7 +292,7 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
       await notifyProductionMembers(
         productionId,
         authReq.user.userId,
-        'OPTION_READY',
+        NotificationType.OPTION_READY,
         `New option on ${elementName} is ready for review`,
         link,
       );

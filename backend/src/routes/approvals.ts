@@ -2,13 +2,13 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
-import { ApprovalDecision } from '@backbone/shared/types';
+import { ApprovalDecision, NotificationType } from '@backbone/shared/types';
 import { createNotification } from '../services/notification-service.js';
 
-const DECISION_TO_NOTIFICATION_TYPE: Record<string, string> = {
-  APPROVED: 'OPTION_APPROVED',
-  REJECTED: 'OPTION_REJECTED',
-  MAYBE: 'OPTION_MAYBE',
+const DECISION_TO_NOTIFICATION_TYPE: Record<string, NotificationType> = {
+  APPROVED: NotificationType.OPTION_APPROVED,
+  REJECTED: NotificationType.OPTION_REJECTED,
+  MAYBE: NotificationType.OPTION_MAYBE,
 };
 
 const approvalsRouter = Router();

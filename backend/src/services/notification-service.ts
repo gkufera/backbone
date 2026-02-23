@@ -1,10 +1,11 @@
 import { prisma } from '../lib/prisma.js';
 import { sendNotificationEmail } from './email-service.js';
+import { NotificationType } from '@backbone/shared/types';
 
 export async function createNotification(
   userId: string,
   productionId: string,
-  type: string,
+  type: NotificationType,
   message: string,
   link?: string,
 ) {
@@ -12,7 +13,7 @@ export async function createNotification(
     data: {
       userId,
       productionId,
-      type: type as any,
+      type,
       message,
       link: link ?? null,
     },
@@ -37,7 +38,7 @@ export async function createNotification(
 export async function notifyProductionMembers(
   productionId: string,
   excludeUserId: string,
-  type: string,
+  type: NotificationType,
   message: string,
   link?: string,
 ) {
