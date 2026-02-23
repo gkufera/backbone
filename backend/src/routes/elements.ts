@@ -100,6 +100,11 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
     const elements = await prisma.element.findMany({
       where,
       orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: { options: { where: { status: 'ACTIVE' } } },
+        },
+      },
     });
 
     res.json({ elements });

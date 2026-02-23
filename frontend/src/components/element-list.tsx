@@ -79,6 +79,12 @@ function ElementGroup({
                 <span className="font-medium">{elem.name}</span>
               )}
               <span className="ml-2 text-xs text-zinc-400">p. {elem.pageNumbers.join(', ')}</span>
+              {(elem as any)._count?.options != null && (
+                <span className="ml-2 text-xs text-zinc-500">
+                  {(elem as any)._count.options}{' '}
+                  {(elem as any)._count.options === 1 ? 'option' : 'options'}
+                </span>
+              )}
             </div>
             <button
               onClick={() => onArchive(elem.id)}

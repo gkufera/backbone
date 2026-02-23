@@ -265,6 +265,36 @@ describe('GET /api/scripts/:scriptId/elements', () => {
       }),
     );
   });
+
+  it('includes option count (ACTIVE only) in response', async () => {
+    mockScriptWithMembership();
+
+    mockedPrisma.element.findMany.mockResolvedValue([
+      {
+        id: 'elem-1',
+        scriptId: 'script-1',
+        name: 'JOHN',
+        type: 'CHARACTER',
+        pageNumbers: [1],
+        status: 'ACTIVE',
+        source: 'AUTO',
+        _count: { options: 3 },
+      },
+    ] as any);
+
+    const res = await request(app).get('/api/scripts/script-1/elements').set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.elements[0]._count.options).toBe(3);
+    // Verify include has _count
+    expect(mockedPrisma.element.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: expect.objectContaining({
+          _count: expect.anything(),
+        }),
+      }),
+    );
+  });
 });
 
 describe('PATCH /api/elements/:id (archive/soft-delete)', () => {

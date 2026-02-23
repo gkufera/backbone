@@ -89,6 +89,18 @@ describe('Element list', () => {
     expect(screen.getByText('MAGIC RING')).toBeInTheDocument();
   });
 
+  it('renders option count badge when _count is provided', () => {
+    const elementsWithCounts = mockElements.map((e, i) => ({
+      ...e,
+      _count: { options: i + 1 },
+    }));
+
+    render(<ElementList elements={elementsWithCounts} onArchive={mockOnArchive} />);
+
+    expect(screen.getByText('1 option')).toBeInTheDocument();
+    expect(screen.getByText('2 options')).toBeInTheDocument();
+  });
+
   it('renders element names as links when productionId and scriptId are provided', () => {
     render(
       <ElementList
