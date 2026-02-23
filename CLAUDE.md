@@ -110,7 +110,9 @@ npx prisma db seed         # Seed sample data
 
 ## Deployment
 
-The app is deployed on **Railway**.
+**Domain:** [slugmax.com](https://slugmax.com) — Cloudflare DNS → Railway
+
+The app is deployed on **Railway** with **Cloudflare** handling DNS (DNS-only mode, no proxy/CDN).
 
 ### Branch Strategy
 
@@ -121,33 +123,52 @@ The app is deployed on **Railway**.
 
 1. Make changes on `main` branch
 2. Test locally with `./run.sh`
-3. Commit and push to `main`
-4. Merge to `production` and push:
+3. Run Tier 1 tests: `cd frontend && npm test && cd ../backend && npm test`
+4. Commit and push to `main`
+5. Merge to `production` and push:
    ```bash
    git checkout production
    git merge main --no-edit
    git push origin production
    git checkout main
    ```
-5. Railway auto-detects the push and rebuilds both services
+6. Railway auto-detects the push and rebuilds both services
 
-### Railway Configuration
+### Railway Services
 
 **Backend Service** (`backend/`):
 
 - Node.js 20 runtime
-- Runs: `npm run start`
-- Environment variables: `DATABASE_URL`, `AWS_*`, `CORS_ORIGINS`
+- Build: `npm run build`
+- Start: `npm run start`
+- Custom domain: `api.slugmax.com`
+- Environment variables:
+  - `DATABASE_URL` (from Railway PostgreSQL)
+  - `JWT_SECRET`
+  - `CORS_ORIGINS=https://slugmax.com`
+  - `PORT=8000`
+  - `EMAIL_ENABLED=false`
+  - `EMAIL_FROM=noreply@slugmax.com`
+  - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
 
 **Frontend Service** (`frontend/`):
 
 - Node.js 20 runtime
-- Runs: `npm run build && npm run start`
-- Environment variables: `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `API_BASE_URL`
+- Build: `npm run build`
+- Start: `npm run start`
+- Custom domain: `slugmax.com`
+- Environment variables:
+  - `NEXT_PUBLIC_API_BASE_URL=https://api.slugmax.com`
 
 **Database Service:**
 
 - Railway-managed PostgreSQL
+
+### Cloudflare DNS
+
+- **Zone:** slugmax.com (DNS-only mode, no Cloudflare proxy)
+- `slugmax.com` → CNAME → Railway frontend domain
+- `api.slugmax.com` → CNAME → Railway backend domain
 
 ## Linting & Code Quality
 
