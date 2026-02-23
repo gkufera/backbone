@@ -44,4 +44,16 @@ describe('Home page', () => {
     );
     expect(screen.getByText(/production collaboration platform/i)).toBeInTheDocument();
   });
+
+  it('shows login and signup links when not authenticated', async () => {
+    render(
+      <AuthProvider>
+        <Home />
+      </AuthProvider>,
+    );
+    const loginLink = await screen.findByRole('link', { name: /log in/i });
+    const signupLink = await screen.findByRole('link', { name: /sign up/i });
+    expect(loginLink).toHaveAttribute('href', '/login');
+    expect(signupLink).toHaveAttribute('href', '/signup');
+  });
 });

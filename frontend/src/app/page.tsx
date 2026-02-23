@@ -25,6 +25,22 @@ export default function Home() {
             My Productions
           </Link>
         )}
+        {!isLoading && !isAuthenticated && (
+          <div className="mt-4 flex gap-3">
+            <Link
+              href="/login"
+              className="rounded bg-black px-6 py-2 text-white dark:bg-white dark:text-black"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded border border-zinc-300 px-6 py-2 text-black dark:border-zinc-700 dark:text-white"
+            >
+              Sign up
+            </Link>
+          </div>
+        )}
       </main>
     </div>
   );
