@@ -14,6 +14,7 @@ vi.mock('../lib/prisma.js', () => ({
     revisionMatch: {
       createMany: vi.fn(),
     },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -41,6 +42,8 @@ describe('Revision Processor', () => {
     mockedPrisma.element.update.mockResolvedValue({} as any);
     mockedPrisma.element.createMany.mockResolvedValue({ count: 0 });
     mockedPrisma.revisionMatch.createMany.mockResolvedValue({ count: 0 });
+    // $transaction passes through to the same mocked prisma client
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => fn(mockedPrisma));
   });
 
   it('all exact matches → elements migrated, script READY', async () => {
@@ -268,6 +271,39 @@ describe('Revision Processor', () => {
 
     // RevisionMatch records for fuzzy (JOHN SMITHE), new (XAVIER), and missing (BOB)
     expect(mockedPrisma.revisionMatch.createMany).toHaveBeenCalled();
+  });
+
+  it('uses transaction for auto-resolution of exact matches and new elements', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('fake pdf'));
+    mockedParsePdf.mockResolvedValue({
+      text: 'JOHN\nHello.\n\nXAVIER\nHey.',
+      pageCount: 1,
+    });
+
+    // Existing element for exact match
+    mockedPrisma.element.findMany.mockResolvedValue([
+      {
+        id: 'elem-1',
+        name: 'JOHN',
+        type: 'CHARACTER',
+        status: 'ACTIVE',
+        source: 'AUTO',
+        pageNumbers: [1],
+        scriptId: 'parent-script',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ] as any);
+
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+    // Mock $transaction to execute the callback with the prisma client
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => fn(mockedPrisma));
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.pdf');
+
+    // $transaction should have been called
+    expect(mockedPrisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(mockedPrisma.$transaction).toHaveBeenCalledWith(expect.any(Function));
   });
 
   it('MANUAL elements included in matching', async () => {
