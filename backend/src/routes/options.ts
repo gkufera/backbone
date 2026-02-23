@@ -2,7 +2,11 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { generateMediaUploadUrl, generateDownloadUrl } from '../lib/s3.js';
-import { mediaTypeFromMime, OPTION_ALLOWED_CONTENT_TYPES } from '@backbone/shared/constants';
+import {
+  mediaTypeFromMime,
+  OPTION_ALLOWED_CONTENT_TYPES,
+  OPTION_DESCRIPTION_MAX_LENGTH,
+} from '@backbone/shared/constants';
 import { MediaType, OptionStatus } from '@backbone/shared/types';
 
 const optionsRouter = Router();
@@ -97,10 +101,31 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       return;
     }
 
+    // Validate description length
+    if (description && description.length > OPTION_DESCRIPTION_MAX_LENGTH) {
+      res.status(400).json({
+        error: `Description must not exceed ${OPTION_DESCRIPTION_MAX_LENGTH} characters`,
+      });
+      return;
+    }
+
     // Validate LINK requires externalUrl
     if (mediaType === MediaType.LINK && !externalUrl) {
       res.status(400).json({ error: 'externalUrl is required for LINK options' });
       return;
+    }
+
+    // Validate externalUrl format for LINK options
+    if (mediaType === MediaType.LINK && externalUrl) {
+      try {
+        const url = new URL(externalUrl);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+          throw new Error('Invalid protocol');
+        }
+      } catch {
+        res.status(400).json({ error: 'externalUrl must be a valid HTTP or HTTPS URL' });
+        return;
+      }
     }
 
     // Validate file-based types require s3Key
@@ -212,6 +237,14 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
 
     if (!membership) {
       res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    // Validate description length
+    if (description !== undefined && description.length > OPTION_DESCRIPTION_MAX_LENGTH) {
+      res.status(400).json({
+        error: `Description must not exceed ${OPTION_DESCRIPTION_MAX_LENGTH} characters`,
+      });
       return;
     }
 

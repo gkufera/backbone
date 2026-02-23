@@ -360,6 +360,33 @@ describe('POST /api/elements/:elementId/options', () => {
     expect(res.status).toBe(404);
   });
 
+  it('returns 400 when description exceeds max length', async () => {
+    mockElementWithMembership();
+
+    const longDescription = 'a'.repeat(501);
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      description: longDescription,
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/description/i);
+  });
+
+  it('returns 400 when LINK externalUrl is not a valid URL', async () => {
+    mockElementWithMembership();
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'LINK',
+      externalUrl: 'not-a-url',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/url/i);
+  });
+
   it('defaults readyForReview to false', async () => {
     mockElementWithMembership();
     mockedPrisma.option.create.mockResolvedValue({
@@ -476,6 +503,26 @@ describe('PATCH /api/options/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.option.readyForReview).toBe(true);
+  });
+
+  it('returns 400 when description exceeds max length on update', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: { script: { productionId: 'prod-1' } },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+    } as any);
+
+    const longDescription = 'a'.repeat(501);
+    const res = await request(app)
+      .patch('/api/options/opt-1')
+      .set(authHeader())
+      .send({ description: longDescription });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/description/i);
   });
 
   it('returns 200 when archiving via status', async () => {
