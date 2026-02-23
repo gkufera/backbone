@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { signToken } from '../lib/jwt.js';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 
 const authRouter = Router();
 
@@ -78,6 +79,30 @@ authRouter.post('/api/auth/login', async (req, res) => {
 
   res.status(200).json({
     token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      departmentId: user.departmentId,
+      createdAt: user.createdAt,
+    },
+  });
+});
+
+authRouter.get('/api/auth/me', requireAuth, async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+
+  const user = await prisma.user.findUnique({
+    where: { id: authReq.user.userId },
+  });
+
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  res.json({
     user: {
       id: user.id,
       name: user.name,

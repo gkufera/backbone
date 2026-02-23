@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../app.js';
+import { signToken } from '../lib/jwt.js';
 
 // Mock Prisma client
 vi.mock('../lib/prisma.js', () => ({
@@ -163,6 +164,63 @@ describe('POST /api/auth/login', () => {
     });
 
     expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+});
+
+describe('GET /api/auth/me', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns the current user when authenticated', async () => {
+    const mockUser = {
+      id: 'test-id-123',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      role: 'CONTRIBUTOR' as const,
+      departmentId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const token = signToken({
+      userId: 'test-id-123',
+      email: 'test@example.com',
+      role: 'CONTRIBUTOR',
+    });
+
+    const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user.id).toBe('test-id-123');
+    expect(res.body.user.email).toBe('test@example.com');
+    expect(res.body.user).not.toHaveProperty('passwordHash');
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app).get('/api/auth/me');
+
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('returns 404 when user no longer exists', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+
+    const token = signToken({
+      userId: 'deleted-user-id',
+      email: 'deleted@example.com',
+      role: 'CONTRIBUTOR',
+    });
+
+    const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('error');
   });
 });
