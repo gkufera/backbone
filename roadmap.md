@@ -334,9 +334,23 @@ What remained:
 
 ## Sprint 8: Polish, Mobile & Deploy
 
-**Goal:** Responsive mobile design, error handling, production deployment, and QA pass.
+**Goal:** Rebrand to Slug Max, responsive mobile design, error handling, production deployment, and QA pass.
 
-### Tasks
+### Completed
+- [x] Rebrand from Backbone to Slug Max (UI text, emails, tests, docs)
+- [x] Configure CORS from CORS_ORIGINS environment variable
+- [x] Create production branch (main = development, production = auto-deploy)
+- [x] Write deployment documentation in CLAUDE.md (Railway + Cloudflare)
+
+### In Progress
+- [ ] Set up Railway deployment:
+  - Frontend service (Next.js) — custom domain: slugmax.com
+  - Backend service (Express) — custom domain: api.slugmax.com
+  - PostgreSQL database service
+  - Environment variables configured
+- [ ] Configure Cloudflare DNS (slugmax.com + api.slugmax.com CNAMEs)
+
+### Remaining
 - [ ] Mobile-responsive audit of all pages:
   - Director feed: card-based layout on mobile
   - Split view: stacked panels on mobile
@@ -348,18 +362,11 @@ What remained:
   - File upload error handling (size limits, type validation)
   - Network error retry logic
 - [ ] Loading states for all async operations (skeletons, spinners)
-- [ ] Set up Railway deployment:
-  - Frontend service (Next.js)
-  - Backend service (Express)
-  - PostgreSQL database service
-  - Environment variables configured
-- [ ] Set up production branch and deploy pipeline
-- [ ] Configure CORS, rate limiting, and security headers
+- [ ] Rate limiting and security headers
 - [ ] S3 bucket policy and CloudFront distribution for media
 - [ ] Seed data script for demo/testing
 - [ ] Final QA pass: run all Tier 1 + Tier 2 tests
 - [ ] Performance audit (Lighthouse, API response times)
-- [ ] Write deployment documentation in README
 
 ### Commit Points
 1. After mobile responsive pass
