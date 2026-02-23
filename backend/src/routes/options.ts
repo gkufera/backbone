@@ -95,6 +95,22 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       return;
     }
 
+    // Check if element is locked (has an approved option)
+    const approvedOption = await prisma.approval.findFirst({
+      where: {
+        decision: 'APPROVED',
+        option: {
+          elementId,
+          status: OptionStatus.ACTIVE,
+        },
+      },
+    });
+
+    if (approvedOption) {
+      res.status(409).json({ error: 'Element is locked: an option has been approved' });
+      return;
+    }
+
     // Validate mediaType
     if (!mediaType || !Object.values(MediaType).includes(mediaType)) {
       res.status(400).json({ error: 'Valid mediaType is required' });

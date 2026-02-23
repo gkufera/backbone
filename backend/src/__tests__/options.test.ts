@@ -39,6 +39,9 @@ vi.mock('../lib/prisma.js', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    approval: {
+      findFirst: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
@@ -547,5 +550,70 @@ describe('PATCH /api/options/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.option.status).toBe('ARCHIVED');
+  });
+});
+
+// ── Element locking: 409 when element has approved option ──────────
+
+describe('POST /api/elements/:elementId/options (element locking)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 409 when element has an approved option', async () => {
+    mockElementWithMembership();
+    mockedPrisma.approval.findFirst.mockResolvedValue({
+      id: 'appr-1',
+      decision: 'APPROVED',
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/locked/i);
+  });
+
+  it('allows creation when element has only REJECTED approvals', async () => {
+    mockElementWithMembership();
+    mockedPrisma.approval.findFirst.mockResolvedValue(null);
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-new',
+      elementId: 'elem-1',
+      mediaType: 'IMAGE',
+      status: 'ACTIVE',
+      readyForReview: false,
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(201);
+  });
+
+  it('allows creation when element has only MAYBE approvals', async () => {
+    mockElementWithMembership();
+    mockedPrisma.approval.findFirst.mockResolvedValue(null);
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-new',
+      elementId: 'elem-1',
+      mediaType: 'IMAGE',
+      status: 'ACTIVE',
+      readyForReview: false,
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(201);
   });
 });
