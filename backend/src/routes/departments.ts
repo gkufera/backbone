@@ -128,6 +128,15 @@ departmentsRouter.delete(
         return;
       }
 
+      // Verify department belongs to this production
+      const department = await prisma.department.findUnique({
+        where: { id: departmentId, productionId: id },
+      });
+      if (!department) {
+        res.status(404).json({ error: 'Department not found in this production' });
+        return;
+      }
+
       await prisma.$transaction(async (tx) => {
         await tx.departmentMember.deleteMany({ where: { departmentId } });
         await tx.department.delete({ where: { id: departmentId } });
@@ -175,6 +184,24 @@ departmentsRouter.post(
         return;
       }
 
+      // Verify department belongs to this production
+      const department = await prisma.department.findUnique({
+        where: { id: departmentId, productionId: id },
+      });
+      if (!department) {
+        res.status(404).json({ error: 'Department not found in this production' });
+        return;
+      }
+
+      // Verify production member belongs to this production
+      const targetMember = await prisma.productionMember.findFirst({
+        where: { id: productionMemberId, productionId: id },
+      });
+      if (!targetMember) {
+        res.status(404).json({ error: 'Production member not found in this production' });
+        return;
+      }
+
       const departmentMember = await prisma.departmentMember.create({
         data: {
           departmentId,
@@ -219,6 +246,16 @@ departmentsRouter.delete(
           return;
         }
         res.status(403).json({ error: 'You are not a member of this production' });
+        return;
+      }
+
+      // Verify department member belongs to this production
+      const departmentMember = await prisma.departmentMember.findUnique({
+        where: { id: memberId },
+        include: { department: true },
+      });
+      if (!departmentMember || departmentMember.department.productionId !== id) {
+        res.status(404).json({ error: 'Department member not found in this production' });
         return;
       }
 
