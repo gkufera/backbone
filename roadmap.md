@@ -8,7 +8,7 @@ All bugs, features, and planned work are tracked here. Check this file before st
 |--------|-------|--------|
 | 0 | Project Scaffolding | Complete |
 | 1 | Auth & User Management | Complete |
-| 2 | Projects & Script Upload | Not Started |
+| 2 | Projects & Script Upload | Complete |
 | 3 | Elements & Options | Not Started |
 | 4 | Director's Dashboard & Approval | Not Started |
 | 5 | Script Revisions & Versioning | Not Started |
@@ -90,18 +90,18 @@ All bugs, features, and planned work are tracked here. Check this file before st
 - (6) Upload initial script: extract all-CAPS words as initial Elements list
 
 ### Tasks
-- [ ] Create Prisma models: `Production`, `ProductionMember`, `Script`, `Department`
-- [ ] Build production creation page (`/productions/new`) with title
-- [ ] Build production dashboard (`/productions/[id]`) showing scripts and team
-- [ ] Implement team member invite by email (creates account or sends invite link)
-- [ ] Build script upload UI with drag-and-drop PDF upload
-- [ ] Implement S3 upload pipeline for PDF files (presigned URLs)
-- [ ] Implement PDF text extraction (using `pdf-parse` or `pdfjs-dist`)
-- [ ] Build ALL-CAPS element detection algorithm (identify props, locations, characters)
-- [ ] Auto-create Element records from detected ALL-CAPS words with page numbers
-- [ ] Build script viewer page (`/productions/[id]/scripts/[scriptId]`) showing PDF + detected elements
-- [ ] Allow user to manually add/remove/edit detected elements
-- [ ] Build element list view showing all elements for a script
+- [x] Create Prisma models: `Production`, `ProductionMember`, `Script`, `Element`
+- [x] Build production creation page (`/productions/new`) with title
+- [x] Build production dashboard (`/productions/[id]`) showing scripts and team
+- [x] Implement team member invite by email (lookup existing users)
+- [x] Build script upload UI with drag-and-drop PDF upload
+- [x] Implement S3 upload pipeline for PDF files (presigned URLs)
+- [x] Implement PDF text extraction (using `pdf-parse`)
+- [x] Build ALL-CAPS element detection algorithm (identify props, locations, characters)
+- [x] Auto-create Element records from detected ALL-CAPS words with page numbers
+- [x] Build script viewer page (`/productions/[id]/scripts/[scriptId]`) showing detected elements
+- [x] Allow user to manually add/remove/edit detected elements
+- [x] Build element list view showing all elements for a script
 
 ### Commit Points
 1. After Production CRUD and team invites working

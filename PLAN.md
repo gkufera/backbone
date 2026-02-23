@@ -1,59 +1,95 @@
 # Current Plan
 
 ## Active Task
-**Sprint 1: Auth & User Management** -- COMPLETE
+**Sprint 2: Projects & Script Upload** -- COMPLETE
 
 ## Steps
 
-### Phase 1: Backend Auth API (signup + login endpoints)
-1. [x] Mark Sprint 0 as complete in roadmap.md
-2. [x] Write failing test for POST /api/auth/signup endpoint
-3. [x] Implement signup endpoint (hash password, create user, return token)
-4. [x] Write failing test for POST /api/auth/login endpoint
-5. [x] Implement login endpoint (verify password, return JWT token)
-6. [x] COMMIT: "feat: add signup and login API endpoints with JWT auth"
+### Phase 1: Prisma Schema + Shared Types
+1. [x] Create shared types (production.ts, script.ts, element.ts)
+2. [x] Create shared constants (production.ts, script.ts)
+3. [x] Update Prisma schema with Production, ProductionMember, Script, Element models
+4. [x] Generate migration and Prisma client
+5. [x] Verify all 50 existing tests still pass
+6. [x] COMMIT: "feat: add Prisma schema and shared types for productions, scripts, and elements"
 
-### Phase 2: Auth middleware
-7. [x] Write failing test for auth middleware (reject unauthenticated, extract user)
-8. [x] Implement JWT auth middleware
-9. [x] Write failing test for GET /api/auth/me endpoint (returns current user)
-10. [x] Implement /api/auth/me endpoint
-11. [x] COMMIT: "feat: add JWT auth middleware and /api/auth/me endpoint"
+### Phase 2: Production CRUD Backend (TDD)
+7. [x] Write 12 failing tests for production CRUD
+8. [x] Implement productions route + membership middleware
+9. [x] All 62 tests pass (23 frontend + 39 backend)
+10. [x] COMMIT: "feat: add production CRUD API endpoints"
 
-### Phase 3: Role validation
-12. [x] Write failing test for role validation (role-based route protection)
-13. [x] Implement role-checking middleware
-14. [x] COMMIT: "feat: add role-based authorization middleware"
+### Phase 3: Team Member Management Backend (TDD)
+11. [x] Write 8 failing tests for member management
+12. [x] Implement member endpoints in productions route
+13. [x] All 70 tests pass (23 frontend + 47 backend)
+14. [x] COMMIT: "feat: add team member management API"
 
-### Phase 4: Frontend auth pages
-15. [x] Write failing test for signup page component
-16. [x] Implement signup page (/signup)
-17. [x] Write failing test for login page component
-18. [x] Implement login page (/login)
-19. [x] COMMIT: "feat: add signup and login pages"
+### Phase 4: Production Frontend Pages (TDD)
+15. [x] Write 12 frontend tests across 3 test files
+16. [x] Create new, list, and dashboard pages
+17. [x] Update api.ts with productionsApi
+18. [x] All 82 tests pass (35 frontend + 47 backend)
+19. [x] COMMIT: "feat: add production frontend pages (create, list, dashboard)"
 
-### Phase 5: Frontend auth state management
-20. [x] Write failing test for auth context/provider
-21. [x] Implement auth context with JWT token management
-22. [x] Write failing test for protected route component
-23. [x] Implement route protection (redirect to login if unauthenticated)
-24. [x] COMMIT: "feat: add auth context and route protection"
+### Phase 5: S3 Upload + Script Backend (TDD)
+20. [x] Install @aws-sdk packages
+21. [x] Write 10 failing tests for script endpoints
+22. [x] Create s3.ts lib and scripts.ts route
+23. [x] All 92 tests pass (35 frontend + 57 backend)
+24. [x] COMMIT: "feat: add S3 presigned URL upload and script management API"
+
+### Phase 6: Script Upload Frontend (TDD)
+25. [x] Write 5 failing tests for upload page
+26. [x] Create upload page, add scriptsApi to api.ts
+27. [x] All 97 tests pass (40 frontend + 57 backend)
+28. [x] COMMIT: "feat: add script upload UI with drag-and-drop"
+
+### Phase 7: PDF Parsing + Element Detection (TDD)
+29. [x] Install pdf-parse
+30. [x] Write 19 failing tests across 3 test files
+31. [x] Create pdf-parser, element-detector, and script-processor services
+32. [x] All 116 tests pass (40 frontend + 76 backend)
+33. [x] COMMIT: "feat: add PDF text extraction and ALL-CAPS element auto-detection"
+
+### Phase 8: Element CRUD Backend (TDD)
+34. [x] Write 8 failing tests for element CRUD
+35. [x] Create elements route
+36. [x] All 124 tests pass (40 frontend + 84 backend)
+37. [x] COMMIT: "feat: add element CRUD API with soft-delete"
+
+### Phase 9: Script Viewer + Element Management Frontend (TDD)
+38. [x] Write 10 failing tests across 2 test files
+39. [x] Create ElementList component and ScriptViewer page
+40. [x] Add elementsApi to api.ts
+41. [x] All 134 tests pass (50 frontend + 84 backend)
+42. [x] COMMIT: "feat: add script viewer and element management UI"
+
+### Phase 10: E2E Test + Final Verification
+43. [x] Create productions E2E test
+44. [x] Verify all Tier 1 tests pass (50 frontend + 84 backend = 134)
+45. [x] Update PLAN.md and roadmap.md
+46. [x] COMMIT: "test: add E2E production flow test"
+47. [x] COMMIT: "docs: mark Sprint 2 (Projects & Script Upload) as complete"
 
 ## Completed This Session
-- Phase 1: Backend Auth API (signup + login endpoints) - DONE
-- Phase 2: Auth middleware + /api/auth/me - DONE
-- Phase 3: Role-based authorization middleware - DONE
-- Phase 4: Frontend signup and login pages - DONE
-- Phase 5: Auth context and route protection - DONE
+- All 10 phases of Sprint 2 completed
+- 134 Tier 1 tests passing (50 frontend + 84 backend)
+- 2 E2E tests added for production workflow
 
 ## Commits This Session
-1. `a7052de` feat: add signup and login API endpoints with JWT auth
-2. `0b409f2` feat: add JWT auth middleware and /api/auth/me endpoint
-3. `5bd452c` feat: add role-based authorization middleware
-4. `f082549` feat: add signup and login pages with API client
-5. `a537f02` feat: add auth context and route protection
+1. `af6a915` feat: add Prisma schema and shared types for productions, scripts, and elements
+2. `85dd0e4` feat: add production CRUD API endpoints
+3. `a3ba424` feat: add team member management API
+4. `6d9a546` feat: add production frontend pages (create, list, dashboard)
+5. `4f05fb1` feat: add S3 presigned URL upload and script management API
+6. `4413e1f` feat: add script upload UI with drag-and-drop
+7. `4bd73ef` feat: add PDF text extraction and ALL-CAPS element auto-detection
+8. `3730920` feat: add element CRUD API with soft-delete
+9. `eda3f1f` feat: add script viewer and element management UI
+10. (pending) test: add E2E production flow test
+11. (pending) docs: mark Sprint 2 (Projects & Script Upload) as complete
 
 ## Notes / Blockers
-- Sprint 1 is complete. All auth functionality implemented with full TDD coverage.
-- 36 total tests passing (17 frontend + 19 backend)
-- Next: Sprint 2 (Projects & Script Upload)
+- Sprint 2 is complete. Full production workflow implemented with TDD.
+- Next: Sprint 3 (Elements & Options)
