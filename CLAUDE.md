@@ -15,6 +15,15 @@ The system never deletes element/option records, ensuring an immutable audit tra
 - `prisma/` — Prisma schema and migrations (shared between frontend and backend)
 - `shared/` — Shared TypeScript types and constants used by both frontend and backend
 
+## Technology Stack
+
+- **Frontend**: Next.js 16 (App Router, TypeScript, Tailwind CSS v4, Turbopack)
+- **Backend**: Express 5 (TypeScript, tsx for dev server)
+- **Database**: PostgreSQL 16 via Docker Compose, Prisma 6 ORM
+- **Testing**: Vitest (unit/integration), Playwright (E2E)
+- **Linting**: ESLint 9+ (flat config), Prettier
+- **Shared types**: `@backbone/shared` package imported via TypeScript path aliases
+
 ## Non-negotiable Constraints
 
 - **Immutable audit trail**: Never hard-delete elements, options, or approval records. Use soft-delete or status fields.
@@ -50,7 +59,7 @@ The system never deletes element/option records, ensuring an immutable audit tra
 - Copy `.env.example` to `.env` in both `frontend/` and `backend/`
 - Required env vars: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
 
-**Database commands:**
+**Database commands** (run from `backend/` directory):
 
 ```bash
 npx prisma migrate dev     # Apply migrations
@@ -104,21 +113,21 @@ The app is deployed on **Railway**.
 
 **Frontend (TypeScript):**
 
-- Uses `ESLint` for linting and `Prettier` for formatting
-- Config in `frontend/.eslintrc.json` and `frontend/.prettierrc`
+- Uses `ESLint` (flat config) for linting and `Prettier` for formatting
+- Config in `frontend/eslint.config.mjs` and `frontend/.prettierrc`
 - Run: `cd frontend && npm run lint` (lint) or `npm run format` (format)
 
 **Backend (TypeScript):**
 
-- Uses `ESLint` for linting and `Prettier` for formatting
-- Config in `backend/.eslintrc.json` and `backend/.prettierrc`
+- Uses `ESLint` (flat config) for linting and `Prettier` for formatting
+- Config in `backend/eslint.config.mjs` and `backend/.prettierrc`
 - Run: `cd backend && npm run lint` (lint) or `npm run format` (format)
 
 **Pre-commit hooks:**
 
 - Configured via `husky` + `lint-staged`
 - Install: `npm run prepare` (sets up husky)
-- Runs lint + format on staged files automatically
+- Runs lint + format on staged files, then runs frontend and backend Tier 1 tests
 
 ## Testing
 
@@ -144,7 +153,7 @@ cd frontend && npm test
 - Tests: component logic, utility functions, state management, API helpers
 - Location: `frontend/src/**/*.test.ts`
 
-**Backend (fast Jest/Vitest tests):**
+**Backend (Vitest tests):**
 
 ```bash
 cd backend && npm test
@@ -403,6 +412,15 @@ module/
   featureA.ts    # Feature implementation
   featureB.ts    # Feature implementation
 ```
+
+### Shared Types Import Strategy
+
+Both frontend and backend import from `@backbone/shared` using:
+- **TypeScript**: `paths` in tsconfig.json → `"@backbone/shared/*": ["../shared/*"]`
+- **Vitest**: `resolve.alias` in vitest.config.ts
+- **Next.js**: `transpilePackages` + webpack alias in next.config.ts
+
+When adding new shared types or constants, define them in `shared/` and import via `@backbone/shared/types` or `@backbone/shared/constants`.
 
 ### Avoiding Global State
 
