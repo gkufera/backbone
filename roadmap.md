@@ -6,8 +6,8 @@ All bugs, features, and planned work are tracked here. Check this file before st
 
 | Sprint | Focus | Status |
 |--------|-------|--------|
-| 0 | Project Scaffolding | Not Started |
-| 1 | Auth & User Management | Not Started |
+| 0 | Project Scaffolding | Complete |
+| 1 | Auth & User Management | Complete |
 | 2 | Projects & Script Upload | Not Started |
 | 3 | Elements & Options | Not Started |
 | 4 | Director's Dashboard & Approval | Not Started |
@@ -23,20 +23,20 @@ All bugs, features, and planned work are tracked here. Check this file before st
 **Goal:** Set up the monorepo, tooling, and infrastructure so all subsequent sprints can focus purely on features.
 
 ### Tasks
-- [ ] Initialize monorepo with `frontend/`, `backend/`, `shared/`, `prisma/` directories
-- [ ] Set up Next.js app in `frontend/` with TypeScript
-- [ ] Set up Express server in `backend/` with TypeScript and ts-node-dev
-- [ ] Set up Prisma with initial schema (User model only)
-- [ ] Docker Compose for local PostgreSQL
-- [ ] Configure ESLint + Prettier for both frontend and backend
-- [ ] Set up husky + lint-staged for pre-commit hooks
-- [ ] Create `run.sh`, `frontend.sh`, `backend.sh` convenience scripts
-- [ ] Create `.env.example` files for both services
-- [ ] Set up Vitest for frontend, Jest or Vitest for backend
-- [ ] Set up Playwright for E2E tests (empty initial spec)
-- [ ] Write a health check endpoint (`GET /health`) and a test for it
-- [ ] Set up shared types directory with initial barrel exports
-- [ ] Create README.md with setup instructions
+- [x] Initialize monorepo with `frontend/`, `backend/`, `shared/`, `prisma/` directories
+- [x] Set up Next.js app in `frontend/` with TypeScript
+- [x] Set up Express server in `backend/` with TypeScript and ts-node-dev
+- [x] Set up Prisma with initial schema (User model only)
+- [x] Docker Compose for local PostgreSQL
+- [x] Configure ESLint + Prettier for both frontend and backend
+- [x] Set up husky + lint-staged for pre-commit hooks
+- [x] Create `run.sh`, `frontend.sh`, `backend.sh` convenience scripts
+- [x] Create `.env.example` files for both services
+- [x] Set up Vitest for frontend, Jest or Vitest for backend
+- [x] Set up Playwright for E2E tests (empty initial spec)
+- [x] Write a health check endpoint (`GET /health`) and a test for it
+- [x] Set up shared types directory with initial barrel exports
+- [x] Create README.md with setup instructions
 
 ### Commit Points
 1. After monorepo scaffold + Next.js + Express running
@@ -58,16 +58,16 @@ All bugs, features, and planned work are tracked here. Check this file before st
 - (2) User signup & login (OAuth or email/password)
 
 ### Tasks
-- [ ] Install and configure NextAuth.js with credentials provider (email/password)
-- [ ] Add Google OAuth provider (optional, can be added later)
-- [ ] Create Prisma User model: `{id, name, email, passwordHash, role, department_id, created_at}`
-- [ ] Build signup page (`/signup`) with name, email, password
-- [ ] Build login page (`/login`) with email, password
-- [ ] Implement session management with NextAuth JWT strategy
-- [ ] Create role enum: `DIRECTOR`, `DEPARTMENT_HEAD`, `CONTRIBUTOR`, `ASSISTANT`
-- [ ] Build basic account settings page (`/settings`)
-- [ ] Protect API routes with auth middleware
-- [ ] Protect frontend pages with NextAuth session checks
+- [x] Install and configure JWT-based auth with credentials provider (email/password)
+- [ ] Add Google OAuth provider (optional, deferred to post-MVP)
+- [x] Create Prisma User model: `{id, name, email, passwordHash, role, department_id, created_at}`
+- [x] Build signup page (`/signup`) with name, email, password
+- [x] Build login page (`/login`) with email, password
+- [x] Implement session management with JWT strategy
+- [x] Create role enum: `DIRECTOR`, `DEPARTMENT_HEAD`, `CONTRIBUTOR`, `ASSISTANT`
+- [ ] Build basic account settings page (`/settings`) (deferred to Sprint 8)
+- [x] Protect API routes with auth middleware
+- [x] Protect frontend pages with auth context + ProtectedRoute
 
 ### Commit Points
 1. After NextAuth.js configured with credentials provider
