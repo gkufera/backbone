@@ -57,6 +57,21 @@ enum ApprovalDecision {
   MAYBE
 }
 
+enum ElementWorkflowState {
+  PENDING
+  OUTSTANDING
+  APPROVED
+}
+
+enum NotificationType {
+  OPTION_READY
+  OPTION_APPROVED
+  OPTION_REJECTED
+  OPTION_MAYBE
+  MEMBER_INVITED
+  SCRIPT_UPLOADED
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -70,6 +85,7 @@ model User {
   uploadedScripts     Script[]
   uploadedOptions     Option[]           @relation("UploadedOptions")
   approvals           Approval[]
+  notifications       Notification[]
 
   @@map("users")
 }
@@ -82,10 +98,11 @@ model Production {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  createdBy   User               @relation("CreatedProductions", fields: [createdById], references: [id])
-  members     ProductionMember[]
-  scripts     Script[]
-  departments Department[]
+  createdBy      User               @relation("CreatedProductions", fields: [createdById], references: [id])
+  members        ProductionMember[]
+  scripts        Script[]
+  departments    Department[]
+  notifications  Notification[]
 
   @@map("productions")
 }
@@ -132,15 +149,16 @@ model Script {
 }
 
 model Element {
-  id          String        @id @default(cuid())
-  scriptId    String        @map("script_id")
-  name        String
-  type        ElementType   @default(OTHER)
-  pageNumbers Int[]         @map("page_numbers")
-  status      ElementStatus @default(ACTIVE)
-  source      ElementSource @default(AUTO)
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  id             String               @id @default(cuid())
+  scriptId       String               @map("script_id")
+  name           String
+  type           ElementType          @default(OTHER)
+  pageNumbers    Int[]                @map("page_numbers")
+  status         ElementStatus        @default(ACTIVE)
+  source         ElementSource        @default(AUTO)
+  workflowState  ElementWorkflowState @default(PENDING) @map("workflow_state")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
 
   script          Script          @relation(fields: [scriptId], references: [id])
   options         Option[]
@@ -238,4 +256,22 @@ model RevisionMatch {
   oldElement    Element?            @relation(fields: [oldElementId], references: [id])
 
   @@map("revision_matches")
+}
+
+model Notification {
+  id           String           @id @default(cuid())
+  userId       String           @map("user_id")
+  productionId String           @map("production_id")
+  type         NotificationType
+  message      String
+  link         String?
+  read         Boolean          @default(false)
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  user         User             @relation(fields: [userId], references: [id])
+  production   Production       @relation(fields: [productionId], references: [id])
+
+  @@index([userId, productionId, read])
+  @@map("notifications")
 }

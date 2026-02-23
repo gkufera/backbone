@@ -14,6 +14,12 @@ export enum ElementSource {
   MANUAL = 'MANUAL',
 }
 
+export enum ElementWorkflowState {
+  PENDING = 'PENDING',
+  OUTSTANDING = 'OUTSTANDING',
+  APPROVED = 'APPROVED',
+}
+
 export interface Element {
   id: string;
   scriptId: string;
@@ -22,6 +28,7 @@ export interface Element {
   pageNumbers: number[];
   status: ElementStatus;
   source: ElementSource;
+  workflowState: ElementWorkflowState;
   createdAt: Date;
   updatedAt: Date;
 }
