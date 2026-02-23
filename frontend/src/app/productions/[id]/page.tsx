@@ -90,6 +90,16 @@ export default function ProductionDashboard() {
         )}
       </section>
 
+      {/* Review Feed */}
+      <section className="mb-8">
+        <Link
+          href={`/productions/${id}/feed`}
+          className="inline-block rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        >
+          Review Feed
+        </Link>
+      </section>
+
       {/* Scripts */}
       <section>
         <div className="mb-3 flex items-center justify-between">
