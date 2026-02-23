@@ -1,6 +1,8 @@
 import type {
   Production,
   ProductionMember,
+  Department,
+  DepartmentMember,
   Script,
   Element,
   Option,
@@ -54,11 +56,27 @@ export type ProductionResponse = JsonSerialized<Production> & {
 export interface ProductionDetailResponse extends ProductionResponse {
   members: Array<MemberResponse & { user: { id: string; name: string; email: string } }>;
   scripts: Array<Pick<ScriptResponse, 'id' | 'title' | 'fileName' | 'status' | 'createdAt'>>;
+  departments?: DepartmentResponse[];
 }
 
 export type MemberResponse = JsonSerialized<
-  Pick<ProductionMember, 'id' | 'productionId' | 'userId' | 'role'>
->;
+  Pick<ProductionMember, 'id' | 'productionId' | 'userId' | 'role' | 'title'>
+> & {
+  departmentMembers?: Array<{
+    department: { id: string; name: string };
+  }>;
+};
+
+export type DepartmentResponse = JsonSerialized<Department> & {
+  members?: Array<
+    JsonSerialized<DepartmentMember> & {
+      productionMember: {
+        id: string;
+        user: { id: string; name: string; email: string };
+      };
+    }
+  >;
+};
 
 export const productionsApi = {
   create(data: {
@@ -79,10 +97,14 @@ export const productionsApi = {
     return request(`/api/productions/${id}`);
   },
 
-  addMember(productionId: string, email: string): Promise<{ member: MemberResponse }> {
+  addMember(
+    productionId: string,
+    email: string,
+    title?: string,
+  ): Promise<{ member: MemberResponse }> {
     return request(`/api/productions/${productionId}/members`, {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, title: title || undefined }),
     });
   },
 
@@ -96,6 +118,49 @@ export const productionsApi = {
     return request(`/api/productions/${productionId}/members/${memberId}`, {
       method: 'DELETE',
     });
+  },
+};
+
+export const departmentsApi = {
+  list(productionId: string): Promise<{ departments: DepartmentResponse[] }> {
+    return request(`/api/productions/${productionId}/departments`);
+  },
+
+  create(productionId: string, name: string): Promise<{ department: DepartmentResponse }> {
+    return request(`/api/productions/${productionId}/departments`, {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  },
+
+  delete(productionId: string, departmentId: string): Promise<{ message: string }> {
+    return request(`/api/productions/${productionId}/departments/${departmentId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  addMember(
+    productionId: string,
+    departmentId: string,
+    productionMemberId: string,
+  ): Promise<{ departmentMember: JsonSerialized<DepartmentMember> }> {
+    return request(`/api/productions/${productionId}/departments/${departmentId}/members`, {
+      method: 'POST',
+      body: JSON.stringify({ productionMemberId }),
+    });
+  },
+
+  removeMember(
+    productionId: string,
+    departmentId: string,
+    memberId: string,
+  ): Promise<{ message: string }> {
+    return request(
+      `/api/productions/${productionId}/departments/${departmentId}/members/${memberId}`,
+      {
+        method: 'DELETE',
+      },
+    );
   },
 };
 
