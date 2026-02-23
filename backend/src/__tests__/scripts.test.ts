@@ -50,7 +50,6 @@ const mockedGenerateUploadUrl = vi.mocked(generateUploadUrl);
 const testUser = {
   userId: 'user-1',
   email: 'test@example.com',
-  role: 'CONTRIBUTOR',
 };
 
 function authHeader() {

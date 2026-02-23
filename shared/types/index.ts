@@ -1,8 +1,7 @@
-export { Role } from './user.js';
 export type { User } from './user.js';
 
 export { MemberRole } from './production.js';
-export type { Production, ProductionMember } from './production.js';
+export type { Production, ProductionMember, Department, DepartmentMember } from './production.js';
 
 export { ScriptStatus, RevisionMatchStatus } from './script.js';
 export type { Script, RevisionMatch } from './script.js';

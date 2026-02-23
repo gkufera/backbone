@@ -55,7 +55,6 @@ authRouter.post('/api/auth/signup', async (req, res) => {
     const token = signToken({
       userId: user.id,
       email: user.email,
-      role: user.role,
     });
 
     res.status(201).json({
@@ -64,8 +63,6 @@ authRouter.post('/api/auth/signup', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        departmentId: user.departmentId,
         createdAt: user.createdAt,
       },
     });
@@ -104,7 +101,6 @@ authRouter.post('/api/auth/login', async (req, res) => {
     const token = signToken({
       userId: user.id,
       email: user.email,
-      role: user.role,
     });
 
     res.status(200).json({
@@ -113,8 +109,6 @@ authRouter.post('/api/auth/login', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        departmentId: user.departmentId,
         createdAt: user.createdAt,
       },
     });
@@ -142,8 +136,6 @@ authRouter.get('/api/auth/me', requireAuth, async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        departmentId: user.departmentId,
         createdAt: user.createdAt,
       },
     });

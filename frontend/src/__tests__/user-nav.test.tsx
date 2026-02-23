@@ -38,8 +38,6 @@ describe('UserNav', () => {
         id: 'test-id',
         name: 'Jane Director',
         email: 'jane@example.com',
-        role: 'DIRECTOR',
-        departmentId: null,
         createdAt: new Date().toISOString(),
       },
     });
@@ -79,8 +77,6 @@ describe('UserNav', () => {
         id: 'test-id',
         name: 'Jane Director',
         email: 'jane@example.com',
-        role: 'DIRECTOR',
-        departmentId: null,
         createdAt: new Date().toISOString(),
       },
     });

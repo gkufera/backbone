@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  DIRECTOR
-  DEPARTMENT_HEAD
-  CONTRIBUTOR
-  ASSISTANT
-}
-
 enum MemberRole {
   OWNER
   ADMIN
@@ -68,8 +61,6 @@ model User {
   name         String
   email        String   @unique
   passwordHash String   @map("password_hash")
-  role         Role     @default(CONTRIBUTOR)
-  departmentId String?  @map("department_id")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -93,6 +84,7 @@ model Production {
   createdBy   User               @relation("CreatedProductions", fields: [createdById], references: [id])
   members     ProductionMember[]
   scripts     Script[]
+  departments Department[]
 
   @@map("productions")
 }
@@ -102,11 +94,13 @@ model ProductionMember {
   productionId String     @map("production_id")
   userId       String     @map("user_id")
   role         MemberRole @default(MEMBER)
+  title        String?
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  production   Production @relation(fields: [productionId], references: [id])
-  user         User       @relation(fields: [userId], references: [id])
+  production        Production         @relation(fields: [productionId], references: [id])
+  user              User               @relation(fields: [userId], references: [id])
+  departmentMembers DepartmentMember[]
 
   @@unique([productionId, userId])
   @@map("production_members")
@@ -189,6 +183,33 @@ model Approval {
   user      User             @relation(fields: [userId], references: [id])
 
   @@map("approvals")
+}
+
+model Department {
+  id           String             @id @default(cuid())
+  productionId String             @map("production_id")
+  name         String
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  production   Production         @relation(fields: [productionId], references: [id])
+  members      DepartmentMember[]
+
+  @@unique([productionId, name])
+  @@map("departments")
+}
+
+model DepartmentMember {
+  id                 String           @id @default(cuid())
+  departmentId       String           @map("department_id")
+  productionMemberId String           @map("production_member_id")
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  department         Department       @relation(fields: [departmentId], references: [id])
+  productionMember   ProductionMember @relation(fields: [productionMemberId], references: [id])
+
+  @@unique([departmentId, productionMemberId])
+  @@map("department_members")
 }
 
 enum RevisionMatchStatus {

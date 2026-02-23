@@ -54,8 +54,6 @@ describe('Signup page', () => {
         id: 'test-id',
         name: 'Test User',
         email: 'test@example.com',
-        role: 'CONTRIBUTOR',
-        departmentId: null,
         createdAt: new Date().toISOString(),
       },
     });

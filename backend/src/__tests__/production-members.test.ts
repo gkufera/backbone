@@ -32,13 +32,11 @@ const mockedPrisma = vi.mocked(prisma);
 const ownerUser = {
   userId: 'user-owner',
   email: 'owner@example.com',
-  role: 'CONTRIBUTOR',
 };
 
 const memberUser = {
   userId: 'user-member',
   email: 'member@example.com',
-  role: 'CONTRIBUTOR',
 };
 
 function authHeader(user = ownerUser) {
@@ -68,8 +66,6 @@ describe('POST /api/productions/:id/members', () => {
       name: 'New User',
       email: 'new@example.com',
       passwordHash: 'hash',
-      role: 'CONTRIBUTOR',
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -156,8 +152,6 @@ describe('POST /api/productions/:id/members', () => {
       name: 'Existing Member',
       email: 'existing@example.com',
       passwordHash: 'hash',
-      role: 'CONTRIBUTOR',
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);

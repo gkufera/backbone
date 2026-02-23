@@ -71,8 +71,6 @@ describe('AuthProvider', () => {
         id: 'test-id',
         name: 'Test User',
         email: 'test@example.com',
-        role: 'CONTRIBUTOR',
-        departmentId: null,
         createdAt: new Date().toISOString(),
       },
     });
@@ -101,8 +99,6 @@ describe('AuthProvider', () => {
         id: 'test-id',
         name: 'Logged In User',
         email: 'test@example.com',
-        role: 'DIRECTOR',
-        departmentId: null,
         createdAt: new Date().toISOString(),
       },
     });
@@ -136,8 +132,6 @@ describe('AuthProvider', () => {
         id: 'test-id',
         name: 'Test User',
         email: 'test@example.com',
-        role: 'CONTRIBUTOR',
-        departmentId: null,
         createdAt: new Date().toISOString(),
       },
     });

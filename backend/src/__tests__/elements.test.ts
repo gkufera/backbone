@@ -54,7 +54,6 @@ const mockedPrisma = vi.mocked(prisma);
 const testUser = {
   userId: 'user-1',
   email: 'test@example.com',
-  role: 'CONTRIBUTOR',
 };
 
 function authHeader() {

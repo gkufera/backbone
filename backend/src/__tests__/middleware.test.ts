@@ -54,7 +54,6 @@ describe('requireAuth middleware', () => {
     const token = signToken({
       userId: 'test-user-id',
       email: 'test@example.com',
-      role: 'CONTRIBUTOR',
     });
 
     const res = await request(testApp).get('/protected').set('Authorization', `Bearer ${token}`);

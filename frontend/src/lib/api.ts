@@ -21,8 +21,6 @@ interface AuthResponse {
     id: string;
     name: string;
     email: string;
-    role: string;
-    departmentId: string | null;
     createdAt: string;
   };
 }

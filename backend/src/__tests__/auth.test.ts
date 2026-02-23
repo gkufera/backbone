@@ -28,8 +28,6 @@ describe('POST /api/auth/signup', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      role: 'CONTRIBUTOR' as const,
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -99,8 +97,6 @@ describe('POST /api/auth/signup', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      role: 'CONTRIBUTOR' as const,
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -128,8 +124,6 @@ describe('POST /api/auth/signup', () => {
       name: 'Existing User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      role: 'CONTRIBUTOR' as const,
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -162,8 +156,6 @@ describe('POST /api/auth/login', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: hashedPassword,
-      role: 'CONTRIBUTOR' as const,
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -191,8 +183,6 @@ describe('POST /api/auth/login', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: hashedPassword,
-      role: 'CONTRIBUTOR' as const,
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -251,8 +241,6 @@ describe('GET /api/auth/me', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      role: 'CONTRIBUTOR' as const,
-      departmentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -262,7 +250,6 @@ describe('GET /api/auth/me', () => {
     const token = signToken({
       userId: 'test-id-123',
       email: 'test@example.com',
-      role: 'CONTRIBUTOR',
     });
 
     const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
@@ -287,7 +274,6 @@ describe('GET /api/auth/me', () => {
     const token = signToken({
       userId: 'deleted-user-id',
       email: 'deleted@example.com',
-      role: 'CONTRIBUTOR',
     });
 
     const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
@@ -333,7 +319,6 @@ describe('Error handling', () => {
     const token = signToken({
       userId: 'test-id-123',
       email: 'test@example.com',
-      role: 'CONTRIBUTOR',
     });
 
     const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
