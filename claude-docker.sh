@@ -9,7 +9,7 @@ fi
 
 echo "Building devcontainer..."
 cd .devcontainer
-docker build -t claude-backbone .
+docker build -t claude-slugmax .
 cd ..
 
 echo ""
@@ -20,13 +20,13 @@ echo "  - Notifications: enabled"
 echo ""
 
 docker run -it --rm \
-  --name claude-backbone \
+  --name claude-slugmax \
   --cap-add=NET_ADMIN \
   --security-opt seccomp=unconfined \
   -v "$(pwd):/workspace" \
   -w /workspace \
   -e ANTHROPIC_MODEL=claude-opus-4-6 \
-  claude-backbone \
+  claude-slugmax \
   bash -c '
     sudo /usr/local/bin/init-firewall.sh 2>/dev/null || true
     mkdir -p ~/.claude

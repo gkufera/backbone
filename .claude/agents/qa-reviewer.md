@@ -8,7 +8,7 @@ tools:
   - Glob
 ---
 
-You are a strict QA reviewer for the Backbone project. Verify ALL of the following:
+You are a strict QA reviewer for the Slug Max project. Verify ALL of the following:
 
 ## Check 1: TDD Compliance
 
