@@ -20,13 +20,17 @@
 | 9 | S3 bucket rebrand | `fix: rebrand S3 default bucket name to slugmax-uploads` | Default fallback constant |
 | 10 | Agent docs + Docker | `docs: rebrand agent docs and Docker script to Slug Max` | pm-orchestrator, qa-reviewer, claude-docker.sh |
 
-### Blocked
-- Railway + Cloudflare CLI setup: requires RAILWAY_TOKEN and CLOUDFLARE_API_TOKEN env vars
+| 11 | Backend build fix | `feat: switch backend build to tsup, fix pdf-parse v2 API` | tsup bundler replaces tsc, pdf-parse v2 named exports |
+| 12 | Railway project setup | Infrastructure | Slug Max project, PostgreSQL, backend + frontend services |
+| 13 | Railway env vars | Infrastructure | DATABASE_URL, JWT_SECRET, CORS_ORIGINS, PORT, S3_BUCKET_NAME |
+| 14 | Custom domains | Infrastructure | slugmax.com (frontend), api.slugmax.com (backend) |
+| 15 | Cloudflare DNS | Infrastructure | CNAME + TXT verification records for both domains |
+| 16 | Dockerfiles | `feat: add Dockerfiles for Railway deployment` | Multi-stage builds for backend and frontend |
 
-### Test Counts (Post Sprint 8 Cleanup)
+### Test Counts (Post Sprint 8 Deployment)
 - **Frontend**: 156 tests
-- **Backend**: 219 tests (+3 CORS tests)
-- **Total**: 375 tests
+- **Backend**: 220 tests (+1 pdf-parser destroy test)
+- **Total**: 376 tests
 
 ## Previous: Sprint 7 — Complete
 

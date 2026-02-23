@@ -344,12 +344,20 @@ What remained:
 - [x] Create production branch (main = development, production = auto-deploy)
 - [x] Write deployment documentation in CLAUDE.md (Railway + Cloudflare)
 
-- [ ] Set up Railway deployment (blocked: needs RAILWAY_TOKEN):
+- [x] Set up Railway deployment:
   - Frontend service (Next.js) — custom domain: slugmax.com
   - Backend service (Express) — custom domain: api.slugmax.com
   - PostgreSQL database service
   - Environment variables configured
-- [ ] Configure Cloudflare DNS (blocked: needs CLOUDFLARE_API_TOKEN)
+  - Dockerfiles for multi-stage builds
+  - tsup bundler for backend (replaces broken tsc build)
+  - pdf-parse v2 API migration
+- [x] Configure Cloudflare DNS:
+  - CNAME: slugmax.com → s5oxtfbw.up.railway.app
+  - CNAME: api.slugmax.com → 8nomu2c0.up.railway.app
+  - TXT verification records for Railway domain ownership
+- [ ] Set Railway deploy branch to `production` (via Railway dashboard)
+- [ ] Add AWS S3 credentials to Railway backend service
 
 ### Remaining
 - [ ] Mobile-responsive audit of all pages:

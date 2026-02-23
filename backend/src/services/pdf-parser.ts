@@ -1,4 +1,4 @@
-import pdfParse from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 
 export interface ParsedPdf {
   text: string;
@@ -6,10 +6,12 @@ export interface ParsedPdf {
 }
 
 export async function parsePdf(buffer: Buffer): Promise<ParsedPdf> {
-  const result = await pdfParse(buffer);
-
-  return {
-    text: result.text,
-    pageCount: result.numpages,
+  const parser = new PDFParse({ data: buffer });
+  const textResult = await parser.getText();
+  const result = {
+    text: textResult.text,
+    pageCount: textResult.total,
   };
+  await parser.destroy();
+  return result;
 }
