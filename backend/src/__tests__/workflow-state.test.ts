@@ -265,3 +265,223 @@ describe('Workflow state on readyForReview', () => {
     expect(mockedPrisma.element.update).not.toHaveBeenCalled();
   });
 });
+
+// ── Notification triggers on approval ───────────────────────────────
+
+describe('Notification triggers on approval', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('creates notification for option uploader on APPROVED', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-2',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'OUTSTANDING',
+        name: 'JOHN',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'OWNER',
+    } as any);
+
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'user-2',
+        productionId: 'prod-1',
+        type: 'OPTION_APPROVED',
+      }),
+    });
+  });
+
+  it('creates notification for option uploader on REJECTED', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-2',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'OUTSTANDING',
+        name: 'JOHN',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'OWNER',
+    } as any);
+
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-2',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'REJECTED',
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'REJECTED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'user-2',
+        productionId: 'prod-1',
+        type: 'OPTION_REJECTED',
+      }),
+    });
+  });
+
+  it('does not notify the user who made the approval', async () => {
+    // Uploader === approver
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-1', // same as approver
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'OUTSTANDING',
+        name: 'JOHN',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'OWNER',
+    } as any);
+
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-3',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.notification.create).not.toHaveBeenCalled();
+  });
+});
+
+// ── Notification triggers on readyForReview ─────────────────────────
+
+describe('Notification triggers on readyForReview', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('creates notifications for production members when option marked ready', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-1',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'PENDING',
+        name: 'BEACH HOUSE',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+
+    mockedPrisma.option.update.mockResolvedValue({
+      id: 'opt-1',
+      readyForReview: true,
+    } as any);
+
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+
+    // Other production members
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-1' },
+      { userId: 'user-2' },
+      { userId: 'user-3' },
+    ] as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .patch('/api/options/opt-1')
+      .set(authHeader())
+      .send({ readyForReview: true });
+
+    expect(res.status).toBe(200);
+    // Should notify user-2 and user-3, not user-1 (the actor)
+    expect(mockedPrisma.notification.create).toHaveBeenCalledTimes(2);
+    expect(mockedPrisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'user-2',
+        type: 'OPTION_READY',
+      }),
+    });
+    expect(mockedPrisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'user-3',
+        type: 'OPTION_READY',
+      }),
+    });
+  });
+});

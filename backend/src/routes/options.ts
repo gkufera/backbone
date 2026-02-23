@@ -8,6 +8,7 @@ import {
   OPTION_DESCRIPTION_MAX_LENGTH,
 } from '@backbone/shared/constants';
 import { MediaType, OptionStatus } from '@backbone/shared/types';
+import { notifyProductionMembers } from '../services/notification-service.js';
 
 const optionsRouter = Router();
 
@@ -281,6 +282,17 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
         where: { id: option.elementId },
         data: { workflowState: 'OUTSTANDING' },
       });
+    }
+
+    // Notify production members when option marked ready for review
+    if (readyForReview === true) {
+      const elementName = option.element.name ?? 'an element';
+      await notifyProductionMembers(
+        option.element.script.productionId,
+        authReq.user.userId,
+        'OPTION_READY',
+        `New option on ${elementName} is ready for review`,
+      );
     }
 
     res.json({ option: updated });

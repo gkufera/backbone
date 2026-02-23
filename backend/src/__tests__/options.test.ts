@@ -42,6 +42,9 @@ vi.mock('../lib/prisma.js', () => ({
     approval: {
       findFirst: vi.fn(),
     },
+    notification: {
+      create: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
@@ -488,7 +491,14 @@ describe('PATCH /api/options/:id', () => {
       id: 'opt-1',
       elementId: 'elem-1',
       readyForReview: false,
-      element: { script: { productionId: 'prod-1' } },
+      uploadedById: 'user-1',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'PENDING',
+        name: 'JOHN',
+        script: { productionId: 'prod-1' },
+      },
     } as any);
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -497,6 +507,9 @@ describe('PATCH /api/options/:id', () => {
       id: 'opt-1',
       readyForReview: true,
     } as any);
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
 
     const res = await request(app)
       .patch('/api/options/opt-1')

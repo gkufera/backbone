@@ -3,6 +3,13 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
 import { ApprovalDecision } from '@backbone/shared/types';
+import { createNotification } from '../services/notification-service.js';
+
+const DECISION_TO_NOTIFICATION_TYPE: Record<string, string> = {
+  APPROVED: 'OPTION_APPROVED',
+  REJECTED: 'OPTION_REJECTED',
+  MAYBE: 'OPTION_MAYBE',
+};
 
 const approvalsRouter = Router();
 
@@ -79,6 +86,18 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
         where: { id: option.elementId },
         data: { workflowState: 'APPROVED' },
       });
+    }
+
+    // Notify option uploader (if different from approver)
+    if (option.uploadedById !== authReq.user.userId) {
+      const notifType = DECISION_TO_NOTIFICATION_TYPE[decision];
+      const elementName = option.element.name ?? 'an element';
+      await createNotification(
+        option.uploadedById,
+        option.element.script.productionId,
+        notifType,
+        `Your option on ${elementName} was ${decision.toLowerCase()}`,
+      );
     }
 
     res.status(201).json({ approval });
