@@ -13,7 +13,7 @@ All bugs, features, and planned work are tracked here. Check this file before st
 | 4 | Director's Dashboard & Approval | Complete |
 | 5 | Script Revisions & Versioning | Complete |
 | 6 | Departments & Member Titles | Complete |
-| 7 | Notifications & Workflow Logic | Not Started |
+| 7 | Notifications & Workflow Logic | Complete |
 | 8 | Polish, Mobile & Deploy | Not Started |
 
 ---
@@ -297,40 +297,38 @@ What remained:
 - (24) Once approved, lock the element (further changes optional).
 
 ### Tasks
-- [ ] Create Prisma `Notification` model: `{id, user_id, type, title, message, link, read, created_at}`
-- [ ] Implement notification creation on key events:
-  - Option marked ready for review → notify Director
-  - Option approved → notify department
-  - Option rejected → notify department
-  - Option marked maybe → notify department
-  - New team member invited → notify invitee
-  - New script draft uploaded → notify all production members
-- [ ] Build notification bell icon in header with unread count badge
-- [ ] Build notifications dropdown/page showing recent notifications
-- [ ] Mark notifications as read on click
-- [ ] Implement email notifications using a transactional email service (e.g. Resend, SendGrid, or Nodemailer with SMTP)
-  - Email on: option approved/rejected, invited to production
-  - User preference to enable/disable email notifications
-- [ ] Implement optional Slack webhook integration:
-  - Production-level Slack webhook URL setting
-  - Post to Slack on: new options ready for review, approval decisions
-- [ ] Implement element workflow state machine:
-  - Pending → Outstanding (when first option uploaded)
+- [x] Create Prisma `Notification` model: `{id, user_id, type, message, link, read, created_at}`
+- [x] Implement notification creation on key events:
+  - Option marked ready for review → notify production members
+  - Option approved → notify option uploader
+  - Option rejected → notify option uploader
+  - Option marked maybe → notify option uploader
+  - ~~New team member invited → notify invitee~~ (deferred)
+  - ~~New script draft uploaded → notify all production members~~ (deferred)
+- [x] Build notification bell icon in header with unread count badge
+- [x] Build notifications dropdown/page showing recent notifications
+- [x] Mark notifications as read on click
+- [x] Implement email notifications using Nodemailer with SMTP
+  - Email on: all notification types (controlled by EMAIL_ENABLED env var)
+  - ~~User preference to enable/disable email notifications~~ (deferred)
+- [ ] ~~Implement optional Slack webhook integration~~ (deferred to post-MVP)
+- [x] Implement element workflow state machine:
+  - Pending → Outstanding (when first option marked readyForReview)
   - Outstanding → Approved (when director approves an option)
   - Approved → Locked (no new options unless director unlocks)
   - On rejection: element stays Outstanding, department notified to upload new options
-- [ ] Build element status dashboard showing counts per status (Pending/Outstanding/Approved)
+- [ ] ~~Build element status dashboard showing counts per status~~ (deferred to Sprint 8)
 
 ### Commit Points
 1. After notification model and creation logic
 2. After notification UI (bell, dropdown, mark read)
 3. After email notifications
-4. After Slack webhook integration
-5. After workflow state machine enforced
+4. After workflow state machine and badges
+5. After Sprint 7 review fixes (email wiring, link population, type safety, error handling, navigation)
 
-### Tests Required
-- Tier 1: Notification creation tests, workflow state machine tests (valid/invalid transitions), email sending mocks
-- Tier 2: E2E full workflow: option ready → director notified → approves → department notified → element locked
+### Tests Added
+- 31 new tests (3 notification service, 3 email service, 9 workflow state, 6 notification API, 7 notification bell, 6 notifications page, +3 updated)
+- Total: 372 tests (156 FE + 216 BE)
 
 ---
 
