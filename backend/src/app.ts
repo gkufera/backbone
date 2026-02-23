@@ -6,6 +6,7 @@ import { productionsRouter } from './routes/productions.js';
 import { scriptsRouter } from './routes/scripts.js';
 import { elementsRouter } from './routes/elements.js';
 import { optionsRouter } from './routes/options.js';
+import { approvalsRouter } from './routes/approvals.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(productionsRouter);
 app.use(scriptsRouter);
 app.use(elementsRouter);
 app.use(optionsRouter);
+app.use(approvalsRouter);
 
 // Global error handler — safety net for any unhandled errors
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
