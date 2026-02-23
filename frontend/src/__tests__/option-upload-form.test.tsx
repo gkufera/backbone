@@ -39,8 +39,10 @@ vi.mock('../lib/thumbnail', () => ({
 }));
 
 import { optionsApi } from '../lib/api';
+import { generateImageThumbnail } from '../lib/thumbnail';
 
 const mockedOptionsApi = vi.mocked(optionsApi);
+const mockedGenerateImageThumbnail = vi.mocked(generateImageThumbnail);
 
 describe('OptionUploadForm', () => {
   const mockOnOptionCreated = vi.fn();
@@ -167,5 +169,58 @@ describe('OptionUploadForm', () => {
 
     // Should not call API without URL
     expect(mockedOptionsApi.create).not.toHaveBeenCalled();
+  });
+
+  it('succeeds uploading file even when thumbnail generation fails', async () => {
+    const user = userEvent.setup();
+
+    // Make thumbnail generation throw
+    mockedGenerateImageThumbnail.mockRejectedValue(new Error('Canvas not supported'));
+
+    // Mock fetch for S3 upload
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', mockFetch);
+
+    mockedOptionsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'options/uuid/photo.jpg',
+      mediaType: 'IMAGE',
+    });
+
+    mockedOptionsApi.create.mockResolvedValue({
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        mediaType: 'IMAGE',
+        description: null,
+        s3Key: 'options/uuid/photo.jpg',
+        fileName: 'photo.jpg',
+        externalUrl: null,
+        thumbnailS3Key: null,
+        status: 'ACTIVE',
+        readyForReview: false,
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    // Upload an image file
+    const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, file);
+    await user.click(screen.getByRole('button', { name: /upload|submit|add/i }));
+
+    // Should still create the option without thumbnail
+    expect(mockOnOptionCreated).toHaveBeenCalled();
+    expect(mockedOptionsApi.create).toHaveBeenCalledWith(
+      'elem-1',
+      expect.objectContaining({
+        mediaType: 'IMAGE',
+        s3Key: 'options/uuid/photo.jpg',
+      }),
+    );
   });
 });

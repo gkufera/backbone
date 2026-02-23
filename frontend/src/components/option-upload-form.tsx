@@ -62,15 +62,19 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
         return;
       }
 
-      // Generate thumbnail for images and videos
+      // Generate thumbnail for images and videos (non-blocking)
       let thumbnailFileName: string | undefined;
       let thumbnailBlob: Blob | undefined;
-      if (mediaType === MediaType.IMAGE) {
-        thumbnailBlob = await generateImageThumbnail(file);
-        thumbnailFileName = `thumb_${file.name}`;
-      } else if (mediaType === MediaType.VIDEO) {
-        thumbnailBlob = await generateVideoThumbnail(file);
-        thumbnailFileName = `thumb_${file.name}.jpg`;
+      try {
+        if (mediaType === MediaType.IMAGE) {
+          thumbnailBlob = await generateImageThumbnail(file);
+          thumbnailFileName = `thumb_${file.name}`;
+        } else if (mediaType === MediaType.VIDEO) {
+          thumbnailBlob = await generateVideoThumbnail(file);
+          thumbnailFileName = `thumb_${file.name}.jpg`;
+        }
+      } catch {
+        // Thumbnail generation failed — proceed without thumbnail
       }
 
       // Get presigned upload URL
