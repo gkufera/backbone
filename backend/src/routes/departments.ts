@@ -143,7 +143,11 @@ departmentsRouter.delete(
       });
 
       res.json({ message: 'Department deleted' });
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'P2025') {
+        res.status(404).json({ error: 'Department not found' });
+        return;
+      }
       console.error('Delete department error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -215,6 +219,10 @@ departmentsRouter.post(
         res.status(409).json({ error: 'Member is already in this department' });
         return;
       }
+      if (error?.code === 'P2025') {
+        res.status(404).json({ error: 'Department or member not found' });
+        return;
+      }
       console.error('Add department member error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -262,7 +270,11 @@ departmentsRouter.delete(
       await prisma.departmentMember.delete({ where: { id: memberId } });
 
       res.json({ message: 'Member removed from department' });
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'P2025') {
+        res.status(404).json({ error: 'Department member not found' });
+        return;
+      }
       console.error('Remove department member error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }

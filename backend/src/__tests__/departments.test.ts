@@ -260,6 +260,28 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
     expect(res.body.error).toMatch(/department/i);
   });
 
+  it('returns 404 on P2025 error', async () => {
+    mockOwnerMembership();
+
+    // Department belongs to production
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    const prismaError = new Error('Record not found') as any;
+    prismaError.code = 'P2025';
+    mockedPrisma.$transaction.mockRejectedValue(prismaError);
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/not found/i);
+  });
+
   it('returns 403 for non-OWNER/ADMIN', async () => {
     mockMemberMembership();
 
@@ -391,6 +413,37 @@ describe('POST /api/productions/:id/departments/:departmentId/members', () => {
     expect(res.body.error).toMatch(/already/i);
   });
 
+  it('returns 404 on P2025 error', async () => {
+    mockOwnerMembership();
+
+    // Verify department belongs to production
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    // Verify production member belongs to production
+    mockedPrisma.productionMember.findFirst.mockResolvedValueOnce({
+      id: 'pm-member',
+      productionId: 'prod-1',
+      userId: 'user-member',
+      role: 'MEMBER',
+    } as any);
+
+    const prismaError = new Error('Record not found') as any;
+    prismaError.code = 'P2025';
+    mockedPrisma.departmentMember.create.mockRejectedValue(prismaError);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments/dept-1/members')
+      .set(authHeader())
+      .send({ productionMemberId: 'pm-member' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/not found/i);
+  });
+
   it('returns 403 for non-member', async () => {
     mockNonMembership();
 
@@ -446,6 +499,29 @@ describe('DELETE /api/productions/:id/departments/:departmentId/members/:memberI
 
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/member/i);
+  });
+
+  it('returns 404 on P2025 error', async () => {
+    mockOwnerMembership();
+
+    // Verify department member belongs to production
+    mockedPrisma.departmentMember.findUnique.mockResolvedValueOnce({
+      id: 'dm-1',
+      departmentId: 'dept-1',
+      productionMemberId: 'pm-member',
+      department: { id: 'dept-1', productionId: 'prod-1' },
+    } as any);
+
+    const prismaError = new Error('Record not found') as any;
+    prismaError.code = 'P2025';
+    mockedPrisma.departmentMember.delete.mockRejectedValue(prismaError);
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1/members/dm-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/not found/i);
   });
 
   it('returns 403 for non-member', async () => {
