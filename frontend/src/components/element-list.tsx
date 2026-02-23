@@ -1,13 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import type { ElementResponse } from '../lib/api';
 
 interface ElementListProps {
   elements: ElementResponse[];
   onArchive: (elementId: string) => void;
+  productionId?: string;
+  scriptId?: string;
 }
 
-export function ElementList({ elements, onArchive }: ElementListProps) {
+export function ElementList({ elements, onArchive, productionId, scriptId }: ElementListProps) {
   const characters = elements.filter((e) => e.type === 'CHARACTER');
   const locations = elements.filter((e) => e.type === 'LOCATION');
   const other = elements.filter((e) => e.type !== 'CHARACTER' && e.type !== 'LOCATION');
@@ -15,12 +18,32 @@ export function ElementList({ elements, onArchive }: ElementListProps) {
   return (
     <div className="space-y-6">
       {characters.length > 0 && (
-        <ElementGroup title="Characters" elements={characters} onArchive={onArchive} />
+        <ElementGroup
+          title="Characters"
+          elements={characters}
+          onArchive={onArchive}
+          productionId={productionId}
+          scriptId={scriptId}
+        />
       )}
       {locations.length > 0 && (
-        <ElementGroup title="Locations" elements={locations} onArchive={onArchive} />
+        <ElementGroup
+          title="Locations"
+          elements={locations}
+          onArchive={onArchive}
+          productionId={productionId}
+          scriptId={scriptId}
+        />
       )}
-      {other.length > 0 && <ElementGroup title="Other" elements={other} onArchive={onArchive} />}
+      {other.length > 0 && (
+        <ElementGroup
+          title="Other"
+          elements={other}
+          onArchive={onArchive}
+          productionId={productionId}
+          scriptId={scriptId}
+        />
+      )}
     </div>
   );
 }
@@ -29,10 +52,14 @@ function ElementGroup({
   title,
   elements,
   onArchive,
+  productionId,
+  scriptId,
 }: {
   title: string;
   elements: ElementResponse[];
   onArchive: (id: string) => void;
+  productionId?: string;
+  scriptId?: string;
 }) {
   return (
     <div>
@@ -41,7 +68,16 @@ function ElementGroup({
         {elements.map((elem) => (
           <li key={elem.id} className="flex items-center justify-between rounded border p-2">
             <div>
-              <span className="font-medium">{elem.name}</span>
+              {productionId && scriptId ? (
+                <Link
+                  href={`/productions/${productionId}/scripts/${scriptId}/elements/${elem.id}`}
+                  className="font-medium text-blue-600 hover:underline"
+                >
+                  {elem.name}
+                </Link>
+              ) : (
+                <span className="font-medium">{elem.name}</span>
+              )}
               <span className="ml-2 text-xs text-zinc-400">p. {elem.pageNumbers.join(', ')}</span>
             </div>
             <button

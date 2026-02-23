@@ -141,7 +141,12 @@ export default function ScriptViewerPage() {
           {script.elements.length === 0 ? (
             <p className="text-zinc-500">No elements detected.</p>
           ) : (
-            <ElementList elements={script.elements} onArchive={handleArchive} />
+            <ElementList
+              elements={script.elements}
+              onArchive={handleArchive}
+              productionId={productionId}
+              scriptId={scriptId}
+            />
           )}
         </section>
       )}

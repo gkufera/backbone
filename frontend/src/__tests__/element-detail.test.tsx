@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('next/navigation', () => ({
@@ -42,6 +43,11 @@ vi.mock('../lib/api', () => ({
     update: vi.fn(),
     getDownloadUrl: vi.fn(),
   },
+}));
+
+vi.mock('../lib/thumbnail', () => ({
+  generateImageThumbnail: vi.fn().mockResolvedValue(new Blob(['thumb'], { type: 'image/jpeg' })),
+  generateVideoThumbnail: vi.fn().mockResolvedValue(new Blob(['thumb'], { type: 'image/jpeg' })),
 }));
 
 import { elementsApi, optionsApi } from '../lib/api';
@@ -158,5 +164,78 @@ describe('Element detail page', () => {
     render(<ElementDetailPage />);
 
     expect(await screen.findByText(/1 option/i)).toBeInTheDocument();
+  });
+
+  it('shows upload form when Add Option is clicked', async () => {
+    const user = userEvent.setup();
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: [] });
+
+    render(<ElementDetailPage />);
+
+    const addBtn = await screen.findByRole('button', { name: /add option/i });
+    await user.click(addBtn);
+
+    expect(screen.getByPlaceholderText(/description/i)).toBeInTheDocument();
+  });
+
+  it('refreshes options after option is created', async () => {
+    const user = userEvent.setup();
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list
+      .mockResolvedValueOnce({ options: [] })
+      .mockResolvedValueOnce({ options: mockOptions });
+    mockedOptionsApi.create.mockResolvedValue({
+      option: mockOptions[0],
+    });
+
+    render(<ElementDetailPage />);
+
+    // Wait for initial load
+    await screen.findByText(/no options/i);
+
+    // Open form and submit a link
+    const addButtons = screen.getAllByRole('button', { name: /add option/i });
+    await user.click(addButtons[0]); // Toggle button
+    await user.click(screen.getByText(/link/i));
+    await user.type(screen.getByPlaceholderText(/url/i), 'https://example.com');
+    // Click the form's submit button (type="submit")
+    const submitBtn = screen.getAllByRole('button', { name: /add option/i });
+    await user.click(submitBtn[submitBtn.length - 1]);
+
+    // Should refresh and show new option
+    expect(await screen.findByText('Costume reference')).toBeInTheDocument();
+  });
+
+  it('calls optionsApi.update when toggling ready for review', async () => {
+    const user = userEvent.setup();
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: mockOptions });
+    mockedOptionsApi.update.mockResolvedValue({
+      option: { ...mockOptions[0], readyForReview: true },
+    });
+
+    render(<ElementDetailPage />);
+
+    await screen.findByText('Costume reference');
+    await user.click(screen.getByRole('button', { name: /ready/i }));
+
+    expect(mockedOptionsApi.update).toHaveBeenCalledWith('opt-1', { readyForReview: true });
+  });
+
+  it('calls optionsApi.update when archiving option', async () => {
+    const user = userEvent.setup();
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: mockOptions });
+    mockedOptionsApi.update.mockResolvedValue({
+      option: { ...mockOptions[0], status: 'ARCHIVED' },
+    });
+
+    render(<ElementDetailPage />);
+
+    await screen.findByText('Costume reference');
+    await user.click(screen.getByRole('button', { name: /archive/i }));
+
+    expect(mockedOptionsApi.update).toHaveBeenCalledWith('opt-1', { status: 'ARCHIVED' });
   });
 });

@@ -88,4 +88,22 @@ describe('Element list', () => {
     expect(screen.getByText('INT. OFFICE - DAY')).toBeInTheDocument();
     expect(screen.getByText('MAGIC RING')).toBeInTheDocument();
   });
+
+  it('renders element names as links when productionId and scriptId are provided', () => {
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        productionId="prod-1"
+        scriptId="script-1"
+      />,
+    );
+
+    const links = screen.getAllByRole('link');
+    expect(links.length).toBe(4);
+    expect(links[0]).toHaveAttribute(
+      'href',
+      '/productions/prod-1/scripts/script-1/elements/elem-1',
+    );
+  });
 });

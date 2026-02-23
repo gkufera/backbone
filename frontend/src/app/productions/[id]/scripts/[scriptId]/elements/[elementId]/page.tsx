@@ -8,6 +8,8 @@ import {
   type ElementResponse,
   type OptionResponse,
 } from '../../../../../../../lib/api';
+import { OptionGallery } from '../../../../../../../components/option-gallery';
+import { OptionUploadForm } from '../../../../../../../components/option-upload-form';
 
 export default function ElementDetailPage() {
   const params = useParams();
@@ -17,6 +19,7 @@ export default function ElementDetailPage() {
   const [options, setOptions] = useState<OptionResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showUploadForm, setShowUploadForm] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -24,7 +27,6 @@ export default function ElementDetailPage() {
 
   async function loadData() {
     try {
-      // Find element from the elements list (using the script's element list)
       const { elements } = await elementsApi.list(params.scriptId as string, true);
       const found = elements.find((e) => e.id === elementId);
       if (!found) {
@@ -40,6 +42,35 @@ export default function ElementDetailPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function handleToggleReady(optionId: string) {
+    const option = options.find((o) => o.id === optionId);
+    if (!option) return;
+
+    try {
+      await optionsApi.update(optionId, { readyForReview: !option.readyForReview });
+      const { options: opts } = await optionsApi.list(elementId);
+      setOptions(opts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update option');
+    }
+  }
+
+  async function handleArchiveOption(optionId: string) {
+    try {
+      await optionsApi.update(optionId, { status: 'ARCHIVED' });
+      const { options: opts } = await optionsApi.list(elementId);
+      setOptions(opts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to archive option');
+    }
+  }
+
+  async function handleOptionCreated() {
+    setShowUploadForm(false);
+    const { options: opts } = await optionsApi.list(elementId);
+    setOptions(opts);
   }
 
   if (isLoading) {
@@ -72,27 +103,25 @@ export default function ElementDetailPage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Options ({optionLabel})</h2>
-          <button className="rounded bg-black px-3 py-1 text-sm text-white">Add Option</button>
+          <button
+            onClick={() => setShowUploadForm(!showUploadForm)}
+            className="rounded bg-black px-3 py-1 text-sm text-white"
+          >
+            Add Option
+          </button>
         </div>
 
-        {options.length === 0 ? (
-          <p className="text-zinc-500">No options yet. Add an option to get started.</p>
-        ) : (
-          <ul className="space-y-2">
-            {options.map((opt) => (
-              <li key={opt.id} className="rounded border p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium">
-                      {opt.mediaType}
-                    </span>
-                    {opt.description && <span className="ml-2 text-sm">{opt.description}</span>}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+        {showUploadForm && (
+          <div className="mb-4">
+            <OptionUploadForm elementId={elementId} onOptionCreated={handleOptionCreated} />
+          </div>
         )}
+
+        <OptionGallery
+          options={options}
+          onToggleReady={handleToggleReady}
+          onArchive={handleArchiveOption}
+        />
       </section>
     </div>
   );
