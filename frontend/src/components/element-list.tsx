@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import type { ElementResponse } from '../lib/api';
+import type { ElementWithCountResponse } from '../lib/api';
 
 interface ElementListProps {
-  elements: ElementResponse[];
+  elements: ElementWithCountResponse[];
   onArchive: (elementId: string) => void;
   productionId?: string;
   scriptId?: string;
@@ -56,7 +56,7 @@ function ElementGroup({
   scriptId,
 }: {
   title: string;
-  elements: ElementResponse[];
+  elements: ElementWithCountResponse[];
   onArchive: (id: string) => void;
   productionId?: string;
   scriptId?: string;
@@ -79,10 +79,9 @@ function ElementGroup({
                 <span className="font-medium">{elem.name}</span>
               )}
               <span className="ml-2 text-xs text-zinc-400">p. {elem.pageNumbers.join(', ')}</span>
-              {(elem as any)._count?.options != null && (
+              {elem._count?.options != null && (
                 <span className="ml-2 text-xs text-zinc-500">
-                  {(elem as any)._count.options}{' '}
-                  {(elem as any)._count.options === 1 ? 'option' : 'options'}
+                  {elem._count.options} {elem._count.options === 1 ? 'option' : 'options'}
                 </span>
               )}
             </div>

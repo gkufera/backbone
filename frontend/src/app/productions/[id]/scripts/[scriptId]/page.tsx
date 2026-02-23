@@ -6,11 +6,11 @@ import {
   scriptsApi,
   elementsApi,
   type ScriptResponse,
-  type ElementResponse,
+  type ElementWithCountResponse,
 } from '../../../../../lib/api';
 import { ElementList } from '../../../../../components/element-list';
 
-type ScriptDetail = ScriptResponse & { elements: ElementResponse[] };
+type ScriptDetail = ScriptResponse & { elements: ElementWithCountResponse[] };
 
 export default function ScriptViewerPage() {
   const params = useParams();

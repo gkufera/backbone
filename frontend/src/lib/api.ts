@@ -123,12 +123,16 @@ export const scriptsApi = {
   get(
     productionId: string,
     scriptId: string,
-  ): Promise<{ script: ScriptResponse & { elements: ElementResponse[] } }> {
+  ): Promise<{ script: ScriptResponse & { elements: ElementWithCountResponse[] } }> {
     return request(`/api/productions/${productionId}/scripts/${scriptId}`);
   },
 };
 
 export type ElementResponse = JsonSerialized<Element>;
+
+export type ElementWithCountResponse = ElementResponse & {
+  _count?: { options: number };
+};
 
 export const elementsApi = {
   list(scriptId: string, includeArchived = false): Promise<{ elements: ElementResponse[] }> {
