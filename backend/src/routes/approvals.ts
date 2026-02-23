@@ -73,6 +73,14 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
       },
     });
 
+    // Update element workflow state on APPROVED decision
+    if (decision === 'APPROVED') {
+      await prisma.element.update({
+        where: { id: option.elementId },
+        data: { workflowState: 'APPROVED' },
+      });
+    }
+
     res.status(201).json({ approval });
   } catch (error) {
     console.error('Create approval error:', error);

@@ -18,6 +18,10 @@ vi.mock('../lib/prisma.js', () => ({
     },
     element: {
       findMany: vi.fn(),
+      update: vi.fn(),
+    },
+    notification: {
+      create: vi.fn(),
     },
   },
 }));
@@ -41,7 +45,11 @@ function mockOptionWithMembership() {
     id: 'opt-1',
     elementId: 'elem-1',
     status: 'ACTIVE',
+    uploadedById: 'user-2',
     element: {
+      id: 'elem-1',
+      status: 'ACTIVE',
+      workflowState: 'OUTSTANDING',
       script: { productionId: 'prod-1' },
     },
   } as any);
@@ -72,6 +80,8 @@ describe('POST /api/options/:optionId/approvals', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
 
     const res = await request(app)
       .post('/api/options/opt-1/approvals')

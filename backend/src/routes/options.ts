@@ -275,6 +275,14 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
       data: updateData,
     });
 
+    // Update element workflow state when option marked readyForReview
+    if (readyForReview === true && option.element.workflowState === 'PENDING') {
+      await prisma.element.update({
+        where: { id: option.elementId },
+        data: { workflowState: 'OUTSTANDING' },
+      });
+    }
+
     res.json({ option: updated });
   } catch (error) {
     console.error('Update option error:', error);
