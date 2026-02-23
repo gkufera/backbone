@@ -9,13 +9,34 @@ interface FeedCardProps {
   scriptId: string;
 }
 
+const WORKFLOW_BADGE: Record<string, { label: string; className: string }> = {
+  PENDING: {
+    label: 'Pending',
+    className: 'bg-zinc-100 text-zinc-600',
+  },
+  OUTSTANDING: {
+    label: 'Outstanding',
+    className: 'bg-yellow-100 text-yellow-800',
+  },
+  APPROVED: {
+    label: 'Approved',
+    className: 'bg-green-100 text-green-800',
+  },
+};
+
 export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
   const optionCount = element.options.length;
   const optionLabel = optionCount === 1 ? '1 option' : `${optionCount} options`;
 
-  const hasApproved = element.options.some(
-    (opt) => opt.approvals.length > 0 && opt.approvals[0].decision === 'APPROVED',
-  );
+  const workflowState = (element as any).workflowState as string | undefined;
+  const badge = workflowState ? WORKFLOW_BADGE[workflowState] : null;
+
+  // Fallback: compute from approvals if workflowState not present
+  const hasApproved =
+    !badge &&
+    element.options.some(
+      (opt) => opt.approvals.length > 0 && opt.approvals[0].decision === 'APPROVED',
+    );
 
   return (
     <Link
@@ -34,6 +55,13 @@ export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
         </div>
         <div className="text-right">
           <span className="text-sm text-zinc-600">{optionLabel}</span>
+          {badge && (
+            <span
+              className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${badge.className}`}
+            >
+              {badge.label}
+            </span>
+          )}
           {hasApproved && (
             <span className="ml-2 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
               Approved

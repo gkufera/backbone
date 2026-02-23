@@ -86,4 +86,33 @@ describe('FeedCard', () => {
 
     expect(screen.getByText(/approved/i)).toBeInTheDocument();
   });
+
+  it('displays workflow state badge on feed elements', () => {
+    const pendingElement = {
+      ...mockElement,
+      workflowState: 'PENDING',
+    };
+    const { rerender } = render(
+      <FeedCard element={pendingElement} productionId="prod-1" scriptId="script-1" />,
+    );
+    expect(screen.getByText('Pending')).toBeInTheDocument();
+
+    const outstandingElement = {
+      ...mockElement,
+      workflowState: 'OUTSTANDING',
+    };
+    rerender(
+      <FeedCard element={outstandingElement} productionId="prod-1" scriptId="script-1" />,
+    );
+    expect(screen.getByText('Outstanding')).toBeInTheDocument();
+
+    const approvedElement = {
+      ...mockElement,
+      workflowState: 'APPROVED',
+    };
+    rerender(
+      <FeedCard element={approvedElement} productionId="prod-1" scriptId="script-1" />,
+    );
+    expect(screen.getByText('Approved')).toBeInTheDocument();
+  });
 });
