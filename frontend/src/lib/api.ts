@@ -1,4 +1,11 @@
+import type { Production, ProductionMember, Script, Element } from '@backbone/shared/types';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
+
+/** Convert Date fields to string for JSON API responses */
+type JsonSerialized<T> = {
+  [K in keyof T]: T[K] extends Date ? string : T[K];
+};
 
 interface AuthResponse {
   token: string;
@@ -34,38 +41,18 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export interface ProductionResponse {
-  id: string;
-  title: string;
-  description: string | null;
-  createdById: string;
-  createdAt: string;
-  updatedAt: string;
+export type ProductionResponse = JsonSerialized<Production> & {
   memberRole?: string;
-}
+};
 
 export interface ProductionDetailResponse extends ProductionResponse {
-  members: Array<{
-    id: string;
-    userId: string;
-    role: string;
-    user: { id: string; name: string; email: string };
-  }>;
-  scripts: Array<{
-    id: string;
-    title: string;
-    fileName: string;
-    status: string;
-    createdAt: string;
-  }>;
+  members: Array<MemberResponse & { user: { id: string; name: string; email: string } }>;
+  scripts: Array<Pick<ScriptResponse, 'id' | 'title' | 'fileName' | 'status' | 'createdAt'>>;
 }
 
-export interface MemberResponse {
-  id: string;
-  productionId: string;
-  userId: string;
-  role: string;
-}
+export type MemberResponse = JsonSerialized<
+  Pick<ProductionMember, 'id' | 'productionId' | 'userId' | 'role'>
+>;
 
 export const productionsApi = {
   create(data: {
@@ -106,18 +93,7 @@ export const productionsApi = {
   },
 };
 
-export interface ScriptResponse {
-  id: string;
-  productionId: string;
-  title: string;
-  fileName: string;
-  s3Key: string;
-  pageCount: number | null;
-  status: string;
-  uploadedById: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export type ScriptResponse = JsonSerialized<Script>;
 
 export const scriptsApi = {
   getUploadUrl(
@@ -147,19 +123,12 @@ export const scriptsApi = {
   get(
     productionId: string,
     scriptId: string,
-  ): Promise<{ script: ScriptResponse & { elements: any[] } }> {
+  ): Promise<{ script: ScriptResponse & { elements: ElementResponse[] } }> {
     return request(`/api/productions/${productionId}/scripts/${scriptId}`);
   },
 };
 
-export interface ElementResponse {
-  id: string;
-  name: string;
-  type: string;
-  pageNumbers: number[];
-  status: string;
-  source: string;
-}
+export type ElementResponse = JsonSerialized<Element>;
 
 export const elementsApi = {
   list(scriptId: string, includeArchived = false): Promise<{ elements: ElementResponse[] }> {

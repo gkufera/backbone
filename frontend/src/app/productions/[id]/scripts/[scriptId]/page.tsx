@@ -2,26 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { scriptsApi, elementsApi } from '../../../../../lib/api';
+import {
+  scriptsApi,
+  elementsApi,
+  type ScriptResponse,
+  type ElementResponse,
+} from '../../../../../lib/api';
 import { ElementList } from '../../../../../components/element-list';
 
-interface ScriptElement {
-  id: string;
-  name: string;
-  type: string;
-  pageNumbers: number[];
-  status: string;
-  source: string;
-}
-
-interface ScriptDetail {
-  id: string;
-  title: string;
-  fileName: string;
-  pageCount: number | null;
-  status: string;
-  elements: ScriptElement[];
-}
+type ScriptDetail = ScriptResponse & { elements: ElementResponse[] };
 
 export default function ScriptViewerPage() {
   const params = useParams();

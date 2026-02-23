@@ -1,16 +1,9 @@
 'use client';
 
-interface ElementItem {
-  id: string;
-  name: string;
-  type: string;
-  pageNumbers: number[];
-  status: string;
-  source: string;
-}
+import type { ElementResponse } from '../lib/api';
 
 interface ElementListProps {
-  elements: ElementItem[];
+  elements: ElementResponse[];
   onArchive: (elementId: string) => void;
 }
 
@@ -38,7 +31,7 @@ function ElementGroup({
   onArchive,
 }: {
   title: string;
-  elements: ElementItem[];
+  elements: ElementResponse[];
   onArchive: (id: string) => void;
 }) {
   return (
