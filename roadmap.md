@@ -10,7 +10,7 @@ All bugs, features, and planned work are tracked here. Check this file before st
 | 1 | Auth & User Management | Complete |
 | 2 | Projects & Script Upload | Complete |
 | 3 | Elements & Options | Complete |
-| 4 | Director's Dashboard & Approval | Not Started |
+| 4 | Director's Dashboard & Approval | Complete |
 | 5 | Script Revisions & Versioning | Not Started |
 | 6 | Permissions & Departments | Not Started |
 | 7 | Notifications & Workflow Logic | Not Started |
@@ -164,20 +164,17 @@ All bugs, features, and planned work are tracked here. Check this file before st
 - (15) Split View: click an element to see script context + all its options (desktop and mobile-friendly)
 
 ### Tasks
-- [ ] Create Prisma `Approval` model: `{id, option_id, user_id, decision, note, created_at}`
-- [ ] Build director's news feed page (`/productions/[id]/feed`)
-- [ ] Feed shows elements with `ready_for_review` options, sorted by most recent
-- [ ] Each feed card shows: element label, page number, option thumbnails, department
-- [ ] Build approval UI with three buttons: Approve (green), Reject (red), Maybe (yellow)
-- [ ] Add optional note/comment field for each decision
-- [ ] Build split view: left panel shows script page context, right panel shows all options for selected element
-- [ ] Make split view responsive (stacked on mobile)
-- [ ] Update element status based on approvals:
-  - Any option approved → element status = `approved`
-  - All options rejected → element status = `outstanding` (dept needs new options)
-  - Maybe → element stays `outstanding`, option marked for reconsideration
-- [ ] Build approval history view (who approved what, when)
-- [ ] Lock approved elements (prevent further option uploads unless unlocked)
+- [x] Create Prisma `Approval` model: `{id, option_id, user_id, decision, note, created_at}`
+- [x] Build director's news feed page (`/productions/[id]/feed`)
+- [x] Feed shows elements with `ready_for_review` options, sorted by most recent
+- [x] Each feed card shows: element label, page number, option count, approval status
+- [x] Build approval UI with three buttons: Approve (green), Reject (red), Maybe (yellow)
+- [x] Add optional note/comment field for each decision
+- [ ] Build split view: left panel shows script page context, right panel shows all options for selected element (deferred to Sprint 8)
+- [ ] Make split view responsive (stacked on mobile) (deferred to Sprint 8)
+- [x] Element approval status computed from Approval records (immutable audit trail)
+- [x] Build approval history component (who approved what, when)
+- [x] Lock approved elements (prevent further option uploads unless unlocked)
 
 ### Commit Points
 1. After news feed page showing elements needing review

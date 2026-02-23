@@ -1,29 +1,29 @@
 # Current Plan
 
 ## Active Task
-**Sprint 3 Review — Complete**
+**Sprint 4: Director's Dashboard & Approval — Complete**
 
-All Sprint 3 review issues have been resolved. Ready for Sprint 4.
+All Sprint 4 phases have been implemented and tested.
 
-## Completed (Sprint 3 Review)
+## Completed (Sprint 4)
 
-### Fixes Applied
+### Phases
 
-| Step | Category | Commit | New Tests |
-|------|----------|--------|-----------|
-| 1 | Type Safety | `fix: add proper type for element response with option count` | 0 |
-| 2 | Bug Fix | `fix: add error handlers and fix memory leaks in thumbnail generation` | +3 |
-| 3 | Bug Fix | `fix: thumbnail failure should not block option upload` | +1 |
-| 4 | Bug Fix | `fix: check S3 upload response status in option upload form` | +1 |
-| 5+6 | Validation | `fix: validate option description length and external URL format` | +3 |
-| 7 | Bug Fix | `fix: element detail page should not load archived elements` | 0 |
-| 8 | Refactor | `refactor: extract refreshOptions helper in element detail page` | 0 |
+| Phase | Focus | Commit | New Tests |
+|-------|-------|--------|-----------|
+| 1 | Schema + Types | `feat: add Approval model, shared types, and constants` | 0 |
+| 2 | Backend CRUD + Feed | `feat: add approval CRUD and feed API endpoints` | +16 |
+| 3 | Element Locking | `feat: lock option uploads when element has approved option` | +3 |
+| 4 | Frontend API Client | `feat: add approval and feed API client functions` | 0 |
+| 5 | Feed Page | `feat: add director's feed page for elements pending review` | +10 |
+| 6 | Approval UI | `feat: add approval buttons and history UI components` | +8 |
+| 7 | Wire into Detail | `feat: wire approval workflow into element detail page` | +6 |
 
 ### Test Counts
 
-- **Frontend**: 93 tests (was 88)
-- **Backend**: 111 tests (was 108)
-- **Total**: 204 tests (was 196, +8 new)
+- **Frontend**: 117 tests (was 93)
+- **Backend**: 130 tests (was 111)
+- **Total**: 247 tests (was 204, +43 new)
 
 ## Next Up
-Sprint 4: Director's Dashboard & Approval
+Sprint 5: Script Revisions & Versioning
