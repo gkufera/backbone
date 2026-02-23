@@ -1,7 +1,24 @@
 # Current Plan
 
 ## Active Task
-**Sprint 5: Script Revisions & Versioning — Complete**
+**Sprint 5 Review — Complete**
+
+## Completed (Sprint 5 Review)
+
+### Fixes
+
+| Step | Issue | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | No membership check on revision-matches | `fix: add production membership check to revision-matches endpoints` | +2 |
+| 2 | No transaction in revision-processor | `fix: wrap revision processor auto-resolution in transaction` | +1 |
+| 3 | Silent skip of unknown matchIds | `fix: reject unknown matchIds in reconciliation resolve` | +1 |
+| 4 | `as any` type casts | Fixed in Step 2 commit (replaced with `ElementType`) | 0 |
+
+### Test Counts (Post-Review)
+
+- **Frontend**: 136 tests (unchanged)
+- **Backend**: 164 tests (was 160, +4 new)
+- **Total**: 300 tests (was 296, +4 new)
 
 ## Completed (Sprint 5)
 
