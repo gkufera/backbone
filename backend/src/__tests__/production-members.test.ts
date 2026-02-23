@@ -219,6 +219,76 @@ describe('POST /api/productions/:id/members', () => {
     expect(res.body.member.title).toBe('Costume Designer');
   });
 
+  it('returns 400 when title exceeds max length', async () => {
+    // Owner membership check
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-owner',
+      productionId: 'prod-1',
+      userId: 'user-owner',
+      role: 'OWNER',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const longTitle = 'A'.repeat(101);
+    const res = await request(app)
+      .post('/api/productions/prod-1/members')
+      .set(authHeader())
+      .send({ email: 'new@example.com', title: longTitle });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/100/);
+  });
+
+  it('trims whitespace-only title to null', async () => {
+    // Owner membership check
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-owner',
+      productionId: 'prod-1',
+      userId: 'user-owner',
+      role: 'OWNER',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    // Find user by email
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      id: 'user-new',
+      name: 'New User',
+      email: 'new@example.com',
+      passwordHash: 'hash',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    // Check if already a member
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce(null);
+
+    // Create member
+    mockedPrisma.productionMember.create.mockResolvedValue({
+      id: 'member-new',
+      productionId: 'prod-1',
+      userId: 'user-new',
+      role: 'MEMBER',
+      title: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/members')
+      .set(authHeader())
+      .send({ email: 'new@example.com', title: '   ' });
+
+    expect(res.status).toBe(201);
+    // Verify that prisma.create was called with title: null (not "   ")
+    expect(mockedPrisma.productionMember.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ title: null }),
+      }),
+    );
+  });
+
   it('returns 403 when requester is not OWNER or ADMIN', async () => {
     // Member (not OWNER/ADMIN) membership check
     mockedPrisma.productionMember.findUnique.mockResolvedValue({

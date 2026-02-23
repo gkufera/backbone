@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
-import { PRODUCTION_TITLE_MAX_LENGTH, DEFAULT_DEPARTMENTS } from '@backbone/shared/constants';
+import {
+  PRODUCTION_TITLE_MAX_LENGTH,
+  MEMBER_TITLE_MAX_LENGTH,
+  DEFAULT_DEPARTMENTS,
+} from '@backbone/shared/constants';
 import { MemberRole } from '@backbone/shared/types';
 
 const productionsRouter = Router();
@@ -178,6 +182,16 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
       return;
     }
 
+    const trimmedTitle = title ? String(title).trim() : null;
+    const finalTitle = trimmedTitle || null;
+
+    if (finalTitle && finalTitle.length > MEMBER_TITLE_MAX_LENGTH) {
+      res
+        .status(400)
+        .json({ error: `Title must be ${MEMBER_TITLE_MAX_LENGTH} characters or fewer` });
+      return;
+    }
+
     // Find user by email
     const userToAdd = await prisma.user.findUnique({ where: { email } });
     if (!userToAdd) {
@@ -205,7 +219,7 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
         productionId: id,
         userId: userToAdd.id,
         role: role || MemberRole.MEMBER,
-        title: title || null,
+        title: finalTitle,
       },
     });
 

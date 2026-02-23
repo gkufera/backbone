@@ -1,1 +1,2 @@
 export const PRODUCTION_TITLE_MAX_LENGTH = 200;
+export const MEMBER_TITLE_MAX_LENGTH = 100;
