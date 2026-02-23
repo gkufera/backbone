@@ -8,6 +8,7 @@ import type {
   Option,
   Approval,
   RevisionMatch,
+  Notification,
 } from '@backbone/shared/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
@@ -391,5 +392,23 @@ export const revisionMatchesApi = {
       method: 'POST',
       body: JSON.stringify({ decisions }),
     });
+  },
+};
+
+export type NotificationResponse = JsonSerialized<Notification>;
+
+export const notificationsApi = {
+  list(productionId: string): Promise<{ notifications: NotificationResponse[] }> {
+    return request(`/api/productions/${productionId}/notifications`);
+  },
+
+  markAsRead(notificationId: string): Promise<{ notification: NotificationResponse }> {
+    return request(`/api/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+    });
+  },
+
+  unreadCount(productionId: string): Promise<{ count: number }> {
+    return request(`/api/productions/${productionId}/notifications/unread-count`);
   },
 };

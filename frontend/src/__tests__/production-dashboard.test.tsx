@@ -28,11 +28,17 @@ vi.mock('../lib/api', () => ({
     addMember: vi.fn(),
     removeMember: vi.fn(),
   },
+  notificationsApi: {
+    list: vi.fn(),
+    markAsRead: vi.fn(),
+    unreadCount: vi.fn(),
+  },
 }));
 
-import { productionsApi, departmentsApi } from '../lib/api';
+import { productionsApi, departmentsApi, notificationsApi } from '../lib/api';
 const mockedProductionsApi = vi.mocked(productionsApi);
 const mockedDepartmentsApi = vi.mocked(departmentsApi);
+const mockedNotificationsApi = vi.mocked(notificationsApi);
 
 // Import after mocks
 import ProductionDashboard from '../app/productions/[id]/page';
@@ -88,6 +94,8 @@ const mockDepartments = [
 function setupMocks() {
   mockedProductionsApi.get.mockResolvedValue({ production: mockProduction });
   mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+  mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+  mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
 }
 
 describe('Production dashboard', () => {

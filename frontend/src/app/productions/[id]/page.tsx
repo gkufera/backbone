@@ -9,6 +9,7 @@ import {
   type ProductionDetailResponse,
   type DepartmentResponse,
 } from '../../../lib/api';
+import { NotificationBell } from '../../../components/notification-bell';
 
 export default function ProductionDashboard() {
   const params = useParams();
@@ -87,7 +88,10 @@ export default function ProductionDashboard() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-6 text-3xl font-bold">{production.title}</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">{production.title}</h1>
+        <NotificationBell productionId={id} />
+      </div>
       {production.description && <p className="mb-6 text-zinc-500">{production.description}</p>}
 
       {/* Team Members */}
