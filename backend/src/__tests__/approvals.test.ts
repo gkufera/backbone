@@ -82,6 +82,7 @@ describe('POST /api/options/:optionId/approvals', () => {
     expect(res.status).toBe(201);
     expect(res.body.approval.decision).toBe('APPROVED');
     expect(res.body.approval.optionId).toBe('opt-1');
+    expect(res.body.approval.userId).toBe('user-1');
   });
 
   it('returns 201 when creating REJECTED approval', async () => {
@@ -423,5 +424,28 @@ describe('GET /api/productions/:productionId/feed', () => {
     const res = await request(app).get('/api/productions/prod-1/feed').set(authHeader());
 
     expect(res.status).toBe(403);
+  });
+
+  it('queries only ACTIVE elements with ACTIVE ready-for-review options', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+    } as any);
+    mockedPrisma.element.findMany.mockResolvedValue([]);
+
+    await request(app).get('/api/productions/prod-1/feed').set(authHeader());
+
+    expect(mockedPrisma.element.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: 'ACTIVE',
+          options: {
+            some: {
+              readyForReview: true,
+              status: 'ACTIVE',
+            },
+          },
+        }),
+      }),
+    );
   });
 });
