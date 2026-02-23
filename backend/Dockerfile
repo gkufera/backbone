@@ -14,8 +14,8 @@ COPY shared/ ./shared/
 # Copy backend package files
 COPY backend/package.json backend/package-lock.json ./backend/
 
-# Install root deps (prisma CLI) and backend deps
-RUN npm ci && cd backend && npm ci
+# Install root deps (prisma CLI, skip husky prepare script) and backend deps
+RUN npm ci --ignore-scripts && cd backend && npm ci
 
 # Copy backend source
 COPY backend/ ./backend/
@@ -31,9 +31,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy root package files and install production deps only (for prisma runtime)
+# Copy root package files and install production deps only (skip husky prepare script)
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy backend package files and install production deps only
 COPY backend/package.json backend/package-lock.json ./backend/
