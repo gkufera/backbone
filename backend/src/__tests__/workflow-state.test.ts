@@ -273,7 +273,7 @@ describe('Notification triggers on approval', () => {
     vi.clearAllMocks();
   });
 
-  it('creates notification for option uploader on APPROVED', async () => {
+  it('creates notification for option uploader on APPROVED with link', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',
       elementId: 'elem-1',
@@ -281,6 +281,7 @@ describe('Notification triggers on approval', () => {
       uploadedById: 'user-2',
       element: {
         id: 'elem-1',
+        scriptId: 'script-1',
         status: 'ACTIVE',
         workflowState: 'OUTSTANDING',
         name: 'JOHN',
@@ -319,11 +320,12 @@ describe('Notification triggers on approval', () => {
         userId: 'user-2',
         productionId: 'prod-1',
         type: 'OPTION_APPROVED',
+        link: '/productions/prod-1/scripts/script-1/elements/elem-1',
       }),
     });
   });
 
-  it('creates notification for option uploader on REJECTED', async () => {
+  it('creates notification for option uploader on REJECTED with link', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',
       elementId: 'elem-1',
@@ -331,6 +333,7 @@ describe('Notification triggers on approval', () => {
       uploadedById: 'user-2',
       element: {
         id: 'elem-1',
+        scriptId: 'script-1',
         status: 'ACTIVE',
         workflowState: 'OUTSTANDING',
         name: 'JOHN',
@@ -368,6 +371,7 @@ describe('Notification triggers on approval', () => {
         userId: 'user-2',
         productionId: 'prod-1',
         type: 'OPTION_REJECTED',
+        link: '/productions/prod-1/scripts/script-1/elements/elem-1',
       }),
     });
   });
@@ -425,7 +429,7 @@ describe('Notification triggers on readyForReview', () => {
     vi.clearAllMocks();
   });
 
-  it('creates notifications for production members when option marked ready', async () => {
+  it('creates notifications for production members when option marked ready with link', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',
       elementId: 'elem-1',
@@ -433,6 +437,7 @@ describe('Notification triggers on readyForReview', () => {
       uploadedById: 'user-1',
       element: {
         id: 'elem-1',
+        scriptId: 'script-1',
         status: 'ACTIVE',
         workflowState: 'PENDING',
         name: 'BEACH HOUSE',
@@ -475,12 +480,14 @@ describe('Notification triggers on readyForReview', () => {
       data: expect.objectContaining({
         userId: 'user-2',
         type: 'OPTION_READY',
+        link: '/productions/prod-1/scripts/script-1/elements/elem-1',
       }),
     });
     expect(mockedPrisma.notification.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         userId: 'user-3',
         type: 'OPTION_READY',
+        link: '/productions/prod-1/scripts/script-1/elements/elem-1',
       }),
     });
   });

@@ -287,11 +287,14 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
     // Notify production members when option marked ready for review
     if (readyForReview === true) {
       const elementName = option.element.name ?? 'an element';
+      const productionId = option.element.script.productionId;
+      const link = `/productions/${productionId}/scripts/${option.element.scriptId}/elements/${option.elementId}`;
       await notifyProductionMembers(
-        option.element.script.productionId,
+        productionId,
         authReq.user.userId,
         'OPTION_READY',
         `New option on ${elementName} is ready for review`,
+        link,
       );
     }
 

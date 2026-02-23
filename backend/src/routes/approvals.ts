@@ -92,11 +92,14 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
     if (option.uploadedById !== authReq.user.userId) {
       const notifType = DECISION_TO_NOTIFICATION_TYPE[decision];
       const elementName = option.element.name ?? 'an element';
+      const productionId = option.element.script.productionId;
+      const link = `/productions/${productionId}/scripts/${option.element.scriptId}/elements/${option.elementId}`;
       await createNotification(
         option.uploadedById,
-        option.element.script.productionId,
+        productionId,
         notifType,
         `Your option on ${elementName} was ${decision.toLowerCase()}`,
+        link,
       );
     }
 
