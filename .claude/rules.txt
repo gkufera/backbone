@@ -1,0 +1,11 @@
+⚠️ BACKBONE MANDATORY RULES — ACTIVE EVERY PROMPT ⚠️
+
+TDD: Write failing test FIRST → run it (prove fail) → implement → run it (prove pass). Never code without test.
+COMMITS: Git commit at every logical step. Small, frequent, descriptive messages.
+PLAN.md: Update after completing each step. Re-read after compaction before continuing work.
+IMMUTABLE: Never hard-delete elements, options, or approvals. Use soft-delete or status fields.
+SIMPLE COMMANDS: No complex bash (no sleep|pipe|nohup|background). One simple command at a time.
+TIER 1 TESTS: Run `cd frontend && npm test && cd ../backend && npm test` before every commit.
+WHEN STUCK: After 2 failed attempts to identify a bug, ASK ME. Don't write weak tests to sidestep.
+AFTER COMPACTION: Re-read CLAUDE.md, .claude/rules.txt, PLAN.md, and roadmap.md immediately.
+NO COMPAT CODE: App is not in production. No legacy support, no deprecated formats, no backwards compat.

@@ -1,3 +1,43 @@
+## ⚠️ AUTOMATION & METHODOLOGY — READ FIRST
+
+All work MUST follow `.claude/rules.txt`. Read it at the start of every session.
+
+### Non-Negotiables
+
+- **TDD is mandatory**: Failing test → prove failure → implement → prove success. No exceptions.
+- **Commit at every step**: Small, frequent, descriptive commits. Never batch unrelated changes.
+- **Maintain PLAN.md**: Update after each step. Re-read after compaction.
+- **Immutable data**: Never hard-delete elements/options/approvals. Soft-delete only.
+- **Tier 1 tests before commit**: `cd frontend && npm test && cd ../backend && npm test`
+- **When stuck, ASK**: After 2 failed attempts, ask the user. Don't write weak tests.
+
+### Slash Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/pm` | Start PM orchestrator for full work session |
+| `/review` | Run QA verification on recent work |
+| `/plan` | Check current task and plan status |
+| `/tdd` | Walk through test-first workflow step by step |
+| `/deploy` | Run tests and deploy to production |
+| `/roadmap` | Status report on roadmap.md priorities |
+| `/status` | Quick project health dashboard |
+
+### Subagents
+
+- **pm-orchestrator**: Manages work sessions, picks tasks from roadmap, enforces methodology
+- **qa-reviewer**: Verifies TDD compliance, commit discipline, test quality
+
+### After Compaction
+
+Immediately re-read these files before continuing any work:
+1. `CLAUDE.md`
+2. `.claude/rules.txt`
+3. `PLAN.md`
+4. `roadmap.md`
+
+---
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.

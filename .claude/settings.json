@@ -1,0 +1,63 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "MultiEdit",
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(cd *)",
+      "Bash(mkdir *)",
+      "Bash(echo *)",
+      "Bash(pwd)",
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(tsx *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Bash(docker compose *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(touch *)",
+      "Bash(chmod *)",
+      "Bash(diff *)",
+      "Bash(which *)",
+      "Bash(env *)",
+      "Bash(date *)",
+      "Bash(jq *)",
+      "Bash(curl *)",
+      "Bash(./run.sh*)",
+      "Bash(./frontend.sh*)",
+      "Bash(./backend.sh*)",
+      "Bash(prisma *)",
+      "Bash(npx prisma *)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)*",
+      "Bash(sudo rm *)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before finishing, verify against PLAN.md: 1) Was each planned step completed? 2) Was TDD followed (failing test first, then implementation, then passing test)? 3) Were commits made at each logical step? 4) Do all Tier 1 tests pass? If ANY step was skipped or incomplete, DO NOT stop. List what's missing and continue working. Only if everything is 100% complete, confirm '✅ All plan steps verified complete.'"
+          }
+        ]
+      }
+    ]
+  }
+}
