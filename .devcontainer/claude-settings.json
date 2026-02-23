@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/local/bin/notify.sh 'Claude Code' 'Waiting for input' 'high' 'bell'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/local/bin/notify.sh 'Claude Code' 'Task complete' 'default' 'white_check_mark'"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat /workspaces/backbone/.claude/rules.txt 2>/dev/null || cat /workspace/.claude/rules.txt 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat /workspaces/backbone/.claude/rules.txt 2>/dev/null || cat /workspace/.claude/rules.txt 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
