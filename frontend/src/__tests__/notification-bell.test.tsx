@@ -88,6 +88,38 @@ describe('NotificationBell', () => {
     });
   });
 
+  it('handles API error on unread count gracefully', async () => {
+    mockedNotificationsApi.unreadCount.mockRejectedValue(new Error('Network error'));
+
+    render(<NotificationBell productionId="prod-1" />);
+
+    // Should render without crashing, badge should not appear
+    await waitFor(() => {
+      expect(mockedNotificationsApi.unreadCount).toHaveBeenCalled();
+    });
+    expect(screen.queryByText(/NaN/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
+  });
+
+  it('handles API error on notification list gracefully', async () => {
+    const user = userEvent.setup();
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 1 });
+    mockedNotificationsApi.list.mockRejectedValue(new Error('Network error'));
+
+    render(<NotificationBell productionId="prod-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('1')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /notifications/i }));
+
+    // Should show dropdown with empty state or no notifications, not crash
+    await waitFor(() => {
+      expect(screen.getByText(/no notifications/i)).toBeInTheDocument();
+    });
+  });
+
   it('marks notification as read on click', async () => {
     const user = userEvent.setup();
     mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 1 });

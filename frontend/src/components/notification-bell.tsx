@@ -13,13 +13,19 @@ export function NotificationBell({ productionId }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    notificationsApi.unreadCount(productionId).then((data) => setUnreadCount(data.count));
+    notificationsApi.unreadCount(productionId).then((data) => setUnreadCount(data.count)).catch(() => {
+      // Fail silently, keep count at 0
+    });
   }, [productionId]);
 
   async function handleOpen() {
     if (!isOpen) {
-      const data = await notificationsApi.list(productionId);
-      setNotifications(data.notifications);
+      try {
+        const data = await notificationsApi.list(productionId);
+        setNotifications(data.notifications);
+      } catch {
+        setNotifications([]);
+      }
     }
     setIsOpen(!isOpen);
   }
