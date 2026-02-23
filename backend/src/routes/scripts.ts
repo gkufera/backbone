@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { generateUploadUrl } from '../lib/s3.js';
 import { processScript } from '../services/script-processor.js';
+import { processRevision } from '../services/revision-processor.js';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
 import { ScriptStatus, ElementStatus } from '@backbone/shared/types';
 
@@ -166,5 +167,156 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Upload a new revision of an existing script
+scriptsRouter.post(
+  '/api/productions/:id/scripts/:scriptId/revisions',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { id, scriptId } = req.params;
+      const { title, fileName, s3Key } = req.body;
+
+      // Check membership
+      const membership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: id,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (!membership) {
+        res.status(403).json({ error: 'You are not a member of this production' });
+        return;
+      }
+
+      // Find parent script
+      const parentScript = await prisma.script.findUnique({
+        where: { id: scriptId, productionId: id },
+      });
+
+      if (!parentScript) {
+        res.status(404).json({ error: 'Parent script not found' });
+        return;
+      }
+
+      if (parentScript.status !== ScriptStatus.READY) {
+        res.status(400).json({ error: 'Parent script must be READY to upload a revision' });
+        return;
+      }
+
+      if (!title || !fileName || !s3Key) {
+        res.status(400).json({ error: 'title, fileName, and s3Key are required' });
+        return;
+      }
+
+      const script = await prisma.script.create({
+        data: {
+          productionId: id,
+          title,
+          fileName,
+          s3Key,
+          status: ScriptStatus.PROCESSING,
+          version: parentScript.version + 1,
+          parentScriptId: scriptId,
+          uploadedById: authReq.user.userId,
+        },
+      });
+
+      // Fire-and-forget: process the revision asynchronously
+      processRevision(script.id, scriptId, s3Key).catch((err) =>
+        console.error('Background revision processing failed:', err),
+      );
+
+      res.status(201).json({ script });
+    } catch (error) {
+      console.error('Upload revision error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
+
+// Get version history for a script
+scriptsRouter.get(
+  '/api/productions/:id/scripts/:scriptId/versions',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { id, scriptId } = req.params;
+
+      // Check membership
+      const membership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: id,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (!membership) {
+        res.status(403).json({ error: 'You are not a member of this production' });
+        return;
+      }
+
+      const script = await prisma.script.findUnique({
+        where: { id: scriptId, productionId: id },
+      });
+
+      if (!script) {
+        res.status(404).json({ error: 'Script not found' });
+        return;
+      }
+
+      // Walk the chain: find all scripts in the version chain
+      // Get all scripts in this production and filter the chain
+      const allScripts = await prisma.script.findMany({
+        where: { productionId: id },
+        orderBy: { version: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          version: true,
+          status: true,
+          pageCount: true,
+          createdAt: true,
+          parentScriptId: true,
+        },
+      });
+
+      // Build version chain by traversing parentScriptId
+      const scriptMap = new Map(allScripts.map((s) => [s.id, s]));
+      const chain: typeof allScripts = [];
+
+      // Walk up from current script to root
+      let current = scriptMap.get(scriptId);
+      while (current) {
+        chain.push(current);
+        current = current.parentScriptId ? scriptMap.get(current.parentScriptId) : undefined;
+      }
+
+      // Also find any child scripts that link to scripts in our chain
+      const chainIds = new Set(chain.map((s) => s.id));
+      for (const s of allScripts) {
+        if (!chainIds.has(s.id) && s.parentScriptId && chainIds.has(s.parentScriptId)) {
+          chain.push(s);
+          chainIds.add(s.id);
+        }
+      }
+
+      // Sort by version descending
+      chain.sort((a, b) => b.version - a.version);
+
+      res.json({ versions: chain });
+    } catch (error) {
+      console.error('Get versions error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
 
 export { scriptsRouter };
