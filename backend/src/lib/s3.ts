@@ -29,6 +29,32 @@ export async function generateUploadUrl(
   return { uploadUrl, s3Key };
 }
 
+export async function generateMediaUploadUrl(
+  fileName: string,
+  contentType: string,
+): Promise<{ uploadUrl: string; s3Key: string }> {
+  const s3Key = `options/${randomUUID()}/${fileName}`;
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: s3Key,
+    ContentType: contentType,
+  });
+
+  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+  return { uploadUrl, s3Key };
+}
+
+export async function generateDownloadUrl(s3Key: string): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: BUCKET,
+    Key: s3Key,
+  });
+
+  return getSignedUrl(s3Client, command, { expiresIn: 3600 });
+}
+
 export async function getFileBuffer(s3Key: string): Promise<Buffer> {
   const command = new GetObjectCommand({
     Bucket: BUCKET,

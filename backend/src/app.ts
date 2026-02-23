@@ -5,6 +5,7 @@ import { authRouter } from './routes/auth.js';
 import { productionsRouter } from './routes/productions.js';
 import { scriptsRouter } from './routes/scripts.js';
 import { elementsRouter } from './routes/elements.js';
+import { optionsRouter } from './routes/options.js';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(authRouter);
 app.use(productionsRouter);
 app.use(scriptsRouter);
 app.use(elementsRouter);
+app.use(optionsRouter);
 
 // Global error handler — safety net for any unhandled errors
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
