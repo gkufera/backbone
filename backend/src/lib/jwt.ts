@@ -1,5 +1,11 @@
 import jwt from 'jsonwebtoken';
 
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    'WARNING: JWT_SECRET is not set. Using insecure default. Set JWT_SECRET in .env for production.',
+  );
+}
+
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-in-production';
 const JWT_EXPIRES_IN = '7d';
 
