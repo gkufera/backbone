@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
-import { PRODUCTION_TITLE_MAX_LENGTH } from '@backbone/shared/constants';
+import { PRODUCTION_TITLE_MAX_LENGTH, DEFAULT_DEPARTMENTS } from '@backbone/shared/constants';
 import { MemberRole } from '@backbone/shared/types';
 
 const productionsRouter = Router();
@@ -42,6 +42,16 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
           role: MemberRole.OWNER,
         },
       });
+
+      // Seed default departments
+      for (const deptName of DEFAULT_DEPARTMENTS) {
+        await tx.department.create({
+          data: {
+            productionId: production.id,
+            name: deptName,
+          },
+        });
+      }
 
       return { production, member };
     });
@@ -113,10 +123,20 @@ productionsRouter.get('/api/productions/:id', requireAuth, async (req, res) => {
             user: {
               select: { id: true, name: true, email: true },
             },
+            departmentMembers: {
+              include: {
+                department: {
+                  select: { id: true, name: true },
+                },
+              },
+            },
           },
         },
         scripts: {
           orderBy: { createdAt: 'desc' },
+        },
+        departments: {
+          orderBy: { name: 'asc' },
         },
       },
     });
@@ -133,7 +153,7 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
   try {
     const authReq = req as AuthenticatedRequest;
     const { id } = req.params;
-    const { email, role } = req.body;
+    const { email, role, title } = req.body;
 
     // Check requester is OWNER or ADMIN
     const requesterMembership = await prisma.productionMember.findUnique({
@@ -185,6 +205,7 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
         productionId: id,
         userId: userToAdd.id,
         role: role || MemberRole.MEMBER,
+        title: title || null,
       },
     });
 
@@ -221,6 +242,13 @@ productionsRouter.get('/api/productions/:id/members', requireAuth, async (req, r
       include: {
         user: {
           select: { id: true, name: true, email: true },
+        },
+        departmentMembers: {
+          include: {
+            department: {
+              select: { id: true, name: true },
+            },
+          },
         },
       },
     });

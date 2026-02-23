@@ -44,7 +44,7 @@ describe('POST /api/productions', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 201 with production and auto-creates OWNER membership', async () => {
+  it('returns 201 with production, OWNER membership, and seeds default departments', async () => {
     const mockProduction = {
       id: 'prod-1',
       title: 'My Film',
@@ -63,6 +63,8 @@ describe('POST /api/productions', () => {
       updatedAt: new Date(),
     };
 
+    const mockDepartmentCreate = vi.fn();
+
     mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
       return fn({
         production: {
@@ -70,6 +72,9 @@ describe('POST /api/productions', () => {
         },
         productionMember: {
           create: vi.fn().mockResolvedValue(mockMember),
+        },
+        department: {
+          create: mockDepartmentCreate,
         },
       });
     });
@@ -82,6 +87,8 @@ describe('POST /api/productions', () => {
     expect(res.status).toBe(201);
     expect(res.body.production.title).toBe('My Film');
     expect(res.body.member.role).toBe('OWNER');
+    // Verify default departments were seeded (8 default departments)
+    expect(mockDepartmentCreate).toHaveBeenCalledTimes(8);
   });
 
   it('returns 201 with production including description', async () => {
@@ -110,6 +117,9 @@ describe('POST /api/productions', () => {
         },
         productionMember: {
           create: vi.fn().mockResolvedValue(mockMember),
+        },
+        department: {
+          create: vi.fn(),
         },
       });
     });
@@ -202,7 +212,7 @@ describe('GET /api/productions/:id', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 200 with production details, members, and scripts', async () => {
+  it('returns 200 with production details including members with titles and departments', async () => {
     // First mock: membership check
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -226,10 +236,17 @@ describe('GET /api/productions/:id', () => {
           id: 'member-1',
           userId: 'user-1',
           role: 'OWNER',
+          title: 'Director',
           user: { id: 'user-1', name: 'Test User', email: 'test@example.com' },
+          departmentMembers: [
+            {
+              department: { id: 'dept-1', name: 'Art' },
+            },
+          ],
         },
       ],
       scripts: [],
+      departments: [{ id: 'dept-1', name: 'Art', createdAt: new Date(), updatedAt: new Date() }],
     } as any);
 
     const res = await request(app).get('/api/productions/prod-1').set(authHeader());
@@ -237,6 +254,8 @@ describe('GET /api/productions/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.production.title).toBe('Film One');
     expect(res.body.production.members).toHaveLength(1);
+    expect(res.body.production.members[0].title).toBe('Director');
+    expect(res.body.production.departments).toHaveLength(1);
     expect(res.body.production.scripts).toEqual([]);
   });
 
