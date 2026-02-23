@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 
 const revisionMatchesRouter = Router();
 
@@ -12,6 +12,7 @@ revisionMatchesRouter.get(
   requireAuth,
   async (req, res) => {
     try {
+      const authReq = req as AuthenticatedRequest;
       const { scriptId } = req.params;
 
       const script = await prisma.script.findUnique({
@@ -20,6 +21,21 @@ revisionMatchesRouter.get(
 
       if (!script) {
         res.status(404).json({ error: 'Script not found' });
+        return;
+      }
+
+      // Check membership
+      const membership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: script.productionId,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (!membership) {
+        res.status(403).json({ error: 'Not a member of this production' });
         return;
       }
 
@@ -62,6 +78,7 @@ revisionMatchesRouter.post(
   requireAuth,
   async (req, res) => {
     try {
+      const authReq = req as AuthenticatedRequest;
       const { scriptId } = req.params;
       const { decisions } = req.body;
 
@@ -71,6 +88,21 @@ revisionMatchesRouter.post(
 
       if (!script) {
         res.status(404).json({ error: 'Script not found' });
+        return;
+      }
+
+      // Check membership
+      const membership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: script.productionId,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (!membership) {
+        res.status(403).json({ error: 'Not a member of this production' });
         return;
       }
 

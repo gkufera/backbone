@@ -151,11 +151,26 @@ describe('GET /api/scripts/:scriptId/revision-matches', () => {
     vi.clearAllMocks();
   });
 
+  it('returns 403 for non-member', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-2',
+      productionId: 'prod-1',
+      status: 'RECONCILING',
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).get('/api/scripts/script-2/revision-matches').set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
+
   it('returns matches for RECONCILING script', async () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-2',
+      productionId: 'prod-1',
       status: 'RECONCILING',
     } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(mockMembership as any);
 
     mockedPrisma.revisionMatch.findMany.mockResolvedValue([
       {
@@ -192,8 +207,10 @@ describe('GET /api/scripts/:scriptId/revision-matches', () => {
   it('returns 400 if script not RECONCILING', async () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-2',
+      productionId: 'prod-1',
       status: 'READY',
     } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(mockMembership as any);
 
     const res = await request(app).get('/api/scripts/script-2/revision-matches').set(authHeader());
 
@@ -207,11 +224,31 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
     vi.clearAllMocks();
   });
 
+  it('returns 403 for non-member', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-2',
+      productionId: 'prod-1',
+      status: 'RECONCILING',
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/scripts/script-2/revision-matches/resolve')
+      .set(authHeader())
+      .send({
+        decisions: [{ matchId: 'match-1', decision: 'map' }],
+      });
+
+    expect(res.status).toBe(403);
+  });
+
   it('processes map/create_new/keep/archive decisions correctly', async () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-2',
+      productionId: 'prod-1',
       status: 'RECONCILING',
     } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(mockMembership as any);
 
     mockedPrisma.revisionMatch.findMany.mockResolvedValue([
       {
@@ -291,8 +328,10 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
   it('transitions script from RECONCILING → READY', async () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-2',
+      productionId: 'prod-1',
       status: 'RECONCILING',
     } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(mockMembership as any);
 
     mockedPrisma.revisionMatch.findMany.mockResolvedValue([
       {
@@ -331,8 +370,10 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
   it('returns 400 for invalid decisions', async () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-2',
+      productionId: 'prod-1',
       status: 'RECONCILING',
     } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(mockMembership as any);
 
     const res = await request(app)
       .post('/api/scripts/script-2/revision-matches/resolve')
