@@ -9,8 +9,8 @@ vi.mock('next/font/google', () => ({
 import { metadata } from '../app/layout';
 
 describe('Root layout metadata', () => {
-  it('has title set to Backbone', () => {
-    expect(metadata.title).toBe('Backbone');
+  it('has title set to Slug Max', () => {
+    expect(metadata.title).toBe('Slug Max');
   });
 
   it('has description mentioning production collaboration', () => {

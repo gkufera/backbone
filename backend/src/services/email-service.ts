@@ -27,7 +27,7 @@ export async function sendEmail(
 
   const transport = getTransport();
   await transport.sendMail({
-    from: process.env.EMAIL_FROM ?? 'noreply@backbone.app',
+    from: process.env.EMAIL_FROM ?? 'noreply@slugmax.com',
     to,
     subject,
     html,
@@ -38,7 +38,7 @@ export async function sendNotificationEmail(
   to: string,
   notification: { type: string; message: string },
 ): Promise<void> {
-  const subject = `Backbone: ${notification.type.replace(/_/g, ' ').toLowerCase()}`;
+  const subject = `Slug Max: ${notification.type.replace(/_/g, ' ').toLowerCase()}`;
   const html = `<p>${notification.message}</p>`;
   await sendEmail(to, subject, html);
 }

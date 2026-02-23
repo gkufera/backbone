@@ -14,7 +14,7 @@ async function signupAndLogin(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: /sign up/i }).click();
 
   // Wait for redirect to home
-  await expect(page.getByRole('heading', { name: /backbone/i })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
 
   return email;
 }

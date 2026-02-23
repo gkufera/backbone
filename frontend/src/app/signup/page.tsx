@@ -37,7 +37,7 @@ export default function SignupPage() {
             Sign Up
           </h1>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            Create your Backbone account
+            Create your Slug Max account
           </p>
         </div>
 

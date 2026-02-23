@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Backbone',
+  title: 'Slug Max',
   description: 'Production collaboration platform for film and TV',
 };
 

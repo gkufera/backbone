@@ -27,13 +27,13 @@ describe('Home page', () => {
     localStorage.clear();
   });
 
-  it('renders Backbone heading', () => {
+  it('renders Slug Max heading', () => {
     render(
       <AuthProvider>
         <Home />
       </AuthProvider>,
     );
-    expect(screen.getByRole('heading', { name: /backbone/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /slug max/i })).toBeInTheDocument();
   });
 
   it('renders tagline', () => {

@@ -17,7 +17,7 @@ test.describe('Auth flow', () => {
     await page.getByRole('button', { name: /sign up/i }).click();
 
     // Should redirect to home and show logout
-    await expect(page.getByRole('heading', { name: /backbone/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('button', { name: /log out/i })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(TEST_NAME)).toBeVisible();
   });
@@ -31,7 +31,7 @@ test.describe('Auth flow', () => {
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /sign up/i }).click();
-    await expect(page.getByRole('heading', { name: /backbone/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
 
     // Logout
     await page.getByRole('button', { name: /log out/i }).click();
@@ -43,7 +43,7 @@ test.describe('Auth flow', () => {
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 
-    await expect(page.getByRole('heading', { name: /backbone/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('button', { name: /log out/i })).toBeVisible({ timeout: 5000 });
   });
 

@@ -36,7 +36,7 @@ export default function LoginPage() {
             Log In
           </h1>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            Sign in to your Backbone account
+            Sign in to your Slug Max account
           </p>
         </div>
 

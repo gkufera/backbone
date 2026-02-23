@@ -30,13 +30,13 @@ describe('Email Service', () => {
     process.env.SMTP_PORT = '587';
     process.env.SMTP_USER = 'user@example.com';
     process.env.SMTP_PASS = 'secret';
-    process.env.EMAIL_FROM = 'noreply@backbone.app';
+    process.env.EMAIL_FROM = 'noreply@slugmax.com';
     mockSendMail.mockResolvedValue({ messageId: 'msg-1' });
 
     await sendEmail('recipient@example.com', 'Test Subject', '<p>Hello</p>');
 
     expect(mockSendMail).toHaveBeenCalledWith({
-      from: 'noreply@backbone.app',
+      from: 'noreply@slugmax.com',
       to: 'recipient@example.com',
       subject: 'Test Subject',
       html: '<p>Hello</p>',
@@ -58,7 +58,7 @@ describe('Email Service', () => {
 
   it('formats notification email correctly', async () => {
     process.env.EMAIL_ENABLED = 'true';
-    process.env.EMAIL_FROM = 'noreply@backbone.app';
+    process.env.EMAIL_FROM = 'noreply@slugmax.com';
     mockSendMail.mockResolvedValue({ messageId: 'msg-2' });
 
     await sendNotificationEmail('user@example.com', {
@@ -69,7 +69,7 @@ describe('Email Service', () => {
     expect(mockSendMail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'user@example.com',
-        subject: expect.stringContaining('Backbone'),
+        subject: expect.stringContaining('Slug Max'),
         html: expect.stringContaining('Your option on JOHN was approved'),
       }),
     );
