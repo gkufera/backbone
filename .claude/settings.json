@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Before finishing, verify against PLAN.md: 1) Was each planned step completed? 2) Was TDD followed (failing test first, then implementation, then passing test)? 3) Were commits made at each logical step? 4) Do all Tier 1 tests pass? If ANY step was skipped or incomplete, DO NOT stop. List what's missing and continue working. Only if everything is 100% complete, confirm '✅ All plan steps verified complete.'"
+            "prompt": "Verify against PLAN.md: 1) Was each planned step completed? 2) Was TDD followed (failing test first, then implementation, then passing test)? 3) Were commits made at each logical step? 4) Do all Tier 1 tests pass? If ANY check fails, respond with {\"ok\": false, \"reason\": \"what is missing or incomplete\"}. Only if everything is 100% complete, respond with {\"ok\": true}. You MUST respond with ONLY valid JSON, no other text."
           }
         ]
       }
