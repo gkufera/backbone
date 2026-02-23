@@ -81,21 +81,26 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
       const uploadResult = await optionsApi.getUploadUrl(file.name, file.type, thumbnailFileName);
 
       // Upload file to S3
-      await fetch(uploadResult.uploadUrl, {
+      const uploadResponse = await fetch(uploadResult.uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
       });
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file to storage');
+      }
 
       // Upload thumbnail if generated
       let thumbnailS3Key: string | undefined;
       if (thumbnailBlob && uploadResult.thumbnailUploadUrl && uploadResult.thumbnailS3Key) {
-        await fetch(uploadResult.thumbnailUploadUrl, {
+        const thumbResponse = await fetch(uploadResult.thumbnailUploadUrl, {
           method: 'PUT',
           body: thumbnailBlob,
           headers: { 'Content-Type': 'image/jpeg' },
         });
-        thumbnailS3Key = uploadResult.thumbnailS3Key;
+        if (thumbResponse.ok) {
+          thumbnailS3Key = uploadResult.thumbnailS3Key;
+        }
       }
 
       // Create the option record

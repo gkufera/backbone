@@ -171,6 +171,36 @@ describe('OptionUploadForm', () => {
     expect(mockedOptionsApi.create).not.toHaveBeenCalled();
   });
 
+  it('shows error when S3 upload fails', async () => {
+    const user = userEvent.setup();
+
+    // Make thumbnail succeed
+    mockedGenerateImageThumbnail.mockResolvedValue(new Blob(['thumb'], { type: 'image/jpeg' }));
+
+    // Mock fetch to fail for S3 upload
+    const mockFetch = vi.fn().mockResolvedValue({ ok: false, status: 403 });
+    vi.stubGlobal('fetch', mockFetch);
+
+    mockedOptionsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'options/uuid/photo.jpg',
+      mediaType: 'IMAGE',
+      thumbnailUploadUrl: 'https://s3.example.com/thumb',
+      thumbnailS3Key: 'options/uuid/thumb.jpg',
+    });
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, file);
+    await user.click(screen.getByRole('button', { name: /upload|submit|add/i }));
+
+    // Should show error and NOT create option
+    expect(await screen.findByText(/failed/i)).toBeInTheDocument();
+    expect(mockedOptionsApi.create).not.toHaveBeenCalled();
+  });
+
   it('succeeds uploading file even when thumbnail generation fails', async () => {
     const user = userEvent.setup();
 
