@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { generateUploadUrl } from '../lib/s3.js';
+import { processScript } from '../services/script-processor.js';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
 
 const scriptsRouter = Router();
@@ -73,7 +74,9 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
     });
 
     // Fire-and-forget: process the script asynchronously
-    // processScript(script.id) would be called here once implemented
+    processScript(script.id, s3Key).catch((err) =>
+      console.error('Background script processing failed:', err),
+    );
 
     res.status(201).json({ script });
   } catch (error) {
