@@ -73,4 +73,12 @@ describe('Productions list page', () => {
 
     expect(await screen.findByText(/no productions/i)).toBeInTheDocument();
   });
+
+  it('shows error message when load fails', async () => {
+    mockedApi.list.mockRejectedValue(new Error('Network error'));
+
+    render(<ProductionsPage />);
+
+    expect(await screen.findByText(/failed to load productions/i)).toBeInTheDocument();
+  });
 });

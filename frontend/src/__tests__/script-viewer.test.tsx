@@ -172,4 +172,12 @@ describe('Script viewer', () => {
 
     expect(await screen.findByText(/120 pages/i)).toBeInTheDocument();
   });
+
+  it('shows error message when load fails', async () => {
+    mockedScriptsApi.get.mockRejectedValue(new Error('Network error'));
+
+    render(<ScriptViewerPage />);
+
+    expect(await screen.findByText(/failed to load script/i)).toBeInTheDocument();
+  });
 });

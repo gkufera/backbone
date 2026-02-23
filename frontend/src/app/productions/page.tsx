@@ -7,17 +7,22 @@ import { productionsApi, type ProductionResponse } from '../../lib/api';
 export default function ProductionsPage() {
   const [productions, setProductions] = useState<ProductionResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     productionsApi
       .list()
       .then((data) => setProductions(data.productions))
-      .catch(() => {})
+      .catch(() => setError('Failed to load productions'))
       .finally(() => setIsLoading(false));
   }, []);
 
   if (isLoading) {
     return <div className="p-6">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-600">{error}</div>;
   }
 
   return (

@@ -11,6 +11,7 @@ export default function ProductionDashboard() {
 
   const [production, setProduction] = useState<ProductionDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [memberEmail, setMemberEmail] = useState('');
   const [memberError, setMemberError] = useState('');
 
@@ -18,7 +19,7 @@ export default function ProductionDashboard() {
     productionsApi
       .get(id)
       .then((data) => setProduction(data.production))
-      .catch(() => {})
+      .catch(() => setError('Failed to load production'))
       .finally(() => setIsLoading(false));
   }, [id]);
 
@@ -39,6 +40,10 @@ export default function ProductionDashboard() {
 
   if (isLoading) {
     return <div className="p-6">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-600">{error}</div>;
   }
 
   if (!production) {

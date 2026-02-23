@@ -94,4 +94,12 @@ describe('Production dashboard', () => {
 
     expect(await screen.findByRole('link', { name: /upload script/i })).toBeInTheDocument();
   });
+
+  it('shows error message when load fails', async () => {
+    mockedApi.get.mockRejectedValue(new Error('Network error'));
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText(/failed to load production/i)).toBeInTheDocument();
+  });
 });

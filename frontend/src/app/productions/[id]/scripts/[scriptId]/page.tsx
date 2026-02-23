@@ -19,6 +19,7 @@ export default function ScriptViewerPage() {
 
   const [script, setScript] = useState<ScriptDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newElementName, setNewElementName] = useState('');
   const [newElementType, setNewElementType] = useState('CHARACTER');
@@ -32,33 +33,45 @@ export default function ScriptViewerPage() {
       const { script: data } = await scriptsApi.get(productionId, scriptId);
       setScript(data);
     } catch {
-      // handle error
+      setError('Failed to load script');
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleArchive(elementId: string) {
-    await elementsApi.update(elementId, { status: 'ARCHIVED' });
-    await loadScript();
+    try {
+      await elementsApi.update(elementId, { status: 'ARCHIVED' });
+      await loadScript();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to archive element');
+    }
   }
 
   async function handleAddElement(e: React.FormEvent) {
     e.preventDefault();
     if (!newElementName.trim()) return;
 
-    await elementsApi.create(scriptId, {
-      name: newElementName.trim(),
-      type: newElementType,
-    });
+    try {
+      await elementsApi.create(scriptId, {
+        name: newElementName.trim(),
+        type: newElementType,
+      });
 
-    setNewElementName('');
-    setShowAddForm(false);
-    await loadScript();
+      setNewElementName('');
+      setShowAddForm(false);
+      await loadScript();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add element');
+    }
   }
 
   if (isLoading) {
     return <div className="p-6">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-600">{error}</div>;
   }
 
   if (!script) {
