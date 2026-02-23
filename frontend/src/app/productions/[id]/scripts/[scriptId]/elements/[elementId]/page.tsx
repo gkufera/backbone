@@ -90,6 +90,7 @@ export default function ElementDetailPage() {
     const option = options.find((o) => o.id === optionId);
     if (!option) return;
 
+    setError(null);
     try {
       await optionsApi.update(optionId, { readyForReview: !option.readyForReview });
       await refreshOptions();
@@ -99,6 +100,7 @@ export default function ElementDetailPage() {
   }
 
   async function handleArchiveOption(optionId: string) {
+    setError(null);
     try {
       await optionsApi.update(optionId, { status: 'ARCHIVED' });
       await refreshOptions();
@@ -108,6 +110,7 @@ export default function ElementDetailPage() {
   }
 
   async function handleApprove(optionId: string, decision: string, note?: string) {
+    setError(null);
     try {
       setSubmittingApproval(true);
       await approvalsApi.create(optionId, { decision, note });

@@ -26,6 +26,11 @@ const mockApprovals = [
 ];
 
 describe('ApprovalHistory', () => {
+  it('returns null when approvals array is empty', () => {
+    const { container } = render(<ApprovalHistory approvals={[]} />);
+    expect(container.innerHTML).toBe('');
+  });
+
   it('renders approval entries with user name and decision badge', () => {
     render(<ApprovalHistory approvals={mockApprovals} />);
 
