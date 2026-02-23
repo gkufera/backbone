@@ -201,3 +201,304 @@ describe('GET /api/options/download-url', () => {
     expect(res.body.error).toMatch(/s3Key/i);
   });
 });
+
+// ── Phase 3: Option CRUD endpoints ──────────────────────────────
+
+function mockElementWithMembership() {
+  mockedPrisma.element.findUnique.mockResolvedValue({
+    id: 'elem-1',
+    scriptId: 'script-1',
+    name: 'JOHN',
+    type: 'CHARACTER',
+    pageNumbers: [1, 5],
+    status: 'ACTIVE',
+    source: 'AUTO',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    script: { productionId: 'prod-1' },
+  } as any);
+
+  mockedPrisma.productionMember.findUnique.mockResolvedValue({
+    id: 'member-1',
+    productionId: 'prod-1',
+    userId: 'user-1',
+    role: 'OWNER',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any);
+}
+
+describe('POST /api/elements/:elementId/options', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 201 when creating IMAGE option with s3Key', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      mediaType: 'IMAGE',
+      description: 'Costume reference',
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+      externalUrl: null,
+      thumbnailS3Key: null,
+      status: 'ACTIVE',
+      readyForReview: false,
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      description: 'Costume reference',
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.option.mediaType).toBe('IMAGE');
+    expect(res.body.option.readyForReview).toBe(false);
+  });
+
+  it('returns 201 when creating LINK option with externalUrl', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-2',
+      elementId: 'elem-1',
+      mediaType: 'LINK',
+      description: 'Reference board',
+      s3Key: null,
+      fileName: null,
+      externalUrl: 'https://pinterest.com/board/123',
+      thumbnailS3Key: null,
+      status: 'ACTIVE',
+      readyForReview: false,
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'LINK',
+      description: 'Reference board',
+      externalUrl: 'https://pinterest.com/board/123',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.option.mediaType).toBe('LINK');
+    expect(res.body.option.externalUrl).toBe('https://pinterest.com/board/123');
+  });
+
+  it('returns 400 when mediaType is missing', async () => {
+    mockElementWithMembership();
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/mediaType/i);
+  });
+
+  it('returns 400 when LINK option has no externalUrl', async () => {
+    mockElementWithMembership();
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'LINK',
+      description: 'Missing URL',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/externalUrl/i);
+  });
+
+  it('returns 400 when IMAGE option has no s3Key', async () => {
+    mockElementWithMembership();
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      description: 'Missing file',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/s3Key/i);
+  });
+
+  it('returns 403 when not a production member', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 404 when element does not exist', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/elements/nonexistent/options')
+      .set(authHeader())
+      .send({
+        mediaType: 'IMAGE',
+        s3Key: 'options/uuid/photo.jpg',
+        fileName: 'photo.jpg',
+      });
+
+    expect(res.status).toBe(404);
+  });
+
+  it('defaults readyForReview to false', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      mediaType: 'IMAGE',
+      readyForReview: false,
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.option.readyForReview).toBe(false);
+  });
+});
+
+describe('GET /api/elements/:elementId/options', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 200 with active options', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.findMany.mockResolvedValue([
+      {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        mediaType: 'IMAGE',
+        description: 'Photo',
+        status: 'ACTIVE',
+        readyForReview: false,
+        uploadedBy: { id: 'user-1', name: 'Test User' },
+      },
+    ] as any);
+
+    const res = await request(app).get('/api/elements/elem-1/options').set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.options).toHaveLength(1);
+    expect(res.body.options[0].uploadedBy).toHaveProperty('name');
+  });
+
+  it('excludes ARCHIVED options by default', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.findMany.mockResolvedValue([]);
+
+    await request(app).get('/api/elements/elem-1/options').set(authHeader());
+
+    expect(mockedPrisma.option.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ status: 'ACTIVE' }),
+      }),
+    );
+  });
+
+  it('includes ARCHIVED options when includeArchived=true', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.findMany.mockResolvedValue([]);
+
+    await request(app)
+      .get('/api/elements/elem-1/options')
+      .set(authHeader())
+      .query({ includeArchived: 'true' });
+
+    expect(mockedPrisma.option.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.not.objectContaining({ status: 'ACTIVE' }),
+      }),
+    );
+  });
+
+  it('returns 403 when not a production member', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).get('/api/elements/elem-1/options').set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('PATCH /api/options/:id', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 200 when toggling readyForReview', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      readyForReview: false,
+      element: { script: { productionId: 'prod-1' } },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+    } as any);
+    mockedPrisma.option.update.mockResolvedValue({
+      id: 'opt-1',
+      readyForReview: true,
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/options/opt-1')
+      .set(authHeader())
+      .send({ readyForReview: true });
+
+    expect(res.status).toBe(200);
+    expect(res.body.option.readyForReview).toBe(true);
+  });
+
+  it('returns 200 when archiving via status', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      element: { script: { productionId: 'prod-1' } },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+    } as any);
+    mockedPrisma.option.update.mockResolvedValue({
+      id: 'opt-1',
+      status: 'ARCHIVED',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/options/opt-1')
+      .set(authHeader())
+      .send({ status: 'ARCHIVED' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.option.status).toBe('ARCHIVED');
+  });
+});

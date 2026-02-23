@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma.js';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { generateMediaUploadUrl, generateDownloadUrl } from '../lib/s3.js';
 import { mediaTypeFromMime, OPTION_ALLOWED_CONTENT_TYPES } from '@backbone/shared/constants';
+import { MediaType, OptionStatus } from '@backbone/shared/types';
 
 const optionsRouter = Router();
 
@@ -52,6 +54,181 @@ optionsRouter.get('/api/options/download-url', requireAuth, async (req, res) => 
     res.json({ downloadUrl });
   } catch (error) {
     console.error('Generate download URL error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create an option for an element
+optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { elementId } = req.params;
+    const { mediaType, description, s3Key, fileName, externalUrl, thumbnailS3Key } = req.body;
+
+    // Find element with script to get productionId
+    const element = await prisma.element.findUnique({
+      where: { id: elementId },
+      include: { script: { select: { productionId: true } } },
+    });
+
+    if (!element) {
+      res.status(404).json({ error: 'Element not found' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: element.script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    // Validate mediaType
+    if (!mediaType || !Object.values(MediaType).includes(mediaType)) {
+      res.status(400).json({ error: 'Valid mediaType is required' });
+      return;
+    }
+
+    // Validate LINK requires externalUrl
+    if (mediaType === MediaType.LINK && !externalUrl) {
+      res.status(400).json({ error: 'externalUrl is required for LINK options' });
+      return;
+    }
+
+    // Validate file-based types require s3Key
+    if (mediaType !== MediaType.LINK && !s3Key) {
+      res.status(400).json({ error: 's3Key is required for file-based options' });
+      return;
+    }
+
+    const option = await prisma.option.create({
+      data: {
+        elementId,
+        mediaType,
+        description: description || null,
+        s3Key: s3Key || null,
+        fileName: fileName || null,
+        externalUrl: externalUrl || null,
+        thumbnailS3Key: thumbnailS3Key || null,
+        status: OptionStatus.ACTIVE,
+        readyForReview: false,
+        uploadedById: authReq.user.userId,
+      },
+    });
+
+    res.status(201).json({ option });
+  } catch (error) {
+    console.error('Create option error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// List options for an element
+optionsRouter.get('/api/elements/:elementId/options', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { elementId } = req.params;
+    const includeArchived = req.query.includeArchived === 'true';
+
+    // Find element with script to get productionId
+    const element = await prisma.element.findUnique({
+      where: { id: elementId },
+      include: { script: { select: { productionId: true } } },
+    });
+
+    if (!element) {
+      res.status(404).json({ error: 'Element not found' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: element.script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    const where: { elementId: string; status?: OptionStatus } = { elementId };
+    if (!includeArchived) {
+      where.status = OptionStatus.ACTIVE;
+    }
+
+    const options = await prisma.option.findMany({
+      where,
+      include: { uploadedBy: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({ options });
+  } catch (error) {
+    console.error('List options error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update an option (description, readyForReview, status)
+optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { id } = req.params;
+    const { description, readyForReview, status } = req.body;
+
+    // Find option with element→script to get productionId
+    const option = await prisma.option.findUnique({
+      where: { id },
+      include: { element: { include: { script: { select: { productionId: true } } } } },
+    });
+
+    if (!option) {
+      res.status(404).json({ error: 'Option not found' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: option.element.script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    const updateData: { description?: string; readyForReview?: boolean; status?: OptionStatus } =
+      {};
+    if (description !== undefined) updateData.description = description;
+    if (readyForReview !== undefined) updateData.readyForReview = readyForReview;
+    if (status !== undefined) updateData.status = status;
+
+    const updated = await prisma.option.update({
+      where: { id },
+      data: updateData,
+    });
+
+    res.json({ option: updated });
+  } catch (error) {
+    console.error('Update option error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
