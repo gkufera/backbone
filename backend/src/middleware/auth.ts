@@ -29,3 +29,21 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     res.status(401).json({ error: 'Authentication required: invalid or expired token' });
   }
 }
+
+export function requireRole(...allowedRoles: string[]) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const authReq = req as AuthenticatedRequest;
+
+    if (!authReq.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    if (!allowedRoles.includes(authReq.user.role)) {
+      res.status(403).json({ error: 'Forbidden: insufficient role permissions' });
+      return;
+    }
+
+    next();
+  };
+}
