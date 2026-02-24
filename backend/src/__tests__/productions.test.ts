@@ -490,3 +490,53 @@ describe('POST /api/productions/:id/members — notification', () => {
     );
   });
 });
+
+describe('GET /api/productions/:id/element-stats', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns element workflow state counts', async () => {
+    // Membership check
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    // Scripts for production
+    mockedPrisma.script.findMany.mockResolvedValue([
+      { id: 'script-1' },
+    ] as any);
+
+    // Element groupBy
+    (mockedPrisma.element.groupBy as any).mockResolvedValue([
+      { workflowState: 'PENDING', _count: { _all: 5 } },
+      { workflowState: 'OUTSTANDING', _count: { _all: 3 } },
+      { workflowState: 'APPROVED', _count: { _all: 2 } },
+    ]);
+
+    const res = await request(app)
+      .get('/api/productions/prod-1/element-stats')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      pending: 5,
+      outstanding: 3,
+      approved: 2,
+      total: 10,
+    });
+  });
+
+  it('returns 403 for non-member', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get('/api/productions/prod-1/element-stats')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
+});

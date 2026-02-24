@@ -538,4 +538,62 @@ productionsRouter.patch(
   },
 );
 
+// Get element workflow state stats for a production
+productionsRouter.get('/api/productions/:id/element-stats', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { id } = req.params;
+
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: id,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    const scripts = await prisma.script.findMany({
+      where: { productionId: id },
+      select: { id: true },
+    });
+
+    const scriptIds = scripts.map((s) => s.id);
+
+    const groups = await prisma.element.groupBy({
+      by: ['workflowState'],
+      where: {
+        scriptId: { in: scriptIds },
+        status: 'ACTIVE',
+      },
+      _count: { _all: true },
+    });
+
+    let pending = 0;
+    let outstanding = 0;
+    let approved = 0;
+
+    for (const g of groups) {
+      if (g.workflowState === 'PENDING') pending = g._count._all;
+      else if (g.workflowState === 'OUTSTANDING') outstanding = g._count._all;
+      else if (g.workflowState === 'APPROVED') approved = g._count._all;
+    }
+
+    res.json({
+      pending,
+      outstanding,
+      approved,
+      total: pending + outstanding + approved,
+    });
+  } catch (error) {
+    console.error('Get element stats error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export { productionsRouter };
