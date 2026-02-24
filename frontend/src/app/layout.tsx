@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { AppHeader } from '../components/app-header';
 import { AppFooter } from '../components/app-footer';
+import { ToastContainer } from '../components/toast-container';
 
 const vt323 = VT323({
   weight: '400',
@@ -37,6 +38,7 @@ export default function RootLayout({
           <AppHeader />
           <main className="flex-1">{children}</main>
           <AppFooter />
+          <ToastContainer />
         </Providers>
       </body>
     </html>
