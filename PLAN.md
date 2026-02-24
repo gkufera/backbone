@@ -1,7 +1,22 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 10 UX polish complete.
+None — Sprint 10 QA check complete.
+
+## Completed (Sprint 10 QA Check)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Fix `confirmedAt` TS error (deploy blocker) | `fix: remove reference to nonexistent confirmedAt field in option lightbox` | 0 |
+| 2 | Fix dept group sorting + missing element-list tests | `fix: sort elements within department groups by appearance, add missing tests` | +3 |
+| 3 | Add wizard Back button | `fix: add Back button to wizard Step 2` | +1 |
+| 4 | Fix color picker onInput→onChange + missing tests | `fix: color picker uses onChange instead of onInput, add missing tests` | +2 |
+| 5 | Update test counts + PLAN.md + deploy | `docs: update test counts and PLAN.md after Sprint 10 check` | 0 |
+
+### Test Counts (Post Sprint 10 QA Check)
+- **Frontend**: 332 tests (was 326, +6 net)
+- **Backend**: 300 tests (unchanged)
+- **Total**: 632 tests (was 626, +6 net)
 
 ## Completed (Sprint 10: UX Polish — Roles, Colors, Wizard, Highlights, Element List)
 
