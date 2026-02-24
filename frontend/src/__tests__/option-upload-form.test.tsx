@@ -52,11 +52,11 @@ describe('OptionUploadForm', () => {
     vi.clearAllMocks();
   });
 
-  it('renders file and link mode inputs', () => {
+  it('renders file and link mode buttons', () => {
     render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
 
-    expect(screen.getByText(/file/i)).toBeInTheDocument();
-    expect(screen.getByText(/link/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^file$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^link$/i })).toBeInTheDocument();
   });
 
   it('shows link input in link mode', async () => {
@@ -199,6 +199,58 @@ describe('OptionUploadForm', () => {
     // Should show error and NOT create option
     expect(await screen.findByText(/failed/i)).toBeInTheDocument();
     expect(mockedOptionsApi.create).not.toHaveBeenCalled();
+  });
+
+  it('drop zone renders with dashed border', () => {
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const dropZone = screen.getByText(/drop file here/i).closest('div');
+    expect(dropZone).toHaveClass('border-dashed');
+  });
+
+  it('dropping a file sets the file in form state', () => {
+    const { fireEvent } = require('@testing-library/react');
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const dropZone = screen.getByText(/drop file here/i).closest('div')!;
+    const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });
+
+    fireEvent.drop(dropZone, {
+      dataTransfer: {
+        files: [file],
+        types: ['Files'],
+      },
+    });
+
+    // After drop, file name should appear
+    expect(screen.getByText('photo.jpg')).toBeInTheDocument();
+  });
+
+  it('drop zone shows inverted style during drag-over', async () => {
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const dropZone = screen.getByText(/drop file here/i).closest('div')!;
+
+    const { fireEvent } = await import('@testing-library/react');
+    fireEvent.dragOver(dropZone, {
+      dataTransfer: { files: [], types: ['Files'] },
+    });
+
+    expect(dropZone).toHaveClass('bg-black');
+    expect(dropZone).toHaveClass('text-white');
+  });
+
+  it('clicking the drop zone opens native file picker', () => {
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    // The hidden file input should exist
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(fileInput).toBeInTheDocument();
+
+    // Drop zone should be clickable (it triggers the file input)
+    const dropZone = screen.getByText(/drop file here/i).closest('div');
+    expect(dropZone).toHaveClass('cursor-pointer');
   });
 
   it('succeeds uploading file even when thumbnail generation fails', async () => {

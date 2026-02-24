@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { optionsApi } from '../lib/api';
 import { generateImageThumbnail, generateVideoThumbnail } from '../lib/thumbnail';
 import { OPTION_ALLOWED_CONTENT_TYPES, mediaTypeFromMime } from '@backbone/shared/constants';
@@ -20,6 +20,8 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -152,12 +154,34 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
       </div>
 
       {mode === 'file' ? (
-        <input
-          type="file"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          accept={OPTION_ALLOWED_CONTENT_TYPES.join(',')}
-          className="mb-3 block w-full text-sm"
-        />
+        <div
+          className={`mb-3 border-2 border-dashed border-black p-6 text-center cursor-pointer ${
+            isDragging ? 'bg-black text-white' : 'bg-white text-black'
+          }`}
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const droppedFile = e.dataTransfer.files[0];
+            if (droppedFile) setFile(droppedFile);
+          }}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            accept={OPTION_ALLOWED_CONTENT_TYPES.join(',')}
+            className="hidden"
+          />
+          <span className="text-sm font-mono">
+            {file ? file.name : 'Drop file here or click to browse'}
+          </span>
+        </div>
       ) : (
         <input
           type="url"
