@@ -1,7 +1,24 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 13 complete.
+None — Sprint 13 check complete.
+
+## Completed (Sprint 13 Check)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Fix Math.random() → crypto.randomInt() for phone codes (CRITICAL) | `fix: use crypto.randomInt for phone verification codes` | +1 |
+| 2 | Remove duplicate PHONE_REGEX from frontend | `fix: import PHONE_REGEX from shared constants instead of duplicating` | 0 |
+| 3 | Add missing phone verification edge case tests | `test: add missing phone verification edge case tests` | +3 |
+| 4 | Fix Railway build — add postinstall prisma generate | `fix: add postinstall prisma generate for Railway builds` | 0 |
+| 5 | Update company name to "Slug Max Inc." | `fix: update company name to Slug Max Inc.` | 0 |
+| 6 | Hide header logo on homepage | `fix: hide header logo on homepage to prevent duplicate` | +2 |
+| 7 | Full test suite + docs + deploy | `docs: update test counts after Sprint 13 check` | 0 |
+
+### Test Counts (Post Sprint 13 Check)
+- **Frontend**: 396 tests (was 394, +2 new)
+- **Backend**: 355 tests (was 351, +4 new)
+- **Total**: 751 tests (was 745, +6 new)
 
 ## Completed (Sprint 13: Infrastructure & Security)
 
