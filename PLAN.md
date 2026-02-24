@@ -1,7 +1,49 @@
 # Current Plan
 
 ## Active Task
-**Three-Tier Permissions: ADMIN / DECIDER / MEMBER**
+None — all phases complete.
+
+## Completed (Quality Check — Split-View QA)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Fix stale pageNumbers mock data in backend tests | `fix: update stale pageNumbers mock data in options and approvals tests` | 0 (mock data fix) |
+| 2 | Add department selector tests for element detail | `test: add department selector tests for element detail page` | +2 |
+| 3 | Rebuild backend dist, deploy to production | (this commit) | 0 |
+
+### Test Counts (Post QA)
+- **Frontend**: 198 tests (was 196, +2 new)
+- **Backend**: 253 tests (unchanged)
+- **Total**: 451 tests (was 449, +2 new)
+
+## Completed (Split-View Script Viewer + Department Assignment)
+
+### Phases
+
+| Phase | Focus | Commit | New Tests |
+|-------|-------|--------|-----------|
+| 1-4 | Data model migration, backend updates, API client, component updates | `feat: replace pageNumbers with highlightPage/highlightText and add department assignment to elements` | +18 (pdf-highlights, pdf-viewer) |
+| 5 | PdfViewer component with react-pdf text layer highlights | `feat: add PdfViewer component with text layer highlights and selection` | +18 |
+| 6 | Split-view script page with cross-linked elements | `feat: split-view script page with PDF viewer and cross-linked elements` | +2 |
+| 7 | Department assignment in reconciliation + element detail | `feat: add department assignment to reconciliation and element detail pages` | +2 |
+| 8 | Edge cases & polish | (verified, no code changes needed) | 0 |
+
+### Test Counts (Post Split-View)
+- **Frontend**: 196 tests (was 174, +22 new)
+- **Backend**: 253 tests (unchanged)
+- **Total**: 449 tests (was 427, +22 new)
+
+### Architecture
+
+- Element model: `highlightPage` (single page) + `highlightText` (matched text) replace `pageNumbers` array
+- Element model: `departmentId` FK to Department for organizational assignment
+- RevisionMatch model: `detectedPage` + `detectedHighlightText` replace `detectedPages` array
+- `ELEMENT_TYPE_DEPARTMENT_MAP` constant auto-suggests departments (CHARACTER→Cast, LOCATION→Locations)
+- PdfViewer: react-pdf with text layer overlay for highlighting, click-to-navigate, text selection
+- Split-view layout: PDF left panel + elements right panel with cross-linking
+- Responsive: stacked on mobile, side-by-side on lg+ screens
+- Department selector in reconciliation page with pre-filled suggestions
+- Department selector on element detail page
 
 ## Completed (Three-Tier Permissions)
 
