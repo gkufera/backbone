@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 332 frontend + 300 backend = 632 total
+**Test counts:** 357 frontend + 321 backend = 678 total
 
 ---
 
@@ -90,7 +90,7 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ### Tasks
 
-- [ ] Forgot password flow
+- [x] Forgot password flow
   - Schema: add `PasswordResetToken` model — `{ id, userId, token (unique), expiresAt, usedAt }`
   - Backend: `POST /api/auth/forgot-password` — accepts `{ email }`, generates token, sends reset email via existing Nodemailer
   - Backend: `POST /api/auth/reset-password` — accepts `{ token, newPassword }`, validates token not expired/used, updates passwordHash
@@ -99,7 +99,7 @@ Items identified during QA but requiring schema migrations or cross-cutting back
   - Add "Forgot password?" link on login page
   - Files: `prisma/schema.prisma`, `backend/src/routes/auth.ts`, `frontend/src/app/forgot-password/page.tsx` (new), `frontend/src/app/reset-password/page.tsx` (new), `frontend/src/app/login/page.tsx`
 
-- [ ] Force email verification
+- [x] Force email verification
   - Schema: add `emailVerified: Boolean @default(false)` and `EmailVerificationToken` model to User
   - Backend: on signup, generate verification token and send verification email
   - Backend: `POST /api/auth/verify-email` — accepts `{ token }`, sets `emailVerified: true`
@@ -110,7 +110,7 @@ Items identified during QA but requiring schema migrations or cross-cutting back
   - Backend: `POST /api/auth/resend-verification` — generates new token and resends
   - Files: `prisma/schema.prisma`, `backend/src/routes/auth.ts`, `frontend/src/app/verify-email/page.tsx` (new), `frontend/src/app/signup/page.tsx`, `frontend/src/app/login/page.tsx`
 
-- [ ] Account settings page (`/settings`)
+- [x] Account settings page (`/settings`)
   - Display: name, email (read-only), email verification status
   - Actions: change name, change password (current + new)
   - Backend: `PATCH /api/auth/me` — accepts `{ name, currentPassword, newPassword }`

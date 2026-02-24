@@ -1,7 +1,26 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 10 QA check complete.
+None — Sprint 10 Auth Completeness complete.
+
+## Completed (Sprint 10: Auth Completeness — Email Verification, Forgot Password, Account Settings)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Schema: emailVerified, PasswordResetToken, EmailVerificationToken | `feat: add PasswordResetToken, EmailVerificationToken models and emailVerified field` | 0 (mock updates) |
+| 2 | Backend: forgot-password + reset-password endpoints | `feat: add forgot-password and reset-password backend endpoints` | +7 |
+| 3 | Backend: email verification enforcement + verify/resend endpoints | `feat: add email verification enforcement and verification endpoints` | +8 |
+| 4 | Backend: PATCH /api/auth/me for account settings | `feat: add PATCH /api/auth/me endpoint for account settings` | +6 |
+| 5 | Frontend: ApiError class + auth context changes | `feat: update frontend API client and auth context for email verification` | +3 |
+| 6 | Frontend: forgot-password + reset-password pages | `feat: add forgot-password and reset-password frontend pages` | +8 |
+| 7 | Frontend: email verification pages + login 403 handling | `feat: add email verification pages and login 403 handling` | +7 |
+| 8 | Frontend: account settings page + user-nav Settings link | `feat: add account settings page and settings link in user nav` | +7 |
+| 9 | Full test suite + docs + deploy | `docs: update test counts and PLAN.md after Sprint 10 Auth Completeness` | 0 |
+
+### Test Counts (Post Sprint 10 Auth Completeness)
+- **Frontend**: 357 tests (was 332, +25 new)
+- **Backend**: 321 tests (was 300, +21 new)
+- **Total**: 678 tests (was 632, +46 new)
 
 ## Completed (Sprint 10 QA Check)
 
