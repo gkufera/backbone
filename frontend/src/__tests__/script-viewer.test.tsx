@@ -35,6 +35,13 @@ vi.mock('../lib/api', () => ({
   },
 }));
 
+// Mock the PdfViewer dynamic import — it renders a simple placeholder
+vi.mock('../components/pdf-viewer', () => ({
+  PdfViewer: ({ pdfUrl }: { pdfUrl: string }) => (
+    <div data-testid="pdf-viewer-mock">PDF: {pdfUrl}</div>
+  ),
+}));
+
 import { scriptsApi, elementsApi } from '../lib/api';
 const mockedScriptsApi = vi.mocked(scriptsApi);
 const mockedElementsApi = vi.mocked(elementsApi);
@@ -44,6 +51,10 @@ import ScriptViewerPage from '../app/productions/[id]/scripts/[scriptId]/page';
 describe('Script viewer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: getDownloadUrl resolves with a URL
+    mockedScriptsApi.getDownloadUrl.mockResolvedValue({
+      downloadUrl: 'https://s3.example.com/test.pdf?signed',
+    });
   });
 
   it('renders script title and status badge', async () => {
@@ -276,5 +287,65 @@ describe('Script viewer', () => {
     await user.click(screen.getByRole('button', { name: /archive john/i }));
 
     expect(mockedElementsApi.update).toHaveBeenCalledWith('elem-1', { status: 'ARCHIVED' });
+  });
+
+  it('fetches PDF download URL when script is READY', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('Test Script');
+
+    expect(mockedScriptsApi.getDownloadUrl).toHaveBeenCalledWith('script-1');
+  });
+
+  it('uses split layout with PDF panel and elements panel when READY', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [
+          {
+            id: 'elem-1',
+            name: 'JOHN',
+            type: 'CHARACTER',
+            highlightPage: 1,
+            highlightText: 'JOHN',
+            departmentId: null,
+            status: 'ACTIVE',
+            source: 'AUTO',
+          },
+        ],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    // Both panels should be present
+    expect(await screen.findByText('JOHN')).toBeInTheDocument();
+    expect(screen.getByText('Test Script')).toBeInTheDocument();
+    expect(screen.getByText('Elements (1)')).toBeInTheDocument();
   });
 });

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import {
   scriptsApi,
   elementsApi,
@@ -10,6 +11,12 @@ import {
   type ElementWithCountResponse,
 } from '../../../../../lib/api';
 import { ElementList } from '../../../../../components/element-list';
+import type { HighlightInfo } from '../../../../../lib/pdf-highlights';
+
+const PdfViewer = dynamic(
+  () => import('../../../../../components/pdf-viewer').then((m) => ({ default: m.PdfViewer })),
+  { ssr: false, loading: () => <div className="p-6">Loading PDF viewer...</div> },
+);
 
 type ScriptDetail = ScriptResponse & { elements: ElementWithCountResponse[] };
 
@@ -24,6 +31,14 @@ export default function ScriptViewerPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newElementName, setNewElementName] = useState('');
   const [newElementType, setNewElementType] = useState('CHARACTER');
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [activeElementId, setActiveElementId] = useState<string | null>(null);
+  const [scrollToHighlight, setScrollToHighlight] = useState<{
+    page: number;
+    text: string;
+  } | null>(null);
+
+  const elementListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadScript();
@@ -33,6 +48,16 @@ export default function ScriptViewerPage() {
     try {
       const { script: data } = await scriptsApi.get(productionId, scriptId);
       setScript(data);
+
+      // Fetch PDF download URL if script is ready
+      if (data.status === 'READY') {
+        try {
+          const { downloadUrl } = await scriptsApi.getDownloadUrl(scriptId);
+          setPdfUrl(downloadUrl);
+        } catch {
+          // PDF URL is optional — viewer still works without it
+        }
+      }
     } catch {
       setError('Failed to load script');
     } finally {
@@ -67,6 +92,47 @@ export default function ScriptViewerPage() {
     }
   }
 
+  // Build highlights from elements
+  const highlights: HighlightInfo[] = useMemo(() => {
+    if (!script) return [];
+    return script.elements
+      .filter((e) => e.highlightPage != null && e.highlightText != null)
+      .map((e) => ({
+        elementId: e.id,
+        page: e.highlightPage!,
+        text: e.highlightText!,
+      }));
+  }, [script]);
+
+  // When a highlight in the PDF is clicked, scroll element list to that element
+  function handleHighlightClick(elementId: string) {
+    setActiveElementId(elementId);
+
+    // Scroll the element into view in the right panel
+    if (elementListRef.current) {
+      const el = elementListRef.current.querySelector(`[data-element-id="${elementId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }
+
+  // When an element is clicked in the list, scroll PDF to its highlight
+  function handleElementClick(elementId: string) {
+    setActiveElementId(elementId);
+
+    const element = script?.elements.find((e) => e.id === elementId);
+    if (element?.highlightPage != null && element?.highlightText != null) {
+      setScrollToHighlight({ page: element.highlightPage, text: element.highlightText });
+    }
+  }
+
+  // Handle text selection in PDF for manual element creation
+  function handleTextSelect(page: number, selectedText: string) {
+    setNewElementName(selectedText);
+    setShowAddForm(true);
+  }
+
   if (isLoading) {
     return <div className="p-6">Loading...</div>;
   }
@@ -79,113 +145,155 @@ export default function ScriptViewerPage() {
     return <div className="p-6">Script not found.</div>;
   }
 
+  // Non-READY states: show single-column
+  if (script.status !== 'READY') {
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
+
+        {script.status === 'PROCESSING' && (
+          <div className="mac-alert mb-6">
+            <p className="text-black">
+              Script is processing. Elements will appear once extraction is complete.
+            </p>
+          </div>
+        )}
+
+        {script.status === 'RECONCILING' && (
+          <div className="mac-alert mb-6">
+            <p className="text-black">
+              This script revision needs reconciliation. Some elements could not be auto-matched.
+            </p>
+            <Link
+              href={`/productions/${productionId}/scripts/${scriptId}/reconcile`}
+              className="mt-2 inline-block text-sm font-bold underline"
+            >
+              Review and Reconcile
+            </Link>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // READY state: split-view layout
   return (
-    <div className="mx-auto max-w-3xl p-6">
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl">{script.title}</h1>
-          {script.version && (
-            <span className="badge badge-default">
-              v{script.version}
-            </span>
-          )}
-        </div>
-        <div className="mt-2 flex items-center gap-3">
-          <span className="badge badge-default uppercase">
-            {script.status}
-          </span>
-          {script.pageCount && (
-            <span className="text-sm text-black">{script.pageCount} pages</span>
-          )}
-          <span className="text-sm text-black">{script.fileName}</span>
-          <Link
-            href={`/productions/${productionId}/scripts/${scriptId}/versions`}
-            className="text-sm underline"
-          >
-            Version History
-          </Link>
-        </div>
+    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
+      {/* Left panel: PDF viewer */}
+      <div className="h-1/2 border-b-2 border-black lg:h-full lg:w-1/2 lg:border-b-0 lg:border-r-2">
+        {pdfUrl ? (
+          <PdfViewer
+            pdfUrl={pdfUrl}
+            highlights={highlights}
+            activeElementId={activeElementId}
+            onHighlightClick={handleHighlightClick}
+            onTextSelect={handleTextSelect}
+            scrollToHighlight={scrollToHighlight}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center p-6">
+            <p className="text-black">Loading PDF...</p>
+          </div>
+        )}
       </div>
 
-      {script.status === 'PROCESSING' && (
-        <div className="mac-alert mb-6">
-          <p className="text-black">
-            Script is processing. Elements will appear once extraction is complete.
-          </p>
-        </div>
-      )}
+      {/* Right panel: script metadata + elements */}
+      <div className="h-1/2 overflow-y-auto lg:h-full lg:w-1/2" ref={elementListRef}>
+        <div className="p-4">
+          <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
 
-      {script.status === 'RECONCILING' && (
-        <div className="mac-alert mb-6">
-          <p className="text-black">
-            This script revision needs reconciliation. Some elements could not be auto-matched.
-          </p>
-          <Link
-            href={`/productions/${productionId}/scripts/${scriptId}/reconcile`}
-            className="mt-2 inline-block text-sm font-bold underline"
-          >
-            Review and Reconcile
-          </Link>
-        </div>
-      )}
-
-      {script.status === 'READY' && (
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl">Elements ({script.elements.length})</h2>
-            <div className="flex gap-2">
-              <Link
-                href={`/productions/${productionId}/scripts/${scriptId}/revisions/upload`}
-                className="mac-btn-secondary px-3 py-1 text-sm"
-              >
-                Upload New Draft
-              </Link>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="mac-btn-primary px-3 py-1 text-sm"
-              >
-                Add Element
-              </button>
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl">Elements ({script.elements.length})</h2>
+              <div className="flex gap-2">
+                <Link
+                  href={`/productions/${productionId}/scripts/${scriptId}/revisions/upload`}
+                  className="mac-btn-secondary px-3 py-1 text-sm"
+                >
+                  Upload New Draft
+                </Link>
+                <button
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="mac-btn-primary px-3 py-1 text-sm"
+                >
+                  Add Element
+                </button>
+              </div>
             </div>
-          </div>
 
-          {showAddForm && (
-            <form onSubmit={handleAddElement} className="mb-4 flex gap-2 border-2 border-black p-3">
-              <input
-                type="text"
-                placeholder="Element name"
-                value={newElementName}
-                onChange={(e) => setNewElementName(e.target.value)}
-                className="flex-1 border-2 border-black p-2 text-sm"
-                required
+            {showAddForm && (
+              <form onSubmit={handleAddElement} className="mb-4 flex gap-2 border-2 border-black p-3">
+                <input
+                  type="text"
+                  placeholder="Element name"
+                  value={newElementName}
+                  onChange={(e) => setNewElementName(e.target.value)}
+                  className="flex-1 border-2 border-black p-2 text-sm"
+                  required
+                />
+                <select
+                  value={newElementType}
+                  onChange={(e) => setNewElementType(e.target.value)}
+                  className="border-2 border-black p-2 text-sm"
+                >
+                  <option value="CHARACTER">Character</option>
+                  <option value="LOCATION">Location</option>
+                  <option value="OTHER">Other</option>
+                </select>
+                <button type="submit" className="mac-btn-primary px-3 py-1 text-sm">
+                  Add
+                </button>
+              </form>
+            )}
+
+            {script.elements.length === 0 ? (
+              <p className="text-black">No elements detected.</p>
+            ) : (
+              <ElementList
+                elements={script.elements}
+                onArchive={handleArchive}
+                productionId={productionId}
+                scriptId={scriptId}
+                activeElementId={activeElementId}
+                onElementClick={handleElementClick}
               />
-              <select
-                value={newElementType}
-                onChange={(e) => setNewElementType(e.target.value)}
-                className="border-2 border-black p-2 text-sm"
-              >
-                <option value="CHARACTER">Character</option>
-                <option value="LOCATION">Location</option>
-                <option value="OTHER">Other</option>
-              </select>
-              <button type="submit" className="mac-btn-primary px-3 py-1 text-sm">
-                Add
-              </button>
-            </form>
-          )}
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          {script.elements.length === 0 ? (
-            <p className="text-black">No elements detected.</p>
-          ) : (
-            <ElementList
-              elements={script.elements}
-              onArchive={handleArchive}
-              productionId={productionId}
-              scriptId={scriptId}
-            />
-          )}
-        </section>
-      )}
+/** Reusable script header showing title, version, status badge, and links. */
+function ScriptHeader({
+  script,
+  productionId,
+  scriptId,
+}: {
+  script: ScriptDetail;
+  productionId: string;
+  scriptId: string;
+}) {
+  return (
+    <div className="mb-6">
+      <div className="flex items-center gap-3">
+        <h1 className="text-3xl">{script.title}</h1>
+        {script.version && <span className="badge badge-default">v{script.version}</span>}
+      </div>
+      <div className="mt-2 flex items-center gap-3">
+        <span className="badge badge-default uppercase">{script.status}</span>
+        {script.pageCount && (
+          <span className="text-sm text-black font-mono">{script.pageCount} pages</span>
+        )}
+        <span className="text-sm text-black font-mono">{script.fileName}</span>
+        <Link
+          href={`/productions/${productionId}/scripts/${scriptId}/versions`}
+          className="text-sm underline"
+        >
+          Version History
+        </Link>
+      </div>
     </div>
   );
 }
