@@ -7,7 +7,7 @@ import {
   DEFAULT_DEPARTMENTS,
   DEFAULT_DEPARTMENT_COLORS,
 } from '@backbone/shared/constants';
-import { MemberRole, NotificationType } from '@backbone/shared/types';
+import { MemberRole, NotificationType, ElementStatus, ElementWorkflowState } from '@backbone/shared/types';
 import { createNotification } from '../services/notification-service.js';
 
 const productionsRouter = Router();
@@ -569,7 +569,7 @@ productionsRouter.get('/api/productions/:id/element-stats', requireAuth, async (
       by: ['workflowState'],
       where: {
         scriptId: { in: scriptIds },
-        status: 'ACTIVE',
+        status: ElementStatus.ACTIVE,
       },
       _count: { _all: true },
     });
@@ -579,9 +579,9 @@ productionsRouter.get('/api/productions/:id/element-stats', requireAuth, async (
     let approved = 0;
 
     for (const g of groups) {
-      if (g.workflowState === 'PENDING') pending = g._count._all;
-      else if (g.workflowState === 'OUTSTANDING') outstanding = g._count._all;
-      else if (g.workflowState === 'APPROVED') approved = g._count._all;
+      if (g.workflowState === ElementWorkflowState.PENDING) pending = g._count._all;
+      else if (g.workflowState === ElementWorkflowState.OUTSTANDING) outstanding = g._count._all;
+      else if (g.workflowState === ElementWorkflowState.APPROVED) approved = g._count._all;
     }
 
     res.json({
