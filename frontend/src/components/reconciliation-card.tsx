@@ -27,7 +27,7 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
           <div className="mb-2 flex items-center justify-between">
             <div>
               <span className="font-semibold">{match.detectedName}</span>
-              <span className="ml-2 text-sm text-black">
+              <span className="ml-2 text-sm font-mono text-black">
                 {Math.round((match.similarity ?? 0) * 100)}% match
               </span>
             </div>
@@ -36,7 +36,7 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
             </span>
           </div>
           {match.oldElement && (
-            <div className="mb-3 text-sm text-black">
+            <div className="mb-3 text-sm font-mono text-black">
               Best match: <strong>{match.oldElement.name}</strong> ({optionCount} option
               {optionCount !== 1 ? 's' : ''})
               {hasApproved && (

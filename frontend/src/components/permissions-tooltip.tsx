@@ -21,13 +21,13 @@ export function PermissionsTooltip({ role }: PermissionsTooltipProps) {
     <span className="relative inline-block">
       <button
         onClick={() => setOpen(!open)}
-        className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs text-zinc-500 hover:text-zinc-700"
+        className="ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-black text-xs text-black hover:bg-black hover:text-white"
         aria-label="Permissions info"
       >
         i
       </button>
       {open && (
-        <span className="absolute left-6 top-0 z-10 w-56 rounded border bg-white p-2 text-xs text-zinc-700 shadow-md">
+        <span className="absolute left-6 top-0 z-10 w-56 border-2 border-black bg-white p-2 text-xs font-mono text-black">
           {roleDescriptions[role] || roleDescriptions.MEMBER}
         </span>
       )}

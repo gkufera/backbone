@@ -31,7 +31,7 @@ export default function Home() {
             <h1 className="text-center text-2xl font-bold leading-tight">
               One Place for EVERY Creative Decision
             </h1>
-            <p className="text-center text-lg">
+            <p className="text-center text-lg font-mono">
               Stop searching email threads, start making the film.
             </p>
             {!isLoading && isAuthenticated && (

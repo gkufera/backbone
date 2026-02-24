@@ -48,15 +48,15 @@ export default function NotificationsPage() {
       {notifications.length === 0 ? (
         <p className="text-black">No notifications yet.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-black">
           {notifications.map((notif) => (
             <li key={notif.id}>
               <button
                 onClick={() => handleClick(notif)}
-                className={`w-full border-2 border-black px-4 py-3 text-left hover:bg-black hover:text-white ${
+                className={`w-full px-4 py-3 text-left hover:bg-black hover:text-white ${
                   notif.read
                     ? 'text-black'
-                    : 'font-bold text-black border-l-8'
+                    : 'font-bold text-black border-l-8 border-black'
                 }`}
               >
                 <p>{notif.message}</p>

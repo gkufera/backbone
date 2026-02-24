@@ -64,23 +64,23 @@ function ElementGroup({
   return (
     <div>
       <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-      <ul className="space-y-1">
+      <ul className="divide-y divide-black">
         {elements.map((elem) => (
-          <li key={elem.id} className="flex items-center justify-between border-2 border-black p-2">
+          <li key={elem.id} className="flex items-center justify-between py-2">
             <div>
               {productionId && scriptId ? (
                 <Link
                   href={`/productions/${productionId}/scripts/${scriptId}/elements/${elem.id}`}
-                  className="font-medium underline"
+                  className="font-medium font-mono underline"
                 >
                   {elem.name}
                 </Link>
               ) : (
-                <span className="font-medium">{elem.name}</span>
+                <span className="font-medium font-mono">{elem.name}</span>
               )}
-              <span className="ml-2 text-xs text-black">p. {elem.pageNumbers.join(', ')}</span>
+              <span className="ml-2 text-xs font-mono text-black">p. {elem.pageNumbers.join(', ')}</span>
               {elem._count?.options != null && (
-                <span className="ml-2 text-xs text-black">
+                <span className="ml-2 text-xs font-mono text-black">
                   {elem._count.options} {elem._count.options === 1 ? 'option' : 'options'}
                 </span>
               )}

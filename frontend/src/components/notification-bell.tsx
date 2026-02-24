@@ -79,7 +79,7 @@ export function NotificationBell({ productionId }: NotificationBellProps) {
             Notifications
           </div>
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-black">No notifications</div>
+            <div className="p-4 text-center text-sm font-mono text-black">No notifications</div>
           ) : (
             <ul className="max-h-80 overflow-y-auto">
               {notifications.map((notif) => (

@@ -32,7 +32,7 @@ export function OptionCard({
   onConfirmApproval,
 }: OptionCardProps) {
   return (
-    <div className="border-2 border-black p-3">
+    <div className="border border-black p-3">
       <div className="mb-2 flex items-center gap-2">
         <span className="badge badge-default">
           {option.mediaType}
@@ -51,14 +51,14 @@ export function OptionCard({
 
       {option.description && <p className="mb-2 text-sm">{option.description}</p>}
 
-      {option.fileName && <p className="mb-2 text-xs text-black">{option.fileName}</p>}
+      {option.fileName && <p className="mb-2 text-xs font-mono text-black">{option.fileName}</p>}
 
       {option.externalUrl && (
         <a
           href={option.externalUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mb-2 block text-xs underline"
+          className="mb-2 block text-xs font-mono underline"
         >
           {option.externalUrl}
         </a>
@@ -81,7 +81,7 @@ export function OptionCard({
           <button
             key={a.id}
             onClick={() => onConfirmApproval(a.id)}
-            className="mt-1 rounded bg-blue-600 px-2 py-0.5 text-xs text-white hover:bg-blue-700"
+            className="mt-1 bg-black px-2 py-0.5 text-xs text-white hover:bg-white hover:text-black"
             aria-label={`Confirm ${a.decision.toLowerCase()} by ${a.user?.name || 'member'}`}
           >
             Confirm {a.decision.toLowerCase()}

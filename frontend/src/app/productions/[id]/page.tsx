@@ -107,7 +107,7 @@ export default function ProductionDashboard() {
         <h1 className="text-3xl font-bold">{production.title}</h1>
         <NotificationBell productionId={id} />
       </div>
-      {production.description && <p className="mb-6 text-black">{production.description}</p>}
+      {production.description && <p className="mb-6 font-mono text-black">{production.description}</p>}
 
       {/* Team Members */}
       <section className="mac-window mb-8">
@@ -120,13 +120,13 @@ export default function ProductionDashboard() {
           </span>
         </div>
         <div className="mac-window-body">
-          <ul className="mb-4 space-y-2">
+          <ul className="mb-4 divide-y divide-black">
             {production.members.map((m) => (
-              <li key={m.id} className="flex items-center justify-between border-2 border-black p-3">
+              <li key={m.id} className="flex items-center justify-between py-3">
                 <div>
-                  <span className="font-medium">{m.user.name}</span>
-                  {m.title && <span className="ml-2 text-sm text-black">&middot; {m.title}</span>}
-                  <span className="ml-2 text-sm text-black">{m.user.email}</span>
+                  <span className="font-medium font-mono">{m.user.name}</span>
+                  {m.title && <span className="ml-2 text-sm font-mono text-black">&middot; {m.title}</span>}
+                  <span className="ml-2 text-sm font-mono text-black">{m.user.email}</span>
                   {m.departmentMembers && m.departmentMembers.length > 0 && (
                     <div className="mt-1 flex flex-wrap gap-1">
                       {m.departmentMembers.map((dm) => (
@@ -195,13 +195,13 @@ export default function ProductionDashboard() {
           {departments.length === 0 ? (
             <p className="mb-4 text-black">No departments yet.</p>
           ) : (
-            <ul className="mb-4 space-y-2">
+            <ul className="mb-4 divide-y divide-black">
               {departments.map((dept) => (
-                <li key={dept.id} className="flex items-center justify-between border-2 border-black p-3">
+                <li key={dept.id} className="flex items-center justify-between py-3">
                   <div>
-                    <span className="font-medium">{dept.name}</span>
+                    <span className="font-medium font-mono">{dept.name}</span>
                     {dept.members && dept.members.length > 0 && (
-                      <span className="ml-2 text-sm text-black">
+                      <span className="ml-2 text-sm font-mono text-black">
                         ({dept.members.length} member{dept.members.length !== 1 ? 's' : ''})
                       </span>
                     )}
@@ -263,12 +263,12 @@ export default function ProductionDashboard() {
           {production.scripts.length === 0 ? (
             <p className="text-black">No scripts uploaded yet.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-black">
               {production.scripts.map((s) => (
                 <li key={s.id}>
                   <Link
                     href={`/productions/${id}/scripts/${s.id}`}
-                    className="block border-2 border-black p-3 hover:bg-black hover:text-white"
+                    className="block py-3 hover:bg-black hover:text-white"
                   >
                     <span className="font-medium">{s.title}</span>
                     <span className="ml-2 text-xs uppercase">{s.status}</span>

@@ -33,18 +33,18 @@ export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
   return (
     <Link
       href={`/productions/${productionId}/scripts/${scriptId}/elements/${element.id}`}
-      className="block border-2 border-black p-4 hover:bg-black hover:text-white"
+      className="block py-4 hover:bg-black hover:text-white"
     >
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">{element.name}</h3>
           <div className="mt-1 flex items-center gap-2">
             <span className="badge badge-default uppercase">{element.type}</span>
-            <span className="text-xs">Pages: {element.pageNumbers.join(', ')}</span>
+            <span className="text-xs font-mono">Pages: {element.pageNumbers.join(', ')}</span>
           </div>
         </div>
         <div className="text-right">
-          <span className="text-sm">{optionLabel}</span>
+          <span className="text-sm font-mono">{optionLabel}</span>
           {badge && (
             <span className={`ml-2 ${badge.className}`}>
               {badge.label}

@@ -1,11 +1,17 @@
 import type { Metadata } from 'next';
-import { VT323 } from 'next/font/google';
+import { VT323, Courier_Prime } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
 const vt323 = VT323({
   weight: '400',
   variable: '--font-vt323',
+  subsets: ['latin'],
+});
+
+const courierPrime = Courier_Prime({
+  weight: ['400', '700'],
+  variable: '--font-courier-prime',
   subsets: ['latin'],
 });
 
@@ -24,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-white text-black">
-      <body className={vt323.variable}>
+      <body className={`${vt323.variable} ${courierPrime.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

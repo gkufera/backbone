@@ -35,17 +35,17 @@ export default function ProductionsPage() {
       </div>
 
       {productions.length === 0 ? (
-        <p className="text-black">No productions yet. Create your first one.</p>
+        <p className="font-mono text-black">No productions yet. Create your first one.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-black">
           {productions.map((p) => (
             <li key={p.id}>
               <Link
                 href={`/productions/${p.id}`}
-                className="block border-2 border-black p-4 hover:bg-black hover:text-white"
+                className="block py-4 hover:bg-black hover:text-white"
               >
                 <h2 className="font-semibold">{p.title}</h2>
-                {p.description && <p className="mt-1 text-sm">{p.description}</p>}
+                {p.description && <p className="mt-1 text-sm font-mono">{p.description}</p>}
               </Link>
             </li>
           ))}

@@ -444,12 +444,16 @@ The design system is implemented in `frontend/src/app/globals.css`. That file is
 ### Core Rules (Non-Negotiable)
 
 - **Pure black and white only** — `#000` and `#fff`. No grays (`zinc-*`, `gray-*`, `slate-*`), no colors (`blue-*`, `green-*`, `red-*`, `yellow-*`, `orange-*`), no gradients, no opacity for color variation. The ONLY use of opacity is `disabled:opacity-50` for disabled controls.
-- **VT323 pixel font** — Loaded via `next/font/google` in `layout.tsx` as `--font-vt323`. This is the only font. All text renders in this bitmap-style typeface.
+- **Two-font system** — Two fonts, each with a distinct role:
+  - **VT323** (pixel font, `--font-vt323`) — For UI chrome: headings, labels, buttons, badges, nav items, window titles. Rendered uppercase with `letter-spacing: 0.05em`. Font smoothing disabled.
+  - **Courier Prime** (screenplay font, `--font-courier-prime`) — For body/content text: descriptions, names, emails, timestamps, file names, notes, form input values. Rendered in normal case. Font smoothing enabled (`-webkit-font-smoothing: auto`).
+  - CSS rules in `globals.css` auto-assign VT323 to `h1`–`h6`, `label`, `button` and Courier Prime to `p`, `td`, `th`, `input`, `textarea`, `select`.
+  - For `<span>`, `<div>`, `<a>` elements, apply `font-mono` (maps to Courier Prime) when the content is data/body text, or leave as default (VT323) when it's UI chrome.
 - **No rounded corners** — Never use `rounded`, `rounded-md`, `rounded-lg`, `rounded-full`, or any `border-radius`. All corners are sharp 90-degree angles.
 - **No shadows** — Never use `shadow`, `shadow-sm`, `shadow-md`, `shadow-lg`, or `shadow-xl`. Visual hierarchy is achieved through borders and color inversion, not elevation.
 - **No dark mode** — Never use `dark:*` Tailwind variants. The early Macintosh had one mode: white background, black foreground.
-- **2px solid black borders** — All containers, inputs, buttons, and cards use `border-2 border-black`. The global CSS sets `* { border-color: #000 }` so `border-2` alone is sufficient when creating new elements.
-- **Font smoothing disabled** — `-webkit-font-smoothing: none` is set globally. Never override this with `antialiased` or any smoothing class.
+- **Borders: containers vs list items** — Outer `.mac-window` containers use `border-2 border-black`. List items inside containers use `divide-y divide-black` on the parent `<ul>` instead of individual borders — this avoids visual clutter from nested borders. Standalone cards (e.g., reconciliation decisions) and form inputs keep their own borders.
+- **Font smoothing** — Disabled globally (`-webkit-font-smoothing: none`) for the pixel aesthetic. Courier Prime body text re-enables smoothing (`-webkit-font-smoothing: auto`) via CSS rules in `globals.css` for readability.
 - **No focus rings** — No `focus:ring-*` classes. Focus is handled globally via `outline: 2px solid #000` in `globals.css`.
 
 ### How Visual Hierarchy Works Without Color
@@ -486,7 +490,7 @@ When creating a new component:
 
 1. **Never import color** — scan your className strings for any color keyword (blue, green, red, yellow, zinc, gray, slate, orange, purple, etc.). If you find one, replace it.
 2. **Use existing CSS classes** — check `globals.css` for `.mac-window`, `.badge-*`, `.mac-btn-*`, `.mac-alert*` before writing custom styles.
-3. **Borders over backgrounds** — to visually separate items, use `border-2 border-black`, not background color changes.
+3. **Dividers over individual borders** — to visually separate list items, use `divide-y divide-black` on the parent `<ul>` instead of `border-2 border-black` on each `<li>`. Reserve individual borders for standalone cards, form inputs, and `.mac-window` containers.
 4. **Hover = invert** — interactive elements use `hover:bg-black hover:text-white`. No `hover:bg-zinc-50` or `hover:bg-blue-100`.
 
 ### Component Patterns Reference
@@ -524,19 +528,27 @@ The title bar renders with an inverted background. Always wrap title text in `<s
 - Standard `<a>` or Next.js `<Link>` — globals.css handles underline + invert-on-hover automatically
 - For link-styled buttons (e.g., "Archive"), use `className="text-xs underline"` — the button base styles from globals.css add the border; if you want a text-only action link, override with `border-0` or use an `<a>` tag
 
-**List items:**
+**List items** (use `divide-y` on parent, padding on items):
 ```tsx
-<li className="flex items-center justify-between border-2 border-black p-3">
+<ul className="divide-y divide-black">
+  <li className="flex items-center justify-between py-3">
 ```
 
-**Clickable list items (cards):**
+**Clickable list items:**
 ```tsx
-<Link className="block border-2 border-black p-4 hover:bg-black hover:text-white">
+<ul className="divide-y divide-black">
+  <li><Link className="block py-4 hover:bg-black hover:text-white">
 ```
+
+**Typography in components:**
+- Headings (`h1`–`h6`), labels, buttons, badges → VT323 (automatic via CSS, uppercase)
+- Descriptions, names, emails, timestamps, file names → add `font-mono` class (Courier Prime)
+- `<p>` tags get Courier Prime automatically via CSS; `<span>` and `<div>` need explicit `font-mono`
+- Form input values get Courier Prime automatically (set in globals.css on `input`, `textarea`, `select`)
 
 **Forms:**
-- Inputs, textareas, and selects are styled globally (2px black border, square corners, black outline on focus). No additional border or focus classes needed beyond sizing (`w-full`, `p-2`, etc.).
-- Labels: `className="block text-sm font-bold"` (use `font-bold`, not `font-medium` or colored text)
+- Inputs, textareas, and selects are styled globally (2px black border, square corners, black outline on focus, Courier Prime font). No additional border or focus classes needed beyond sizing (`w-full`, `p-2`, etc.).
+- Labels: `className="block text-sm font-bold"` (use `font-bold`, not `font-medium` or colored text) — renders in VT323 uppercase automatically
 - Error messages: `className="text-sm text-black font-bold"` (not red)
 
 **Alerts and status messages:**
@@ -591,9 +603,9 @@ If the existing classes in `globals.css` don't cover your need:
 - Layout: `flex`, `grid`, `block`, `inline-block`, `relative`, `absolute`, `sticky`, `fixed`
 - Spacing: `p-*`, `m-*`, `gap-*`, `space-y-*`, `space-x-*`
 - Sizing: `w-*`, `h-*`, `max-w-*`, `min-h-*`
-- Typography: `text-sm`, `text-lg`, `text-xl`, `text-2xl`, `text-3xl`, `text-xs`, `font-bold`, `font-semibold`, `font-medium`, `uppercase`, `tracking-*`, `leading-*`, `text-center`, `text-left`, `text-right`
+- Typography: `text-sm`, `text-lg`, `text-xl`, `text-2xl`, `text-3xl`, `text-xs`, `font-bold`, `font-semibold`, `font-medium`, `font-mono` (for Courier Prime body text), `uppercase`, `tracking-*`, `leading-*`, `text-center`, `text-left`, `text-right`
 - Color (ONLY these): `bg-white`, `bg-black`, `text-white`, `text-black`
-- Border: `border`, `border-2`, `border-4`, `border-t-2`, `border-b`, `border-l-8`, `border-black`, `border-dashed`
+- Border: `border`, `border-2`, `border-4`, `border-t-2`, `border-b`, `border-l-8`, `border-black`, `border-dashed`, `divide-y`, `divide-black`
 - Interactivity: `hover:bg-black`, `hover:text-white`, `cursor-pointer`, `cursor-not-allowed`, `disabled:opacity-50`, `disabled:cursor-not-allowed`
 - Overflow: `overflow-y-auto`, `overflow-hidden`
 - Responsive: `sm:*`, `lg:*` for grid breakpoints

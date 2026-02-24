@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 // Mock next/font/google since fonts aren't available in test
 vi.mock('next/font/google', () => ({
   VT323: () => ({ variable: '--font-vt323' }),
+  Courier_Prime: () => ({ variable: '--font-courier-prime' }),
 }));
 
 import { metadata } from '../app/layout';

@@ -36,7 +36,7 @@ export default function FeedPage() {
       {elements.length === 0 ? (
         <p className="text-black">No elements pending review.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="divide-y divide-black">
           {elements.map((elem) => (
             <FeedCard
               key={elem.id}

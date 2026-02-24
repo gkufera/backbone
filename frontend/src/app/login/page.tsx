@@ -35,7 +35,7 @@ export default function LoginPage() {
           <span>Log In</span>
         </div>
         <div className="mac-window-body space-y-6">
-          <p className="text-center text-sm text-black">
+          <p className="text-center text-sm font-mono text-black">
             Sign in to your Slug Max account
           </p>
 
@@ -83,7 +83,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-black">
+          <p className="text-center text-sm font-mono text-black">
             Don&apos;t have an account?{' '}
             <Link href="/signup" className="font-bold underline">
               Sign up

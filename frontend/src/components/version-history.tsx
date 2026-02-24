@@ -20,27 +20,27 @@ interface VersionHistoryProps {
 
 export function VersionHistory({ versions, currentScriptId, productionId }: VersionHistoryProps) {
   return (
-    <div className="space-y-3">
+    <div className="divide-y divide-black">
       {versions.map((version) => {
         const isCurrent = version.id === currentScriptId;
         return (
           <div
             key={version.id}
-            className={`flex items-center justify-between border-2 border-black p-4 ${
-              isCurrent ? 'border-4' : ''
+            className={`flex items-center justify-between py-4 ${
+              isCurrent ? 'border-l-4 border-black pl-3' : ''
             }`}
           >
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold">v{version.version}</span>
-                <span className="text-sm text-black">{version.title}</span>
+                <span className="text-sm font-mono text-black">{version.title}</span>
                 {isCurrent && (
                   <span className="badge badge-approved">
                     Current
                   </span>
                 )}
               </div>
-              <div className="mt-1 flex gap-3 text-sm text-black">
+              <div className="mt-1 flex gap-3 text-sm font-mono text-black">
                 <span className="uppercase">{version.status}</span>
                 {version.pageCount && <span>{version.pageCount} pages</span>}
                 <span>{new Date(version.createdAt).toLocaleDateString()}</span>

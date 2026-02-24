@@ -29,8 +29,8 @@ export function ApprovalHistory({ approvals }: ApprovalHistoryProps) {
               Tentative
             </span>
           )}
-          <span className="text-black">{approval.user?.name}</span>
-          {approval.note && <span className="text-black">— {approval.note}</span>}
+          <span className="font-mono text-black">{approval.user?.name}</span>
+          {approval.note && <span className="font-mono text-black">— {approval.note}</span>}
         </div>
       ))}
     </div>
