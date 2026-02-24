@@ -133,7 +133,7 @@ export function OptionLightbox({
               <ApprovalHistory approvals={approvals} />
               {onConfirmApproval &&
                 approvals
-                  .filter((a) => a.tentative && !a.confirmedAt)
+                  .filter((a) => a.tentative)
                   .map((a) => (
                     <button
                       key={a.id}
