@@ -326,4 +326,84 @@ productionsRouter.delete(
   },
 );
 
+// Change a member's role
+productionsRouter.patch(
+  '/api/productions/:id/members/:memberId/role',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { id, memberId } = req.params;
+      const { role } = req.body;
+
+      // Validate role
+      if (!role || !Object.values(MemberRole).includes(role)) {
+        res.status(400).json({ error: 'Valid role is required (ADMIN, DECIDER, or MEMBER)' });
+        return;
+      }
+
+      // Check requester is ADMIN or DECIDER
+      const requesterMembership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: id,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (
+        !requesterMembership ||
+        ![MemberRole.ADMIN, MemberRole.DECIDER].includes(requesterMembership.role as MemberRole)
+      ) {
+        res.status(403).json({ error: 'Only ADMIN or DECIDER can change member roles' });
+        return;
+      }
+
+      // Find the target member
+      const targetMember = await prisma.productionMember.findUnique({
+        where: { id: memberId },
+      });
+
+      if (!targetMember || targetMember.productionId !== id) {
+        res.status(404).json({ error: 'Member not found' });
+        return;
+      }
+
+      // Cannot change own role
+      if (targetMember.userId === authReq.user.userId) {
+        res.status(400).json({ error: 'Cannot change your own role' });
+        return;
+      }
+
+      // DECIDER cannot set role to ADMIN
+      if (requesterMembership.role === MemberRole.DECIDER && role === MemberRole.ADMIN) {
+        res.status(403).json({ error: 'Only an ADMIN can assign the ADMIN role' });
+        return;
+      }
+
+      // Cannot demote the last ADMIN
+      if (targetMember.role === MemberRole.ADMIN && role !== MemberRole.ADMIN) {
+        const adminCount = await prisma.productionMember.count({
+          where: { productionId: id, role: MemberRole.ADMIN },
+        });
+        if (adminCount <= 1) {
+          res.status(400).json({ error: 'Cannot demote the last ADMIN of a production' });
+          return;
+        }
+      }
+
+      const updated = await prisma.productionMember.update({
+        where: { id: memberId },
+        data: { role },
+      });
+
+      res.json({ member: updated });
+    } catch (error) {
+      console.error('Change member role error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
+
 export { productionsRouter };
