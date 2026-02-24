@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -611,5 +611,63 @@ describe('Production dashboard', () => {
     // Should be one tooltip per member (2 members)
     const tooltipButtons = screen.getAllByRole('button', { name: /permissions info/i });
     expect(tooltipButtons).toHaveLength(2);
+  });
+
+  it('shows error message when title save fails', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    mockedProductionsApi.update.mockRejectedValue(new Error('Failed to update title'));
+
+    render(<ProductionDashboard />);
+
+    const title = await screen.findByText('Film One');
+    await user.click(title);
+
+    const input = screen.getByDisplayValue('Film One');
+    await user.clear(input);
+    await user.type(input, 'New Title');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/failed to update title/i);
+  });
+
+  it('pressing Escape cancels title edit without calling API', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+
+    render(<ProductionDashboard />);
+
+    const title = await screen.findByText('Film One');
+    await user.click(title);
+
+    const input = screen.getByDisplayValue('Film One');
+    await user.type(input, ' changed{Escape}');
+
+    // Should exit edit mode, showing original title
+    expect(screen.getByText('Film One')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue(/changed/)).not.toBeInTheDocument();
+    // API should NOT be called
+    expect(mockedProductionsApi.update).not.toHaveBeenCalled();
+  });
+
+  it('MEMBER cannot edit title (no cursor-pointer, click does not enter edit mode)', async () => {
+    const memberProduction = {
+      ...mockProduction,
+      memberRole: 'MEMBER',
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: memberProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+
+    render(<ProductionDashboard />);
+
+    const title = await screen.findByText('Film One');
+    expect(title).not.toHaveClass('cursor-pointer');
+
+    // Click should NOT enter edit mode
+    fireEvent.click(title);
+    expect(screen.queryByDisplayValue('Film One')).not.toBeInTheDocument();
   });
 });

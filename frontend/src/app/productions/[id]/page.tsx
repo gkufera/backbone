@@ -28,6 +28,7 @@ export default function ProductionDashboard() {
   const [feedPendingCount, setFeedPendingCount] = useState<number>(0);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState('');
+  const [titleError, setTitleError] = useState('');
 
   useEffect(() => {
     Promise.all([productionsApi.get(id), departmentsApi.list(id), feedApi.list(id)])
@@ -74,13 +75,14 @@ export default function ProductionDashboard() {
 
   async function handleSaveTitle() {
     if (!editTitle.trim() || !production) return;
+    setTitleError('');
     try {
       const { production: updated } = await productionsApi.update(id, { title: editTitle.trim() });
       setProduction({ ...production, title: updated.title });
-    } catch {
-      // Revert on error
+      setIsEditingTitle(false);
+    } catch (err) {
+      setTitleError(err instanceof Error ? err.message : 'Failed to update title');
     }
-    setIsEditingTitle(false);
   }
 
   async function handleRoleChange(memberId: string, newRole: string) {
@@ -129,31 +131,42 @@ export default function ProductionDashboard() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <div className="mb-6 flex items-center justify-between">
-        {isEditingTitle ? (
-          <input
-            className="text-3xl border-2 border-black px-2 py-1 w-full"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSaveTitle();
-              if (e.key === 'Escape') setIsEditingTitle(false);
-            }}
-            onBlur={handleSaveTitle}
-            autoFocus
-          />
-        ) : (
-          <h1
-            className={`text-3xl ${canManageRoles ? 'cursor-pointer' : ''}`}
-            onClick={() => {
-              if (canManageRoles) {
-                setEditTitle(production.title);
-                setIsEditingTitle(true);
-              }
-            }}
-          >
-            {production.title}
-          </h1>
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          {isEditingTitle ? (
+            <input
+              className="text-3xl border-2 border-black px-2 py-1 w-full"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveTitle();
+                if (e.key === 'Escape') {
+                  setTitleError('');
+                  setIsEditingTitle(false);
+                }
+              }}
+              onBlur={handleSaveTitle}
+              autoFocus
+            />
+          ) : (
+            <h1
+              className={`text-3xl ${canManageRoles ? 'cursor-pointer' : ''}`}
+              onClick={() => {
+                if (canManageRoles) {
+                  setTitleError('');
+                  setEditTitle(production.title);
+                  setIsEditingTitle(true);
+                }
+              }}
+            >
+              {production.title}
+            </h1>
+          )}
+        </div>
+        {titleError && (
+          <p role="alert" className="mt-2 text-sm text-black font-bold">
+            {titleError}
+          </p>
         )}
       </div>
       {production.description && <p className="mb-6 font-mono text-black">{production.description}</p>}
