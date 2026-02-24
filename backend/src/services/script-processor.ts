@@ -12,7 +12,7 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
     const { pages, pageCount } = await parsePdf(buffer);
 
     // Step 3: Detect elements from per-page text
-    const detectedElements = detectElements(pages);
+    const { elements: detectedElements } = detectElements(pages);
 
     // Step 4: Look up production departments for department assignment
     const script = await prisma.script.findUnique({

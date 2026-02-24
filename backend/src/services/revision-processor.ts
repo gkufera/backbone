@@ -16,7 +16,7 @@ export async function processRevision(
     const { pages, pageCount } = await parsePdf(buffer);
 
     // Step 2: Detect elements from new script (per-page)
-    const detectedElements = detectElements(pages);
+    const { elements: detectedElements } = detectElements(pages);
 
     // Step 3: Load existing elements from parent script
     const existingElements = await prisma.element.findMany({

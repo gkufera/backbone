@@ -1,5 +1,6 @@
 import { ElementType } from '@backbone/shared/types';
 import { ELEMENT_TYPE_DEPARTMENT_MAP } from '@backbone/shared/constants';
+import type { SceneInfo } from '@backbone/shared/types';
 
 export interface PageText {
   pageNumber: number;
@@ -8,10 +9,15 @@ export interface PageText {
 
 export interface DetectedElement {
   name: string;
-  type: ElementType.CHARACTER | ElementType.LOCATION;
+  type: ElementType.CHARACTER | ElementType.LOCATION | ElementType.OTHER;
   highlightPage: number;
   highlightText: string;
   suggestedDepartment: string | null;
+}
+
+export interface DetectionResult {
+  elements: DetectedElement[];
+  sceneData: SceneInfo[];
 }
 
 // Words that appear as ALL-CAPS in scripts but aren't real elements
@@ -50,6 +56,31 @@ const NOISE_WORDS = new Set([
   'OPENING CREDITS',
   'TIME CUT',
   'JUMP CUT TO',
+  // Additional noise for prop detection in action lines
+  'ANGLE',
+  'POV',
+  'REVERSE',
+  'TWO SHOT',
+  'TRACKING SHOT',
+  'PAN',
+  'ZOOM',
+  'TIGHT ON',
+  'PULL BACK',
+  'PUSH IN',
+  'ESTABLISHING',
+  'CONTINUOUS',
+  'RESUME',
+  'OMITTED',
+  'THE',
+  'THIS',
+  'THAT',
+  'THEN',
+  'WITH',
+  'FROM',
+  'INTO',
+  'OVER',
+  'BACK',
+  'SUDDENLY',
 ]);
 
 // Regex for slugline detection: INT. / EXT. / INT./EXT.
@@ -64,8 +95,14 @@ const PARENTHETICAL_REGEX = /\s*\(.*?\)\s*$/;
 // Regex for CONT'D suffix
 const CONTD_REGEX = /\s*\(?\s*CONT['']D\s*\)?\s*$/i;
 
-export function detectElements(pages: PageText[]): DetectedElement[] {
+// Regex for embedded ALL-CAPS words in mixed-case lines (props)
+// Matches sequences of 2+ ALL-CAPS words or single words of 3+ chars
+const EMBEDDED_CAPS_REGEX = /\b([A-Z]{3,}(?:\s+[A-Z]{2,})*)\b/g;
+
+export function detectElements(pages: PageText[]): DetectionResult {
   const elementMap = new Map<string, DetectedElement>();
+  const sceneData: SceneInfo[] = [];
+  let currentScene: SceneInfo | null = null;
 
   for (const page of pages) {
     const lines = page.text.split('\n');
@@ -80,6 +117,14 @@ export function detectElements(pages: PageText[]): DetectedElement[] {
         // Clean up the slugline - remove trailing colons or numbers
         const cleanName = line.replace(/:\s*$/, '').trim();
         addElement(elementMap, cleanName, ElementType.LOCATION, page.pageNumber, line);
+
+        // Track scene
+        currentScene = {
+          sceneNumber: sceneData.length + 1,
+          location: cleanName,
+          characters: [],
+        };
+        sceneData.push(currentScene);
         continue;
       }
 
@@ -97,29 +142,77 @@ export function detectElements(pages: PageText[]): DetectedElement[] {
         if (isNoiseWord(normalized)) continue;
 
         addElement(elementMap, normalized, ElementType.CHARACTER, page.pageNumber, line);
+
+        // Track character in current scene
+        if (currentScene && !currentScene.characters.includes(normalized)) {
+          currentScene.characters.push(normalized);
+        }
+        continue;
       }
+
+      // Check for embedded ALL-CAPS props in mixed-case lines
+      detectProps(elementMap, line, page.pageNumber);
     }
   }
 
-  return Array.from(elementMap.values());
+  // Sort elements by first appearance (page ASC, name ASC within same page)
+  const elements = Array.from(elementMap.values()).sort((a, b) => {
+    if (a.highlightPage !== b.highlightPage) return a.highlightPage - b.highlightPage;
+    return a.name.localeCompare(b.name);
+  });
+
+  return { elements, sceneData };
+}
+
+function detectProps(
+  map: Map<string, DetectedElement>,
+  line: string,
+  pageNumber: number,
+): void {
+  // Only detect props in mixed-case action lines (not all-caps lines)
+  const trimmed = line.trim();
+  if (ALL_CAPS_REGEX.test(trimmed)) return;
+  if (SLUGLINE_REGEX.test(trimmed)) return;
+
+  let match;
+  EMBEDDED_CAPS_REGEX.lastIndex = 0;
+  while ((match = EMBEDDED_CAPS_REGEX.exec(line)) !== null) {
+    const propName = match[1].trim();
+
+    // Skip noise words
+    if (isNoiseWord(propName)) continue;
+
+    // Skip single words shorter than 3 chars
+    if (propName.length < 3) continue;
+
+    // Skip if it starts with INT. or EXT.
+    if (/^(INT\.|EXT\.|I\/E\.)/.test(propName)) continue;
+
+    addElement(map, propName, ElementType.OTHER, pageNumber, line);
+  }
 }
 
 function addElement(
   map: Map<string, DetectedElement>,
   name: string,
-  type: ElementType.CHARACTER | ElementType.LOCATION,
+  type: ElementType.CHARACTER | ElementType.LOCATION | ElementType.OTHER,
   pageNumber: number,
   lineText: string,
 ): void {
   // Only record first occurrence
   if (map.has(name)) return;
 
+  const suggestedDepartment =
+    type === ElementType.OTHER
+      ? 'Props'
+      : ELEMENT_TYPE_DEPARTMENT_MAP[type] ?? null;
+
   map.set(name, {
     name,
     type,
     highlightPage: pageNumber,
     highlightText: lineText,
-    suggestedDepartment: ELEMENT_TYPE_DEPARTMENT_MAP[type] ?? null,
+    suggestedDepartment,
   });
 }
 

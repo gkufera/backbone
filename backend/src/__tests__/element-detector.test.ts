@@ -7,7 +7,7 @@ describe('Element detection', () => {
       { pageNumber: 1, text: 'He looked at her.\n\nJOHN\nHello there.\n\nMARY\nHi John.' },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const john = elements.find((e) => e.name === 'JOHN');
     const mary = elements.find((e) => e.name === 'MARY');
@@ -23,7 +23,7 @@ describe('Element detection', () => {
       { pageNumber: 2, text: 'EXT. PARK - NIGHT\n\nMary walks alone.' },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const office = elements.find((e) => e.name === 'INT. OFFICE - DAY');
     const park = elements.find((e) => e.name === 'EXT. PARK - NIGHT');
@@ -41,7 +41,7 @@ describe('Element detection', () => {
       },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const hospital = elements.find((e) => e.name === 'INT. HOSPITAL - DAY');
     const smith = elements.find((e) => e.name === 'DR. SMITH');
@@ -57,7 +57,7 @@ describe('Element detection', () => {
       },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const names = elements.map((e) => e.name);
     expect(names).not.toContain('FADE IN');
@@ -70,7 +70,7 @@ describe('Element detection', () => {
   it('ignores single-character uppercase', () => {
     const pages = [{ pageNumber: 1, text: 'A\n\nJOHN\nHello.' }];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const names = elements.map((e) => e.name);
     expect(names).not.toContain('A');
@@ -84,7 +84,7 @@ describe('Element detection', () => {
       { pageNumber: 12, text: 'JOHN\nSee you later.' },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const john = elements.find((e) => e.name === 'JOHN');
     expect(john).toBeDefined();
@@ -100,7 +100,7 @@ describe('Element detection', () => {
       { pageNumber: 2, text: 'JOHN (O.S.)\nCome in!' },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const john = elements.find((e) => e.name === 'JOHN');
     expect(john).toBeDefined();
@@ -113,25 +113,26 @@ describe('Element detection', () => {
   it("strips CONT'D suffix", () => {
     const pages = [{ pageNumber: 1, text: "JOHN\nHello.\n\nJOHN (CONT'D)\nAs I was saying." }];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const john = elements.find((e) => e.name === 'JOHN');
     expect(john).toBeDefined();
     expect(elements.filter((e) => e.name.startsWith('JOHN'))).toHaveLength(1);
   });
 
-  it('returns empty array for no ALL-CAPS text', () => {
+  it('returns empty result for no ALL-CAPS text', () => {
     const pages = [{ pageNumber: 1, text: 'The quick brown fox jumps over the lazy dog.' }];
 
-    const elements = detectElements(pages);
+    const { elements, sceneData } = detectElements(pages);
 
     expect(elements).toEqual([]);
+    expect(sceneData).toEqual([]);
   });
 
   it('normalizes whitespace', () => {
     const pages = [{ pageNumber: 1, text: '  JOHN  \nHello.\n\n  MARY  \nHi.' }];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const john = elements.find((e) => e.name === 'JOHN');
     const mary = elements.find((e) => e.name === 'MARY');
@@ -142,7 +143,7 @@ describe('Element detection', () => {
   it('handles INT/EXT combined sluglines', () => {
     const pages = [{ pageNumber: 1, text: 'INT./EXT. CAR - DAY\n\nJohn drives through the city.' }];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const car = elements.find((e) => e.name === 'INT./EXT. CAR - DAY');
     expect(car).toBeDefined();
@@ -154,7 +155,7 @@ describe('Element detection', () => {
       { pageNumber: 3, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const office = elements.find((e) => e.name === 'INT. OFFICE - DAY');
     expect(office!.highlightPage).toBe(3);
@@ -170,12 +171,122 @@ describe('Element detection', () => {
       { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' },
     ];
 
-    const elements = detectElements(pages);
+    const { elements } = detectElements(pages);
 
     const john = elements.find((e) => e.name === 'JOHN');
     expect(john!.suggestedDepartment).toBe('Cast');
 
     const office = elements.find((e) => e.name === 'INT. OFFICE - DAY');
     expect(office!.suggestedDepartment).toBe('Locations');
+  });
+
+  // New tests for prop detection
+  it('detects capitalized props in action lines', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nShe picks up the REVOLVER and aims.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const revolver = elements.find((e) => e.name === 'REVOLVER');
+    expect(revolver).toBeDefined();
+    expect(revolver!.type).toBe('OTHER');
+    expect(revolver!.suggestedDepartment).toBe('Props');
+  });
+
+  it('detects multi-word capitalized props', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nHe grabs the GOLDEN WATCH from the table.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const watch = elements.find((e) => e.name === 'GOLDEN WATCH');
+    expect(watch).toBeDefined();
+    expect(watch!.type).toBe('OTHER');
+    expect(watch!.suggestedDepartment).toBe('Props');
+  });
+
+  it('does not detect single-letter caps words as props', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nHe picks up A book and reads.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const names = elements.map((e) => e.name);
+    expect(names).not.toContain('A');
+  });
+
+  it('filters prop noise words in action lines', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJohn looks around. ANGLE ON the desk.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const names = elements.map((e) => e.name);
+    expect(names).not.toContain('ANGLE ON');
+    expect(names).not.toContain('ANGLE');
+  });
+
+  it('tracks scene boundaries via sluglines', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJohn works.\n\nEXT. PARK - NIGHT\n\nMary runs.' },
+    ];
+
+    const { sceneData } = detectElements(pages);
+
+    expect(sceneData).toHaveLength(2);
+    expect(sceneData[0].sceneNumber).toBe(1);
+    expect(sceneData[0].location).toBe('INT. OFFICE - DAY');
+    expect(sceneData[1].sceneNumber).toBe(2);
+    expect(sceneData[1].location).toBe('EXT. PARK - NIGHT');
+  });
+
+  it('records character-scene appearances in sceneData', () => {
+    const pages = [
+      {
+        pageNumber: 1,
+        text: 'INT. OFFICE - DAY\n\nJOHN\nHello.\n\nMARY\nHi.\n\nEXT. PARK - NIGHT\n\nJOHN\nNice evening.',
+      },
+    ];
+
+    const { sceneData } = detectElements(pages);
+
+    expect(sceneData).toHaveLength(2);
+    expect(sceneData[0].characters).toContain('JOHN');
+    expect(sceneData[0].characters).toContain('MARY');
+    expect(sceneData[1].characters).toContain('JOHN');
+    expect(sceneData[1].characters).not.toContain('MARY');
+  });
+
+  it('returns elements ordered by first appearance (page then name)', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nMARY\nHello.' },
+      { pageNumber: 2, text: 'EXT. PARK - NIGHT\n\nJOHN\nGoodbye.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    // Page 1 elements should come before page 2 elements
+    const officeIdx = elements.findIndex((e) => e.name === 'INT. OFFICE - DAY');
+    const maryIdx = elements.findIndex((e) => e.name === 'MARY');
+    const parkIdx = elements.findIndex((e) => e.name === 'EXT. PARK - NIGHT');
+    const johnIdx = elements.findIndex((e) => e.name === 'JOHN');
+
+    expect(officeIdx).toBeLessThan(parkIdx);
+    expect(maryIdx).toBeLessThan(johnIdx);
+  });
+
+  it('does not create duplicate props for same name', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nShe grabs the KNIFE. He looks at the KNIFE.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const knives = elements.filter((e) => e.name === 'KNIFE');
+    expect(knives).toHaveLength(1);
   });
 });
