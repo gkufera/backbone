@@ -1,7 +1,21 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 13 check complete.
+None — Post-deploy fixes complete.
+
+## Completed (Sprint 13 Post-Deploy Fixes)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Hide entire header on homepage | `fix: hide entire header on homepage` | 0 (updated existing) |
+| 2 | Suspense wrapping regression test | `test: add Suspense wrapping verification for useSearchParams pages` | +4 |
+| 3 | Dockerfile ignore-scripts regression test | `test: verify Dockerfile production stage uses --ignore-scripts` | +1 |
+| 4 | Full test suite + docs | `docs: update test counts after post-deploy fixes` | 0 |
+
+### Test Counts (Post Sprint 13 Post-Deploy Fixes)
+- **Frontend**: 400 tests (was 396, +4 new)
+- **Backend**: 356 tests (was 355, +1 new)
+- **Total**: 756 tests (was 751, +5 new)
 
 ## Completed (Sprint 13 Check)
 
