@@ -223,6 +223,9 @@ function ElementRow({
   onElementClick?: (elementId: string) => void;
 }) {
   const deptColor = elem.department?.color;
+  const tempClass = elem.approvalTemperature
+    ? `temp-${elem.approvalTemperature}`
+    : null;
 
   return (
     <li
@@ -233,7 +236,10 @@ function ElementRow({
       style={deptColor ? { borderLeft: `4px solid ${deptColor}`, paddingLeft: '8px' } : undefined}
       onClick={() => onElementClick?.(elem.id)}
     >
-      <div>
+      <div className="flex items-center gap-2">
+        {tempClass && (
+          <span className={`inline-block w-2 h-2 ${tempClass}`} aria-hidden="true">●</span>
+        )}
         {productionId && scriptId ? (
           <Link
             href={`/productions/${productionId}/scripts/${scriptId}/elements/${elem.id}`}

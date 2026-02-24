@@ -255,6 +255,7 @@ export type ElementResponse = JsonSerialized<Element>;
 export type ElementWithCountResponse = ElementResponse & {
   _count?: { options: number };
   department?: { id: string; name: string; color: string | null } | null;
+  approvalTemperature?: 'green' | 'yellow' | 'red' | null;
 };
 
 export const elementsApi = {

@@ -156,6 +156,17 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
             _count: {
               select: { options: { where: { status: 'ACTIVE' } } },
             },
+            options: {
+              where: { status: 'ACTIVE' },
+              select: {
+                approvals: {
+                  where: { tentative: false },
+                  select: { decision: true },
+                  orderBy: { createdAt: 'desc' as const },
+                  take: 1,
+                },
+              },
+            },
           },
         },
       },
@@ -166,7 +177,29 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
       return;
     }
 
-    res.json({ script });
+    // Compute approvalTemperature per element
+    const elementsWithTemp = script.elements.map((elem) => {
+      const decisions = (elem as any).options
+        ?.flatMap((opt: any) => opt.approvals?.map((a: any) => a.decision) ?? [])
+        ?? [];
+
+      let approvalTemperature: string | null = null;
+      if (decisions.length > 0) {
+        if (decisions.includes('APPROVED')) {
+          approvalTemperature = 'green';
+        } else if (decisions.includes('MAYBE')) {
+          approvalTemperature = 'yellow';
+        } else {
+          approvalTemperature = 'red';
+        }
+      }
+
+      // Remove the raw options approval data (only keep _count)
+      const { options: _opts, ...rest } = elem as any;
+      return { ...rest, approvalTemperature };
+    });
+
+    res.json({ script: { ...script, elements: elementsWithTemp } });
   } catch (error) {
     console.error('Get script error:', error);
     res.status(500).json({ error: 'Internal server error' });

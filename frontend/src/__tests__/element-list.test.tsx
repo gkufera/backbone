@@ -342,6 +342,53 @@ describe('Element list', () => {
     expect(sortedList).toBeInTheDocument();
   });
 
+  it('renders green temperature indicator for approved element', () => {
+    const elementsWithTemp = [
+      {
+        ...mockElements[0],
+        approvalTemperature: 'green' as const,
+      },
+    ];
+
+    const { container } = render(
+      <ElementList elements={elementsWithTemp} onArchive={mockOnArchive} />,
+    );
+
+    expect(container.querySelector('.temp-green')).toBeInTheDocument();
+  });
+
+  it('renders red temperature indicator for rejected-only element', () => {
+    const elementsWithTemp = [
+      {
+        ...mockElements[0],
+        approvalTemperature: 'red' as const,
+      },
+    ];
+
+    const { container } = render(
+      <ElementList elements={elementsWithTemp} onArchive={mockOnArchive} />,
+    );
+
+    expect(container.querySelector('.temp-red')).toBeInTheDocument();
+  });
+
+  it('renders no temperature indicator for element with no approvals', () => {
+    const elementsNoTemp = [
+      {
+        ...mockElements[0],
+        approvalTemperature: null,
+      },
+    ];
+
+    const { container } = render(
+      <ElementList elements={elementsNoTemp} onArchive={mockOnArchive} />,
+    );
+
+    expect(container.querySelector('.temp-green')).not.toBeInTheDocument();
+    expect(container.querySelector('.temp-yellow')).not.toBeInTheDocument();
+    expect(container.querySelector('.temp-red')).not.toBeInTheDocument();
+  });
+
   it('archive button stopPropagation', async () => {
     const user = userEvent.setup();
     const onElementClick = vi.fn();

@@ -650,6 +650,80 @@ describe('POST /api/scripts/:scriptId/generate-implied (dedup)', () => {
   });
 });
 
+describe('GET /api/productions/:id/scripts/:scriptId approvalTemperature', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('includes approvalTemperature for elements with approvals', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'Script One',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      pageCount: 120,
+      status: 'READY',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      elements: [
+        {
+          id: 'elem-1',
+          name: 'JOHN',
+          type: 'CHARACTER',
+          status: 'ACTIVE',
+          options: [
+            {
+              approvals: [{ decision: 'APPROVED' }],
+            },
+          ],
+          _count: { options: 1 },
+        },
+        {
+          id: 'elem-2',
+          name: 'DESK',
+          type: 'OTHER',
+          status: 'ACTIVE',
+          options: [
+            {
+              approvals: [{ decision: 'REJECTED' }],
+            },
+          ],
+          _count: { options: 1 },
+        },
+        {
+          id: 'elem-3',
+          name: 'LAMP',
+          type: 'OTHER',
+          status: 'ACTIVE',
+          options: [],
+          _count: { options: 0 },
+        },
+      ],
+    } as any);
+
+    const res = await request(app)
+      .get('/api/productions/prod-1/scripts/script-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    const elements = res.body.script.elements;
+    expect(elements[0].approvalTemperature).toBe('green');
+    expect(elements[1].approvalTemperature).toBe('red');
+    expect(elements[2].approvalTemperature).toBeNull();
+  });
+});
+
 describe('DELETE /api/elements/:id (hard-delete)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
