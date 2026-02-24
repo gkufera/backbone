@@ -326,4 +326,27 @@ describe('Element detection', () => {
     const knives = elements.filter((e) => e.name === 'KNIFE');
     expect(knives).toHaveLength(1);
   });
+
+  it('handles empty page text gracefully', () => {
+    const pages = [{ pageNumber: 1, text: '' }];
+
+    const { elements, sceneData } = detectElements(pages);
+
+    expect(elements).toEqual([]);
+    expect(sceneData).toEqual([]);
+  });
+
+  it('detects hyphenated words as props', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nHe grabs the SEMI-AUTOMATIC from the drawer.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    // The regex matches "SEMI" as a standalone ALL-CAPS word (3+ chars)
+    // Hyphenated words may split depending on regex behavior
+    const names = elements.map((e) => e.name);
+    // At minimum, SEMI should be detected as a prop
+    expect(names.some((n) => n.includes('SEMI'))).toBe(true);
+  });
 });

@@ -129,6 +129,17 @@ describe('pdf-highlights utilities', () => {
         expect((span as HTMLElement).style.cursor).toBe('');
       }
     });
+
+    it('resets border property', () => {
+      const layer = createTextLayer(['JOHN']);
+      const span = layer.querySelector('span') as HTMLElement;
+
+      applyHighlightStyle(span, 'elem-1', true, '#E63946');
+      expect(span.style.border).not.toBe('');
+
+      clearHighlights(layer);
+      expect(span.style.border).toBe('');
+    });
   });
 
   describe('getHighlightElementId', () => {
