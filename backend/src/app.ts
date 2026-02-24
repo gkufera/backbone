@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { type Request, type Response, type NextFunction } from 'express';
 import helmet from 'helmet';
+import { createGeneralLimiter, createAuthLimiter } from './middleware/rate-limit.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { productionsRouter } from './routes/productions.js';
@@ -19,11 +20,18 @@ export function createApp() {
 
   app.use(helmet());
 
+  if (process.env.NODE_ENV !== 'test') {
+    app.use(createGeneralLimiter());
+  }
+
   const allowedOrigins = process.env.CORS_ORIGINS?.split(',') ?? [];
   app.use(cors(allowedOrigins.length > 0 ? { origin: allowedOrigins } : undefined));
   app.use(express.json());
 
   app.use(healthRouter);
+  if (process.env.NODE_ENV !== 'test') {
+    app.use('/api/auth', createAuthLimiter());
+  }
   app.use(authRouter);
   app.use(productionsRouter);
   app.use(scriptsRouter);
