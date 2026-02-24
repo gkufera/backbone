@@ -73,7 +73,14 @@ for domain in \
     "marketplace.visualstudio.com" \
     "vscode.blob.core.windows.net" \
     "update.code.visualstudio.com" \
-    "ntfy.sh"; do
+    "ntfy.sh" \
+    "backboard.railway.com" \
+    "railway.com" \
+    "api.cloudflare.com" \
+    "s3.amazonaws.com" \
+    "s3.us-east-1.amazonaws.com" \
+    "sts.amazonaws.com" \
+    "iam.amazonaws.com"; do
     echo "Resolving $domain..."
     ips=$(dig +noall +answer A "$domain" | awk '$4 == "A" {print $5}')
     if [ -z "$ips" ]; then
@@ -89,6 +96,19 @@ for domain in \
         echo "Adding $ip for $domain"
         ipset add allowed-domains "$ip"
     done < <(echo "$ips")
+done
+
+# Add AWS S3 CIDR ranges (S3 uses many IPs across these ranges)
+for cidr in \
+    "52.216.0.0/15" \
+    "52.218.0.0/17" \
+    "54.231.0.0/16" \
+    "3.5.0.0/19" \
+    "16.15.0.0/16" \
+    "44.216.0.0/15" \
+    "209.54.0.0/16"; do
+    echo "Adding AWS CIDR $cidr"
+    ipset add allowed-domains "$cidr"
 done
 
 # Get host IP from default route
