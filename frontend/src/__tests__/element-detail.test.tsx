@@ -276,7 +276,7 @@ describe('Element detail page', () => {
     render(<ElementDetailPage />);
 
     await screen.findByText('Costume reference');
-    await user.click(screen.getByRole('button', { name: /approve/i }));
+    await user.click(screen.getByRole('button', { name: 'Y' }));
 
     expect(mockedApprovalsApi.create).toHaveBeenCalledWith('opt-1', {
       decision: 'APPROVED',
@@ -305,7 +305,7 @@ describe('Element detail page', () => {
     render(<ElementDetailPage />);
 
     await screen.findByText('Costume reference');
-    await user.click(screen.getByRole('button', { name: /approve/i }));
+    await user.click(screen.getByRole('button', { name: 'Y' }));
 
     // Should re-fetch options after approval
     // Initial load + refresh after approval = at least 2 calls

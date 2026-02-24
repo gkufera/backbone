@@ -143,9 +143,9 @@ describe('OptionCard', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /approve/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /reject/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /maybe/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Y' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'M' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'N' })).toBeInTheDocument();
   });
 
   it('renders approval history when approvals are provided', () => {
