@@ -443,7 +443,7 @@ The design system is implemented in `frontend/src/app/globals.css`. That file is
 
 ### Core Rules (Non-Negotiable)
 
-- **Pure black and white only** — `#000` and `#fff`. No grays (`zinc-*`, `gray-*`, `slate-*`), no colors (`blue-*`, `green-*`, `red-*`, `yellow-*`, `orange-*`), no gradients, no opacity for color variation. The ONLY use of opacity is `disabled:opacity-50` for disabled controls.
+- **Pure black and white only** — `#000` and `#fff`. No grays (`zinc-*`, `gray-*`, `slate-*`), no colors (`blue-*`, `green-*`, `red-*`, `yellow-*`, `orange-*`), no gradients, no opacity for color variation. The ONLY use of opacity is `disabled:opacity-50` for disabled controls. **Exception: Department colors** — departments have user-configurable hex colors (stored in DB, defaulted from `DEFAULT_DEPARTMENT_COLORS`). These colors are used ONLY for: (1) PDF text highlight backgrounds, (2) element row left-border indicators, (3) department filter chip color swatches, (4) department color picker inputs. They must NEVER leak into general UI chrome, buttons, text, or backgrounds.
 - **Two-font system** — Two fonts, each with a distinct role:
   - **VT323** (pixel font, `--font-vt323`) — For UI chrome: headings, labels, buttons, badges, nav items, window titles. Rendered uppercase with `letter-spacing: 0.05em`. Always **normal weight** (never `font-bold` or `font-semibold`) — the pixel font is designed to be thin. Font smoothing disabled.
   - **Courier Prime** (screenplay font, `--font-courier-prime`) — For body/content text: descriptions, names, emails, timestamps, file names, notes, form input values. Rendered in normal case. `font-bold` is appropriate on Courier Prime text where emphasis is needed. Font smoothing enabled (`-webkit-font-smoothing: auto`).

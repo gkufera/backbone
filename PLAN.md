@@ -3,6 +3,39 @@
 ## Active Task
 None — all phases complete.
 
+## Completed (Enhanced Element Detection, Processing UX, and Colored Highlights)
+
+### Phases
+
+| Phase | Focus | Commit | New Tests |
+|-------|-------|--------|-----------|
+| 1 | Schema: dept color, REVIEWING status, sceneData field | `feat: add department color, REVIEWING script status, and sceneData field` | 0 (schema only) |
+| 2 | Enhanced element detection: props, scene tracking, character-scene mapping | `feat: enhanced element detection with props, scene tracking, and character-scene mapping` | +8 |
+| 3 | Processing progress, accept-elements, generate-implied, hard-delete endpoints | `feat: processing progress, accept-elements, generate-implied, and hard-delete endpoints` | +11 |
+| 4 | Department color PATCH endpoint, seed default colors | `feat: department color configuration with default colors and PATCH endpoint` | +2 |
+| 5 | ProcessingProgress component with polling + auto-refresh | `feat: processing progress bar, element wizard, and mobile layout` | +2 |
+| 6 | 3-step ElementWizard (review, departments, accept) | `test: add element wizard tests for review, implied generation, and accept flow` | +6 |
+| 7 | Colored PDF highlights, department filter chips, element row colors | `feat: colored department highlights on PDF, filter chips, and element row colors` | +7 |
+| 8 | Element ordering, view mode toggle, active row fix, mobile layout | `feat: element ordering, view mode toggle, active row fix, mobile elements-on-top layout` | +4 |
+| 9 | CLAUDE.md department color exception, PLAN.md update | (this commit) | 0 |
+
+### Test Counts (Post Enhanced Detection)
+- **Frontend**: 220 tests (was 200, +20 new)
+- **Backend**: 267 tests (was 248, +19 new)
+- **Total**: 487 tests (was 448, +39 new)
+
+### Architecture
+
+- **Element detection**: Props detected as `type: OTHER` with `suggestedDepartment: 'Props'` from ALL-CAPS words in mixed-case action lines
+- **Scene tracking**: Sluglines define scene boundaries; character dialogue tracked per scene → `sceneData` stored on Script
+- **Processing pipeline**: UPLOADING → PROCESSING (with progress bar) → REVIEWING (wizard) → READY (split-view)
+- **Post-processing wizard**: 3-step flow — (1) review/delete elements + generate implied wardrobe/H&M, (2) verify department assignments, (3) accept → READY
+- **Hard-delete**: Only allowed during REVIEWING status; after acceptance, only archive (soft-delete)
+- **Implied elements**: Per-scene or per-character wardrobe + Hair & Makeup elements auto-generated as `type: OTHER`
+- **Department colors**: Configurable hex colors per department (default 13 colors); used for PDF highlights, element row borders, filter chip swatches
+- **Element list**: View toggle (By Type / By Appearance), department filter chips, full-row clickable, active row inverted
+- **Mobile layout**: Elements panel on top (order-1), PDF panel below (order-2); reversed on lg+ screens
+
 ## Completed (Department & Permission Overhaul)
 
 ### Phases
