@@ -225,6 +225,13 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ### Tasks
 
+- [ ] AWS SES email integration
+  - Verify `slugmax.com` domain in AWS SES
+  - Add DKIM/SPF/DMARC DNS records to Cloudflare for deliverability
+  - Set Railway env vars: `EMAIL_ENABLED=true`, `SMTP_HOST` (SES SMTP endpoint), `SMTP_PORT=587`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM=noreply@slugmax.com`, `FRONTEND_URL=https://slugmax.com`
+  - Test: signup sends real verification email, forgot-password sends real reset email
+  - Files: Railway env config, Cloudflare DNS, AWS SES console (no code changes — email-service.ts already supports SMTP)
+
 - [ ] Rate limiting middleware
   - Install `express-rate-limit`
   - Apply: 100 req/min general, 10 req/min on auth endpoints (login, signup, forgot-password)
