@@ -72,12 +72,8 @@ describe('DiscussionBox', () => {
 
     render(<DiscussionBox elementId="elem-1" />);
 
-    // Wait for initial load
-    await waitFor(() => {
-      expect(mockedNotesApi.listForElement).toHaveBeenCalledWith('elem-1');
-    });
-
-    const input = screen.getByPlaceholderText(/add a note/i);
+    // Wait for initial load to complete and input to appear
+    const input = await screen.findByPlaceholderText(/add a note/i);
     await user.type(input, 'New note');
     await user.click(screen.getByRole('button', { name: /send/i }));
 

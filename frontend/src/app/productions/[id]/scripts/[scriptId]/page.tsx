@@ -13,6 +13,7 @@ import {
   type DepartmentResponse,
 } from '../../../../../lib/api';
 import { ElementList } from '../../../../../components/element-list';
+import { ElementDetailPanel } from '../../../../../components/element-detail-panel';
 import { ProcessingProgress } from '../../../../../components/processing-progress';
 import { ElementWizard } from '../../../../../components/element-wizard';
 import type { HighlightInfo } from '../../../../../lib/pdf-highlights';
@@ -41,6 +42,7 @@ export default function ScriptViewerPage() {
   const [newElementType, setNewElementType] = useState('CHARACTER');
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [activeElementId, setActiveElementId] = useState<string | null>(null);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [scrollToHighlight, setScrollToHighlight] = useState<{
     page: number;
     text: string;
@@ -124,22 +126,16 @@ export default function ScriptViewerPage() {
       }));
   }, [script]);
 
-  // When a highlight in the PDF is clicked, scroll element list to that element
+  // When a highlight in the PDF is clicked, open the element detail panel
   function handleHighlightClick(elementId: string) {
     setActiveElementId(elementId);
-
-    // Scroll the element into view in the right panel
-    if (elementListRef.current) {
-      const el = elementListRef.current.querySelector(`[data-element-id="${elementId}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
+    setSelectedElementId(elementId);
   }
 
-  // When an element is clicked in the list, scroll PDF to its highlight
+  // When an element is clicked in the list, open the detail panel and scroll PDF to its highlight
   function handleElementClick(elementId: string) {
     setActiveElementId(elementId);
+    setSelectedElementId(elementId);
 
     const element = script?.elements.find((e) => e.id === elementId);
     if (element?.highlightPage != null && element?.highlightText != null) {
@@ -245,69 +241,78 @@ export default function ScriptViewerPage() {
         )}
       </div>
 
-      {/* Right panel: script metadata + elements */}
+      {/* Right panel: script metadata + elements OR detail panel */}
       <div className="order-1 h-1/2 overflow-y-auto lg:order-2 lg:h-full lg:w-1/2" ref={elementListRef}>
-        <div className="p-4">
-          <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
+        {selectedElementId ? (
+          <ElementDetailPanel
+            elementId={selectedElementId}
+            scriptId={scriptId}
+            productionId={productionId}
+            onBack={() => setSelectedElementId(null)}
+          />
+        ) : (
+          <div className="p-4">
+            <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
 
-          <section>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl">Elements ({script.elements.length})</h2>
-              <div className="flex gap-2">
-                <Link
-                  href={`/productions/${productionId}/scripts/${scriptId}/revisions/upload`}
-                  className="mac-btn-secondary px-3 py-1 text-sm"
-                >
-                  Upload New Draft
-                </Link>
-                <button
-                  onClick={() => setShowAddForm(!showAddForm)}
-                  className="mac-btn-primary px-3 py-1 text-sm"
-                >
-                  Add Element
-                </button>
+            <section>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-xl">Elements ({script.elements.length})</h2>
+                <div className="flex gap-2">
+                  <Link
+                    href={`/productions/${productionId}/scripts/${scriptId}/revisions/upload`}
+                    className="mac-btn-secondary px-3 py-1 text-sm"
+                  >
+                    Upload New Draft
+                  </Link>
+                  <button
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    className="mac-btn-primary px-3 py-1 text-sm"
+                  >
+                    Add Element
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {showAddForm && (
-              <form onSubmit={handleAddElement} className="mb-4 flex gap-2 border-2 border-black p-3">
-                <input
-                  type="text"
-                  placeholder="Element name"
-                  value={newElementName}
-                  onChange={(e) => setNewElementName(e.target.value)}
-                  className="flex-1 border-2 border-black p-2 text-sm"
-                  required
+              {showAddForm && (
+                <form onSubmit={handleAddElement} className="mb-4 flex gap-2 border-2 border-black p-3">
+                  <input
+                    type="text"
+                    placeholder="Element name"
+                    value={newElementName}
+                    onChange={(e) => setNewElementName(e.target.value)}
+                    className="flex-1 border-2 border-black p-2 text-sm"
+                    required
+                  />
+                  <select
+                    value={newElementType}
+                    onChange={(e) => setNewElementType(e.target.value)}
+                    className="border-2 border-black p-2 text-sm"
+                  >
+                    <option value="CHARACTER">Character</option>
+                    <option value="LOCATION">Location</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                  <button type="submit" className="mac-btn-primary px-3 py-1 text-sm">
+                    Add
+                  </button>
+                </form>
+              )}
+
+              {script.elements.length === 0 ? (
+                <p className="text-black">No elements detected.</p>
+              ) : (
+                <ElementList
+                  elements={script.elements}
+                  onArchive={handleArchive}
+                  productionId={productionId}
+                  scriptId={scriptId}
+                  activeElementId={activeElementId}
+                  onElementClick={handleElementClick}
                 />
-                <select
-                  value={newElementType}
-                  onChange={(e) => setNewElementType(e.target.value)}
-                  className="border-2 border-black p-2 text-sm"
-                >
-                  <option value="CHARACTER">Character</option>
-                  <option value="LOCATION">Location</option>
-                  <option value="OTHER">Other</option>
-                </select>
-                <button type="submit" className="mac-btn-primary px-3 py-1 text-sm">
-                  Add
-                </button>
-              </form>
-            )}
-
-            {script.elements.length === 0 ? (
-              <p className="text-black">No elements detected.</p>
-            ) : (
-              <ElementList
-                elements={script.elements}
-                onArchive={handleArchive}
-                productionId={productionId}
-                scriptId={scriptId}
-                activeElementId={activeElementId}
-                onElementClick={handleElementClick}
-              />
-            )}
-          </section>
-        </div>
+              )}
+            </section>
+          </div>
+        )}
       </div>
     </div>
   );

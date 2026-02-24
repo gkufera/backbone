@@ -63,6 +63,22 @@ vi.mock('../components/element-wizard', () => ({
   ),
 }));
 
+// Mock ElementDetailPanel
+vi.mock('../components/element-detail-panel', () => ({
+  ElementDetailPanel: ({
+    elementId,
+    onBack,
+  }: {
+    elementId: string;
+    onBack: () => void;
+  }) => (
+    <div data-testid="element-detail-panel">
+      Detail: {elementId}
+      <button onClick={onBack}>Back to Elements</button>
+    </div>
+  ),
+}));
+
 import { scriptsApi, elementsApi, departmentsApi } from '../lib/api';
 const mockedScriptsApi = vi.mocked(scriptsApi);
 const mockedElementsApi = vi.mocked(elementsApi);
@@ -465,6 +481,92 @@ describe('Script viewer', () => {
     await screen.findByTestId('element-wizard');
 
     expect(mockedDepartmentsApi.list).toHaveBeenCalledWith('prod-1');
+  });
+
+  it('clicking element shows detail panel instead of list', async () => {
+    const user = userEvent.setup();
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [
+          {
+            id: 'elem-1',
+            name: 'JOHN',
+            type: 'CHARACTER',
+            highlightPage: 1,
+            highlightText: 'JOHN',
+            departmentId: null,
+            status: 'ACTIVE',
+            source: 'AUTO',
+          },
+        ],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('JOHN');
+
+    // Click on the element name
+    await user.click(screen.getByText('JOHN'));
+
+    // Detail panel should appear
+    expect(await screen.findByTestId('element-detail-panel')).toBeInTheDocument();
+    expect(screen.getByText('Detail: elem-1')).toBeInTheDocument();
+  });
+
+  it('clicking back in detail panel returns to list', async () => {
+    const user = userEvent.setup();
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [
+          {
+            id: 'elem-1',
+            name: 'JOHN',
+            type: 'CHARACTER',
+            highlightPage: 1,
+            highlightText: 'JOHN',
+            departmentId: null,
+            status: 'ACTIVE',
+            source: 'AUTO',
+          },
+        ],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('JOHN');
+
+    // Click on element to open detail panel
+    await user.click(screen.getByText('JOHN'));
+    expect(await screen.findByTestId('element-detail-panel')).toBeInTheDocument();
+
+    // Click back button
+    await user.click(screen.getByRole('button', { name: /back to elements/i }));
+
+    // Detail panel should be gone, element list should be back
+    expect(screen.queryByTestId('element-detail-panel')).not.toBeInTheDocument();
+    expect(screen.getByText('Elements (1)')).toBeInTheDocument();
   });
 
   it('uses split layout with PDF panel and elements panel when READY', async () => {
