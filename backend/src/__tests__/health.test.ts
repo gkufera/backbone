@@ -1,5 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
+
+// Mock Prisma client (required because app imports routes that use prisma)
+vi.mock('../lib/prisma.js', () => ({
+  prisma: {},
+}));
+
 import { app } from '../app.js';
 
 describe('GET /health', () => {
