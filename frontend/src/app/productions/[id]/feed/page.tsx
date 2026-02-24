@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { feedApi, type FeedElementResponse } from '../../../../lib/api';
 import { FeedCard } from '../../../../components/feed-card';
+import { SkeletonCard } from '../../../../components/skeleton';
 
 export default function FeedPage() {
   const params = useParams();
@@ -22,7 +23,11 @@ export default function FeedPage() {
   }, [productionId]);
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <SkeletonCard />
+      </div>
+    );
   }
 
   if (error) {

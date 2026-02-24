@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { productionsApi, type ProductionResponse } from '../../lib/api';
+import { SkeletonCard } from '../../components/skeleton';
 
 export default function ProductionsPage() {
   const [productions, setProductions] = useState<ProductionResponse[]>([]);
@@ -18,7 +19,11 @@ export default function ProductionsPage() {
   }, []);
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="mx-auto max-w-2xl p-6">
+        <SkeletonCard />
+      </div>
+    );
   }
 
   if (error) {

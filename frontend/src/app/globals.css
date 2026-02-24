@@ -401,6 +401,29 @@ select:focus {
   color: #E63946;
 }
 
+/* ── Skeleton Loading ─────────────────────────────────────── */
+
+.mac-skeleton {
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff,
+    #fff 4px,
+    #000 4px,
+    #000 5px
+  );
+  background-size: 200% 100%;
+  animation: skeleton-slide 1.5s linear infinite;
+}
+
+@keyframes skeleton-slide {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* ── Toast Notifications ──────────────────────────────────── */
 
 .mac-toast {

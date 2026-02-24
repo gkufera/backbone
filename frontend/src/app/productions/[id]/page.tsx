@@ -11,6 +11,7 @@ import {
   type DepartmentResponse,
 } from '../../../lib/api';
 import { PermissionsTooltip } from '../../../components/permissions-tooltip';
+import { SkeletonCard } from '../../../components/skeleton';
 
 export default function ProductionDashboard() {
   const params = useParams();
@@ -141,7 +142,11 @@ export default function ProductionDashboard() {
   }
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <SkeletonCard />
+      </div>
+    );
   }
 
   if (error) {
