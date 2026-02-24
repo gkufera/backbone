@@ -118,6 +118,9 @@ describe('ElementDetailPanel', () => {
     (notesApi.listForElement as ReturnType<typeof vi.fn>).mockResolvedValue({
       notes: [],
     });
+    (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
+      notes: [],
+    });
   });
 
   it('renders element name and type', async () => {

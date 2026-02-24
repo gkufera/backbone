@@ -6,6 +6,7 @@ import {
   optionsApi,
   approvalsApi,
   departmentsApi,
+  notesApi,
   type ElementResponse,
   type OptionResponse,
   type ApprovalResponse,
@@ -40,6 +41,7 @@ export function ElementDetailPanel({
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [lightboxOption, setLightboxOption] = useState<OptionResponse | null>(null);
   const [submittingApproval, setSubmittingApproval] = useState(false);
+  const [optionHasNotes, setOptionHasNotes] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setLightboxOption(null);
@@ -67,7 +69,7 @@ export function ElementDetailPanel({
       const { options: opts } = await optionsApi.list(elementId);
       setOptions(opts);
 
-      await loadApprovals(opts);
+      await Promise.all([loadApprovals(opts), loadNotePresence(opts)]);
     } catch {
       setError('Failed to load element');
     } finally {
@@ -96,10 +98,23 @@ export function ElementDetailPanel({
     setOptionApprovals(approvalMap);
   }
 
+  async function loadNotePresence(opts: OptionResponse[]) {
+    const noteMap: Record<string, boolean> = {};
+    for (const opt of opts) {
+      try {
+        const { notes } = await notesApi.listForOption(opt.id);
+        noteMap[opt.id] = notes.length > 0;
+      } catch {
+        noteMap[opt.id] = false;
+      }
+    }
+    setOptionHasNotes(noteMap);
+  }
+
   async function refreshOptions() {
     const { options: opts } = await optionsApi.list(elementId);
     setOptions(opts);
-    await loadApprovals(opts);
+    await Promise.all([loadApprovals(opts), loadNotePresence(opts)]);
   }
 
   async function handleApprove(decision: string, note?: string) {
@@ -246,6 +261,7 @@ export function ElementDetailPanel({
                 onClick={() => setLightboxOption(opt)}
                 onApprove={(decision) => handleThumbnailApprove(opt.id, decision)}
                 readyForReview={opt.readyForReview ?? false}
+                hasNotes={optionHasNotes[opt.id] ?? false}
               />
             ))}
           </div>

@@ -5,6 +5,7 @@ import type { OptionResponse, ApprovalResponse } from '../lib/api';
 import { useMediaUrl } from '../lib/use-media-url';
 import { ApprovalButtons } from './approval-buttons';
 import { ApprovalHistory } from './approval-history';
+import { OptionNotes } from './option-notes';
 
 interface OptionLightboxProps {
   option: OptionResponse;
@@ -144,6 +145,9 @@ export function OptionLightbox({
                   ))}
             </div>
           )}
+
+          {/* Option notes */}
+          <OptionNotes optionId={option.id} />
 
           {/* Approval buttons */}
           <div className="border-t-2 border-black pt-3">

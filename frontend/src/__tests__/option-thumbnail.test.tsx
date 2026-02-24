@@ -237,4 +237,29 @@ describe('OptionThumbnail', () => {
     expect(onApprove).toHaveBeenCalled();
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it('renders folded-page icon when hasNotes is true', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    render(
+      <OptionThumbnail
+        option={baseOption}
+        approvalState={null}
+        onClick={vi.fn()}
+        hasNotes
+      />,
+    );
+
+    expect(screen.getByTestId('notes-icon')).toBeInTheDocument();
+  });
+
+  it('does not render folded-page icon when hasNotes is false', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    render(
+      <OptionThumbnail option={baseOption} approvalState={null} onClick={vi.fn()} />,
+    );
+
+    expect(screen.queryByTestId('notes-icon')).not.toBeInTheDocument();
+  });
 });
