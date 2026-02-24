@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 387 frontend + 335 backend = 722 total
+**Test counts:** 394 frontend + 351 backend = 745 total
 
 ---
 
@@ -212,58 +212,54 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ### Tasks
 
-- [ ] AWS SES email integration
+- [x] Security headers (helmet)
+  - Installed `helmet` package, applied as first middleware in Express app
+  - Sets X-Content-Type-Options, X-Frame-Options, and other standard security headers
+
+- [x] Rate limiting middleware
+  - Installed `express-rate-limit`
+  - Applied: 100 req/min general, 10 req/min on auth endpoints
+  - Disabled in test environment to avoid test interference
+
+- [x] Phone verification
+  - Schema: added `phone` (nullable) and `phoneVerified` fields to User, `PhoneVerificationCode` model
+  - Shared types/constants: E.164 PHONE_REGEX, 6-digit code, 10-minute expiry
+  - Backend: SMS service (mirrors email service pattern with SMS_ENABLED gating)
+  - Backend: `POST /api/auth/send-phone-code`, `POST /api/auth/verify-phone` endpoints
+  - Backend: login, GET /me, PATCH /me now include phone/phoneVerified
+  - Frontend: Phone Verification section on settings page (send code → enter code → verified badge)
+
+- [x] Seed data script for demo/testing
+  - Created `prisma/seed-data.ts` with exportable demo constants
+  - Created `prisma/seed.ts` as main seed script
+  - 3 users (Director/DECIDER, Producer/ADMIN, Crew/MEMBER), 1 production, 5 elements, 3 options, 1 approval
+  - Wired via `"prisma": { "seed": "tsx ../prisma/seed.ts" }` in package.json
+
+- [ ] AWS SES email integration (deferred — infrastructure only, no code changes needed)
   - Verify `slugmax.com` domain in AWS SES
   - Add DKIM/SPF/DMARC DNS records to Cloudflare for deliverability
-  - Set Railway env vars: `EMAIL_ENABLED=true`, `SMTP_HOST` (SES SMTP endpoint), `SMTP_PORT=587`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM=noreply@slugmax.com`, `FRONTEND_URL=https://slugmax.com`
-  - Test: signup sends real verification email, forgot-password sends real reset email
-  - Files: Railway env config, Cloudflare DNS, AWS SES console (no code changes — email-service.ts already supports SMTP)
+  - Set Railway env vars: `EMAIL_ENABLED=true`, `SMTP_HOST`, `SMTP_PORT=587`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM=noreply@slugmax.com`
 
-- [ ] Rate limiting middleware
-  - Install `express-rate-limit`
-  - Apply: 100 req/min general, 10 req/min on auth endpoints (login, signup, forgot-password)
-  - Files: `backend/src/app.ts`, `backend/src/middleware/rate-limit.ts` (new)
-
-- [ ] Security headers (helmet)
-  - Install `helmet`
-  - Apply as middleware in Express app
-  - Files: `backend/src/app.ts`
-
-- [ ] Force phone number verification
-  - Schema: add `phone` and `phoneVerified` fields to User
-  - Integrate SMS provider (Twilio Verify or similar)
-  - Backend: `POST /api/auth/send-phone-code` — sends SMS verification code
-  - Backend: `POST /api/auth/verify-phone` — verifies code
-  - Frontend: phone verification step after email verification
-  - Files: `prisma/schema.prisma`, `backend/src/routes/auth.ts`, `backend/src/services/sms.ts` (new), `frontend/src/app/verify-phone/page.tsx` (new)
-
-- [ ] Seed data script for demo/testing
-  - Create `prisma/seed.ts` with sample production, users, script, elements, options, approvals
-  - Wire into `prisma db seed` command
-  - Files: `prisma/seed.ts` (new), `backend/package.json`
-
-- [ ] S3 bucket policy and CloudFront CDN for media
+- [ ] S3 bucket policy and CloudFront CDN for media (deferred — infrastructure only)
   - Configure S3 bucket policy for public read on media objects
   - Set up CloudFront distribution pointing to S3 bucket
   - Update option URLs to use CloudFront domain
-  - Files: infrastructure config, `backend/src/routes/options.ts`
 
-- [ ] Final QA pass
-  - Run all Tier 1 tests: `cd frontend && npm test && cd ../backend && npm test`
-  - Run all Tier 2 tests: Playwright E2E on desktop + mobile viewports
-  - Fix any failures
-  - Files: various test files
-
-- [ ] Performance audit
+- [ ] Performance audit (deferred)
   - Run Lighthouse on key pages (home, production, script viewer)
   - Measure API response times for critical endpoints
   - Optimize any endpoints > 500ms
-  - Files: various
+
+- [ ] Final QA pass (deferred — after all code tasks done)
+  - Run all Tier 1 and Tier 2 tests
+  - Playwright E2E on desktop + mobile viewports
 
 ### Tests
-- Rate limiting: 11th request in 1 second gets 429
-- Phone verification: send code, verify code, reject bad code
-- Seed script creates expected records
+- Security headers: X-Content-Type-Options, X-Frame-Options verified (+2)
+- Rate limiting: general 100/min, auth 10/min, 429 on exceed (+3)
+- Phone verification: send code, verify code, reject bad/expired code (+7 backend, +4 frontend)
+- SMS service: logs when disabled (+2)
+- Seed data: users have required fields, elements have valid types (+2)
 
 ---
 

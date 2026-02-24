@@ -33,6 +33,8 @@ vi.mock('../lib/auth-context', () => ({
       email: 'test@example.com',
       emailVerified: true,
       emailNotificationsEnabled: true,
+      phone: null,
+      phoneVerified: false,
       createdAt: new Date().toISOString(),
     },
     isAuthenticated: true,
@@ -48,6 +50,8 @@ vi.mock('../lib/auth-context', () => ({
 vi.mock('../lib/api', () => ({
   authApi: {
     updateMe: mockUpdateMe,
+    sendPhoneCode: vi.fn(),
+    verifyPhone: vi.fn(),
   },
 }));
 
