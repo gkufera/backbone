@@ -11,6 +11,10 @@ vi.mock('../lib/prisma.js', () => ({
     },
     productionMember: {
       findUnique: vi.fn(),
+      findMany: vi.fn(),
+    },
+    user: {
+      findUnique: vi.fn(),
     },
     approval: {
       create: vi.fn(),
@@ -264,7 +268,7 @@ describe('Tentative approval logic', () => {
     vi.clearAllMocks();
   });
 
-  it('MEMBER creates tentative approval', async () => {
+  it('MEMBER creates tentative approval and DECIDERs are notified', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',
       elementId: 'elem-1',
@@ -298,7 +302,13 @@ describe('Tentative approval logic', () => {
       updatedAt: new Date(),
     } as any);
 
+    // Mock decider members for notification
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-decider-1' },
+    ] as any);
+
     mockedPrisma.notification.create.mockResolvedValue({} as any);
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
 
     const res = await request(app)
       .post('/api/options/opt-1/approvals')
@@ -308,6 +318,12 @@ describe('Tentative approval logic', () => {
     expect(res.status).toBe(201);
     expect(mockedPrisma.approval.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ tentative: true }),
+    });
+
+    // DECIDERs should be notified via TENTATIVE_APPROVAL
+    expect(mockedPrisma.productionMember.findMany).toHaveBeenCalledWith({
+      where: { productionId: 'prod-1', role: 'DECIDER' },
+      select: { userId: true },
     });
   });
 
@@ -345,7 +361,9 @@ describe('Tentative approval logic', () => {
       updatedAt: new Date(),
     } as any);
 
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
     mockedPrisma.notification.create.mockResolvedValue({} as any);
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
 
     const res = await request(app)
       .post('/api/options/opt-1/approvals')
@@ -419,7 +437,9 @@ describe('Tentative approval logic', () => {
       updatedAt: new Date(),
     } as any);
 
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
     mockedPrisma.notification.create.mockResolvedValue({} as any);
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
 
     const res = await request(app)
       .post('/api/options/opt-1/approvals')

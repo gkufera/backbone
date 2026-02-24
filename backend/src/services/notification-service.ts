@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { sendNotificationEmail } from './email-service.js';
-import { NotificationType } from '@backbone/shared/types';
+import { MemberRole, NotificationType } from '@backbone/shared/types';
 
 export async function createNotification(
   userId: string,
@@ -48,6 +48,27 @@ export async function notifyProductionMembers(
   });
 
   const notifications = members
+    .filter((m) => m.userId !== excludeUserId)
+    .map((m) =>
+      createNotification(m.userId, productionId, type, message, link),
+    );
+
+  return Promise.all(notifications);
+}
+
+export async function notifyDeciders(
+  productionId: string,
+  excludeUserId: string,
+  type: NotificationType,
+  message: string,
+  link?: string,
+) {
+  const deciders = await prisma.productionMember.findMany({
+    where: { productionId, role: MemberRole.DECIDER },
+    select: { userId: true },
+  });
+
+  const notifications = deciders
     .filter((m) => m.userId !== excludeUserId)
     .map((m) =>
       createNotification(m.userId, productionId, type, message, link),

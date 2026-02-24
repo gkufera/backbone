@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
 import { ApprovalDecision, MemberRole, NotificationType } from '@backbone/shared/types';
-import { createNotification } from '../services/notification-service.js';
+import { createNotification, notifyDeciders } from '../services/notification-service.js';
 
 const DECISION_TO_NOTIFICATION_TYPE: Record<string, NotificationType> = {
   APPROVED: NotificationType.OPTION_APPROVED,
@@ -103,6 +103,20 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
         productionId,
         notifType,
         `Your option on ${elementName} was ${decision.toLowerCase()}`,
+        link,
+      );
+    }
+
+    // Notify DECIDERs when a tentative approval is created
+    if (tentative) {
+      const elementName = option.element.name ?? 'an element';
+      const productionId = option.element.script.productionId;
+      const link = `/productions/${productionId}/scripts/${option.element.scriptId}/elements/${option.elementId}`;
+      await notifyDeciders(
+        productionId,
+        authReq.user.userId,
+        NotificationType.TENTATIVE_APPROVAL,
+        `Tentative ${decision.toLowerCase()} on ${elementName} needs your review`,
         link,
       );
     }

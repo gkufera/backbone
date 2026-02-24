@@ -24,6 +24,9 @@ vi.mock('../lib/prisma.js', () => ({
     notification: {
       create: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -188,6 +191,8 @@ describe('Workflow state on approval', () => {
         id: 'elem-1',
         status: 'ACTIVE',
         workflowState: 'OUTSTANDING',
+        name: 'JOHN',
+        scriptId: 'script-1',
         script: { productionId: 'prod-1' },
       },
     } as any);
@@ -211,6 +216,7 @@ describe('Workflow state on approval', () => {
     } as any);
 
     mockedPrisma.notification.create.mockResolvedValue({} as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
 
     const res = await request(app)
       .post('/api/options/opt-1/approvals')

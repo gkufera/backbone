@@ -22,7 +22,11 @@ vi.mock('../services/email-service.js', () => ({
 
 import { prisma } from '../lib/prisma.js';
 import { sendNotificationEmail } from '../services/email-service.js';
-import { createNotification, notifyProductionMembers } from '../services/notification-service.js';
+import {
+  createNotification,
+  notifyProductionMembers,
+  notifyDeciders,
+} from '../services/notification-service.js';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedSendNotificationEmail = vi.mocked(sendNotificationEmail);
@@ -118,5 +122,67 @@ describe('createNotification', () => {
     await createNotification('user-1', 'prod-1', 'OPTION_APPROVED', 'Your option was approved');
 
     expect(mockedSendNotificationEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('notifyDeciders', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('notifies all DECIDER members, excluding the acting user', async () => {
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-decider-1' },
+      { userId: 'user-decider-2' },
+    ] as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({
+      id: 'notif-1',
+    } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+
+    await notifyDeciders(
+      'prod-1',
+      'user-actor',
+      'TENTATIVE_APPROVAL',
+      'A tentative approval was submitted',
+      '/productions/prod-1/scripts/s1/elements/e1',
+    );
+
+    // Should query for DECIDER members
+    expect(mockedPrisma.productionMember.findMany).toHaveBeenCalledWith({
+      where: { productionId: 'prod-1', role: 'DECIDER' },
+      select: { userId: true },
+    });
+
+    // Should create notifications for both deciders (neither is the actor)
+    expect(mockedPrisma.notification.create).toHaveBeenCalledTimes(2);
+  });
+
+  it('excludes the acting user from decider notifications', async () => {
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-actor' }, // same as actor — should be excluded
+      { userId: 'user-decider-2' },
+    ] as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({
+      id: 'notif-1',
+    } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+
+    await notifyDeciders(
+      'prod-1',
+      'user-actor',
+      'TENTATIVE_APPROVAL',
+      'A tentative approval was submitted',
+    );
+
+    // Only user-decider-2 should be notified
+    expect(mockedPrisma.notification.create).toHaveBeenCalledTimes(1);
+    expect(mockedPrisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'user-decider-2',
+      }),
+    });
   });
 });
