@@ -3,6 +3,36 @@
 ## Active Task
 None — all phases complete.
 
+## Completed (Department & Permission Overhaul)
+
+### Phases
+
+| Phase | Focus | Commit | New Tests |
+|-------|-------|--------|-----------|
+| 1 | Schema migration: departmentId FK on ProductionMember, remove DepartmentMember, 4 new default depts | `feat: migrate to one-department-per-member with departmentId FK` | 0 (schema only) |
+| 2 | Backend: dept assignment endpoint, delete protection, remove join-table endpoints | `feat: add department assignment endpoint, protect delete, remove join-table endpoints` | +5 (net -8 from removed tests) |
+| 3 | Backend: ADMIN↔DECIDER self role-change, ≥1 ADMIN/DECIDER guard | `feat: allow ADMIN/DECIDER self role-change, require at least 1 ADMIN or DECIDER` | +3 (net from replaced tests) |
+| 4 | Frontend: API client types for new schema | `refactor: update frontend API client for one-department-per-member` | 0 |
+| 5 | Frontend: dept dropdown per member, protected delete with diagonal shading | `feat: department dropdown per member, disable delete for populated departments` | +2 |
+| 6 | Update default dept count in test, update PLAN.md | `chore: update default department count in tests, update PLAN.md` | 0 |
+
+### Test Counts (Post Department Overhaul)
+- **Frontend**: 200 tests (was 198, +2 new)
+- **Backend**: 248 tests (was 253, -12 removed join-table tests +7 new)
+- **Total**: 448 tests (was 451, net -3 from test restructuring)
+
+### Architecture
+
+- One department per member via `departmentId` FK on `ProductionMember` (replaces `DepartmentMember` join table)
+- PATCH `/members/:memberId/department` endpoint for ADMIN/DECIDER
+- Departments with members cannot be deleted (409 response)
+- GET departments returns `_count: { members: N }` instead of full member list
+- ADMIN↔DECIDER self role-change allowed; cannot demote self to MEMBER
+- Production requires at least 1 ADMIN or DECIDER at all times
+- 13 default departments (was 9): added Storyboard Artist, AD, Cinematographer, Stunt Coordinator
+- Department dropdown in production dashboard (ADMIN/DECIDER only); read-only label for MEMBER
+- `.btn-disabled-striped` CSS class: diagonal stripe pattern on hover for disabled delete
+
 ## Completed (Quality Check — Split-View QA)
 
 | Step | Focus | Commit | New Tests |
