@@ -82,6 +82,27 @@ describe('pdf-highlights utilities', () => {
       expect(span.style.cursor).toBe('pointer');
     });
 
+    it('uses department color when provided', () => {
+      applyHighlightStyle(span, 'elem-1', true, '#E63946');
+
+      expect(span.style.backgroundColor).toBe('rgb(230, 57, 70)');
+      expect(span.style.color).toBe('rgb(255, 255, 255)');
+    });
+
+    it('uses department color for inactive border', () => {
+      applyHighlightStyle(span, 'elem-1', false, '#2A9D8F');
+
+      // jsdom converts hex to rgb in border shorthand
+      expect(span.style.border).toContain('dashed');
+      expect(span.style.border).toContain('rgb(42, 157, 143)');
+    });
+
+    it('falls back to black when no color provided', () => {
+      applyHighlightStyle(span, 'elem-1', true);
+
+      expect(span.style.backgroundColor).toBe('rgb(0, 0, 0)');
+    });
+
     it('switches from active to inactive', () => {
       applyHighlightStyle(span, 'elem-1', true);
       applyHighlightStyle(span, 'elem-1', false);

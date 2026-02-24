@@ -150,6 +150,9 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
           where: { status: ElementStatus.ACTIVE },
           orderBy: { name: 'asc' },
           include: {
+            department: {
+              select: { id: true, name: true, color: true },
+            },
             _count: {
               select: { options: { where: { status: 'ACTIVE' } } },
             },

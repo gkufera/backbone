@@ -11,6 +11,7 @@ export interface HighlightInfo {
   elementId: string;
   page: number;
   text: string;
+  departmentColor?: string | null;
 }
 
 /**
@@ -45,23 +46,26 @@ export function applyHighlightStyle(
   span: HTMLElement,
   elementId: string,
   isActive: boolean,
+  departmentColor?: string | null,
 ): void {
+  const color = departmentColor || '#000';
+
   span.setAttribute(HIGHLIGHT_ATTR, elementId);
   span.style.cursor = 'pointer';
 
   if (isActive) {
     span.classList.remove(INACTIVE_CLASS);
     span.classList.add(ACTIVE_CLASS);
-    span.style.backgroundColor = '#000';
+    span.style.backgroundColor = color;
     span.style.color = '#fff';
-    span.style.border = '2px solid #000';
+    span.style.border = `2px solid ${color}`;
     span.style.borderStyle = 'solid';
   } else {
     span.classList.remove(ACTIVE_CLASS);
     span.classList.add(INACTIVE_CLASS);
     span.style.backgroundColor = 'transparent';
     span.style.color = '#000';
-    span.style.border = '2px dashed #000';
+    span.style.border = `2px dashed ${color}`;
   }
 }
 

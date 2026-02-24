@@ -63,7 +63,7 @@ export function PdfViewer({
       for (const h of pageHighlights) {
         const span = findTextInLayer(textLayer as HTMLElement, h.text);
         if (span) {
-          applyHighlightStyle(span, h.elementId, h.elementId === activeElementId);
+          applyHighlightStyle(span, h.elementId, h.elementId === activeElementId, h.departmentColor);
         }
       }
     },

@@ -128,4 +128,83 @@ describe('Element list', () => {
       '/productions/prod-1/scripts/script-1/elements/elem-1',
     );
   });
+
+  it('renders department filter chips when elements have departments', () => {
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations', color: '#264653' },
+      },
+    ];
+
+    render(
+      <ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />,
+    );
+
+    expect(screen.getByText('Cast')).toBeInTheDocument();
+    // "Locations" appears both as chip text and as type group header
+    expect(screen.getAllByText('Locations').length).toBeGreaterThanOrEqual(1);
+    // Filter buttons: All + Cast + Locations
+    expect(screen.getByText('All')).toBeInTheDocument();
+  });
+
+  it('renders color indicator on element rows', () => {
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+    ];
+
+    render(
+      <ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />,
+    );
+
+    // The element row should have a border-left style
+    const row = screen.getByText('JOHN').closest('li');
+    expect(row).toHaveStyle({ borderLeftColor: '#E63946' });
+  });
+
+  it('clicking anywhere on row calls onElementClick', async () => {
+    const user = userEvent.setup();
+    const onElementClick = vi.fn();
+
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        onElementClick={onElementClick}
+      />,
+    );
+
+    // Click on the row (li element) for JOHN
+    const row = screen.getByText('JOHN').closest('li');
+    await user.click(row!);
+
+    expect(onElementClick).toHaveBeenCalledWith('elem-1');
+  });
+
+  it('archive button stopPropagation', async () => {
+    const user = userEvent.setup();
+    const onElementClick = vi.fn();
+
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        onElementClick={onElementClick}
+      />,
+    );
+
+    const archiveButtons = screen.getAllByRole('button', { name: /archive/i });
+    await user.click(archiveButtons[0]);
+
+    // Archive should be called, but NOT onElementClick
+    expect(mockOnArchive).toHaveBeenCalledWith('elem-1');
+    expect(onElementClick).not.toHaveBeenCalled();
+  });
 });

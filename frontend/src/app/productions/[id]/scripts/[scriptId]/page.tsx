@@ -116,6 +116,7 @@ export default function ScriptViewerPage() {
         elementId: e.id,
         page: e.highlightPage!,
         text: e.highlightText!,
+        departmentColor: e.department?.color ?? null,
       }));
   }, [script]);
 
