@@ -77,7 +77,7 @@ describe('Element detection', () => {
     expect(names).toContain('JOHN');
   });
 
-  it('deduplicates across pages and tracks all page numbers', () => {
+  it('records only first occurrence (highlightPage/highlightText)', () => {
     const pages = [
       { pageNumber: 1, text: 'JOHN\nHello.' },
       { pageNumber: 5, text: 'JOHN\nGoodbye.' },
@@ -88,7 +88,8 @@ describe('Element detection', () => {
 
     const john = elements.find((e) => e.name === 'JOHN');
     expect(john).toBeDefined();
-    expect(john!.pageNumbers).toEqual([1, 5, 12]);
+    expect(john!.highlightPage).toBe(1);
+    expect(john!.highlightText).toBe('JOHN');
     // Should only appear once
     expect(elements.filter((e) => e.name === 'JOHN')).toHaveLength(1);
   });
@@ -103,7 +104,8 @@ describe('Element detection', () => {
 
     const john = elements.find((e) => e.name === 'JOHN');
     expect(john).toBeDefined();
-    expect(john!.pageNumbers).toEqual([1, 2]);
+    expect(john!.highlightPage).toBe(1);
+    expect(john!.highlightText).toBe('JOHN (V.O.)');
     // Should not have separate entries for JOHN (V.O.) and JOHN (O.S.)
     expect(elements.filter((e) => e.name.startsWith('JOHN'))).toHaveLength(1);
   });
@@ -145,5 +147,35 @@ describe('Element detection', () => {
     const car = elements.find((e) => e.name === 'INT./EXT. CAR - DAY');
     expect(car).toBeDefined();
     expect(car!.type).toBe('LOCATION');
+  });
+
+  it('returns highlightPage and highlightText for each element', () => {
+    const pages = [
+      { pageNumber: 3, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' },
+    ];
+
+    const elements = detectElements(pages);
+
+    const office = elements.find((e) => e.name === 'INT. OFFICE - DAY');
+    expect(office!.highlightPage).toBe(3);
+    expect(office!.highlightText).toBe('INT. OFFICE - DAY');
+
+    const john = elements.find((e) => e.name === 'JOHN');
+    expect(john!.highlightPage).toBe(3);
+    expect(john!.highlightText).toBe('JOHN');
+  });
+
+  it('returns suggestedDepartment based on element type', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' },
+    ];
+
+    const elements = detectElements(pages);
+
+    const john = elements.find((e) => e.name === 'JOHN');
+    expect(john!.suggestedDepartment).toBe('Cast');
+
+    const office = elements.find((e) => e.name === 'INT. OFFICE - DAY');
+    expect(office!.suggestedDepartment).toBe('Locations');
   });
 });

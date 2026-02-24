@@ -101,7 +101,9 @@ describe('POST /api/scripts/:scriptId/elements', () => {
       scriptId: 'script-1',
       name: 'CUSTOM PROP',
       type: 'OTHER',
-      pageNumbers: [3, 7],
+      highlightPage: 3,
+      highlightText: 'CUSTOM PROP',
+      departmentId: null,
       status: 'ACTIVE',
       source: 'MANUAL',
       createdAt: new Date(),
@@ -111,7 +113,7 @@ describe('POST /api/scripts/:scriptId/elements', () => {
     const res = await request(app)
       .post('/api/scripts/script-1/elements')
       .set(authHeader())
-      .send({ name: 'CUSTOM PROP', type: 'OTHER', pageNumbers: [3, 7] });
+      .send({ name: 'CUSTOM PROP', type: 'OTHER', highlightPage: 3, highlightText: 'CUSTOM PROP' });
 
     expect(res.status).toBe(201);
     expect(res.body.element.name).toBe('CUSTOM PROP');
@@ -161,7 +163,9 @@ describe('PATCH /api/elements/:id', () => {
       scriptId: 'script-1',
       name: 'JOHN',
       type: 'CHARACTER',
-      pageNumbers: [1],
+      highlightPage: 1,
+      highlightText: 'JOHN',
+      departmentId: null,
       status: 'ACTIVE',
       source: 'AUTO',
       createdAt: new Date(),
@@ -184,7 +188,9 @@ describe('PATCH /api/elements/:id', () => {
       scriptId: 'script-1',
       name: 'JONATHAN',
       type: 'CHARACTER',
-      pageNumbers: [1, 5],
+      highlightPage: 1,
+      highlightText: 'JOHN',
+      departmentId: 'dept-1',
       status: 'ACTIVE',
       source: 'AUTO',
       createdAt: new Date(),
@@ -194,7 +200,7 @@ describe('PATCH /api/elements/:id', () => {
     const res = await request(app)
       .patch('/api/elements/elem-1')
       .set(authHeader())
-      .send({ name: 'JONATHAN', pageNumbers: [1, 5] });
+      .send({ name: 'JONATHAN', departmentId: 'dept-1' });
 
     expect(res.status).toBe(200);
     expect(res.body.element.name).toBe('JONATHAN');
@@ -226,7 +232,9 @@ describe('GET /api/scripts/:scriptId/elements', () => {
         scriptId: 'script-1',
         name: 'JOHN',
         type: 'CHARACTER',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'JOHN',
+        departmentId: null,
         status: 'ACTIVE',
         source: 'AUTO',
       },
@@ -274,7 +282,9 @@ describe('GET /api/scripts/:scriptId/elements', () => {
         scriptId: 'script-1',
         name: 'JOHN',
         type: 'CHARACTER',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'JOHN',
+        departmentId: null,
         status: 'ACTIVE',
         source: 'AUTO',
         _count: { options: 3 },

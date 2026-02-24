@@ -221,6 +221,10 @@ export const scriptsApi = {
     });
   },
 
+  getDownloadUrl(scriptId: string): Promise<{ downloadUrl: string }> {
+    return request(`/api/scripts/${scriptId}/download-url`);
+  },
+
   getVersions(
     productionId: string,
     scriptId: string,
@@ -249,7 +253,13 @@ export const elementsApi = {
 
   create(
     scriptId: string,
-    data: { name: string; type?: string; pageNumbers?: number[] },
+    data: {
+      name: string;
+      type?: string;
+      highlightPage?: number | null;
+      highlightText?: string | null;
+      departmentId?: string | null;
+    },
   ): Promise<{ element: ElementResponse }> {
     return request(`/api/scripts/${scriptId}/elements`, {
       method: 'POST',
@@ -259,7 +269,14 @@ export const elementsApi = {
 
   update(
     elementId: string,
-    data: { name?: string; type?: string; status?: string; pageNumbers?: number[] },
+    data: {
+      name?: string;
+      type?: string;
+      status?: string;
+      highlightPage?: number | null;
+      highlightText?: string | null;
+      departmentId?: string | null;
+    },
   ): Promise<{ element: ElementResponse }> {
     return request(`/api/elements/${elementId}`, {
       method: 'PATCH',
@@ -403,7 +420,11 @@ export const revisionMatchesApi = {
 
   resolve(
     scriptId: string,
-    decisions: Array<{ matchId: string; decision: 'map' | 'create_new' | 'keep' | 'archive' }>,
+    decisions: Array<{
+      matchId: string;
+      decision: 'map' | 'create_new' | 'keep' | 'archive';
+      departmentId?: string | null;
+    }>,
   ): Promise<{ message: string }> {
     return request(`/api/scripts/${scriptId}/revision-matches/resolve`, {
       method: 'POST',

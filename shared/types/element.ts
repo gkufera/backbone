@@ -25,7 +25,9 @@ export interface Element {
   scriptId: string;
   name: string;
   type: ElementType;
-  pageNumbers: number[];
+  highlightPage: number | null;
+  highlightText: string | null;
+  departmentId: string | null;
   status: ElementStatus;
   source: ElementSource;
   workflowState: ElementWorkflowState;

@@ -146,19 +146,21 @@ revisionMatchesRouter.post(
 
       // Process decisions in a transaction
       await prisma.$transaction(async (tx) => {
-        for (const { matchId, decision } of decisions) {
+        for (const { matchId, decision, departmentId } of decisions) {
           const match = matchMap.get(matchId)!;
 
           switch (decision) {
             case 'map':
-              // Update old element's scriptId, name, and pageNumbers to new script
+              // Update old element's scriptId, name, and highlight data to new script
               if (match.oldElementId) {
                 await tx.element.update({
                   where: { id: match.oldElementId },
                   data: {
                     scriptId,
                     name: match.detectedName,
-                    pageNumbers: match.detectedPages,
+                    highlightPage: match.detectedPage,
+                    highlightText: match.detectedHighlightText,
+                    ...(departmentId !== undefined ? { departmentId } : {}),
                   },
                 });
               }
@@ -172,7 +174,9 @@ revisionMatchesRouter.post(
                     scriptId,
                     name: match.detectedName,
                     type: match.detectedType,
-                    pageNumbers: match.detectedPages,
+                    highlightPage: match.detectedPage,
+                    highlightText: match.detectedHighlightText,
+                    departmentId: departmentId ?? null,
                     status: 'ACTIVE',
                     source: 'AUTO',
                   },
@@ -185,7 +189,10 @@ revisionMatchesRouter.post(
               if (match.oldElementId) {
                 await tx.element.update({
                   where: { id: match.oldElementId },
-                  data: { scriptId },
+                  data: {
+                    scriptId,
+                    ...(departmentId !== undefined ? { departmentId } : {}),
+                  },
                 });
               }
               break;

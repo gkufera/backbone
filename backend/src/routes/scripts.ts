@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
-import { generateUploadUrl } from '../lib/s3.js';
+import { generateUploadUrl, generateDownloadUrl } from '../lib/s3.js';
 import { processScript } from '../services/script-processor.js';
 import { processRevision } from '../services/revision-processor.js';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
@@ -318,5 +318,44 @@ scriptsRouter.get(
     }
   },
 );
+
+// Generate presigned download URL for a script's PDF
+scriptsRouter.get('/api/scripts/:scriptId/download-url', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { scriptId } = req.params;
+
+    // Find script to get productionId and s3Key
+    const script = await prisma.script.findUnique({
+      where: { id: scriptId },
+    });
+
+    if (!script) {
+      res.status(404).json({ error: 'Script not found' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    const downloadUrl = await generateDownloadUrl(script.s3Key);
+    res.json({ downloadUrl });
+  } catch (error) {
+    console.error('Generate download URL error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 export { scriptsRouter };

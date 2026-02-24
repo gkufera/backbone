@@ -10,7 +10,7 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
   try {
     const authReq = req as AuthenticatedRequest;
     const { scriptId } = req.params;
-    const { name, type, pageNumbers } = req.body;
+    const { name, type, highlightPage, highlightText, departmentId } = req.body;
 
     // Find script to get productionId
     const script = await prisma.script.findUnique({
@@ -47,7 +47,9 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
         scriptId,
         name: String(name).trim(),
         type: type || ElementType.OTHER,
-        pageNumbers: pageNumbers || [],
+        highlightPage: highlightPage ?? null,
+        highlightText: highlightText ?? null,
+        departmentId: departmentId ?? null,
         status: ElementStatus.ACTIVE,
         source: ElementSource.MANUAL,
       },
@@ -114,12 +116,12 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
   }
 });
 
-// Update an element (name, type, status, pageNumbers)
+// Update an element (name, type, status, highlightPage, highlightText, departmentId)
 elementsRouter.patch('/api/elements/:id', requireAuth, async (req, res) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const { id } = req.params;
-    const { name, type, status, pageNumbers } = req.body;
+    const { name, type, status, highlightPage, highlightText, departmentId } = req.body;
 
     // Find element with script to get productionId
     const element = await prisma.element.findUnique({
@@ -147,12 +149,20 @@ elementsRouter.patch('/api/elements/:id', requireAuth, async (req, res) => {
       return;
     }
 
-    const updateData: { name?: string; type?: string; status?: string; pageNumbers?: number[] } =
-      {};
+    const updateData: {
+      name?: string;
+      type?: string;
+      status?: string;
+      highlightPage?: number | null;
+      highlightText?: string | null;
+      departmentId?: string | null;
+    } = {};
     if (name !== undefined) updateData.name = String(name).trim();
     if (type !== undefined) updateData.type = type;
     if (status !== undefined) updateData.status = status;
-    if (pageNumbers !== undefined) updateData.pageNumbers = pageNumbers;
+    if (highlightPage !== undefined) updateData.highlightPage = highlightPage;
+    if (highlightText !== undefined) updateData.highlightText = highlightText;
+    if (departmentId !== undefined) updateData.departmentId = departmentId;
 
     const updated = await prisma.element.update({
       where: { id },

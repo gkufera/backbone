@@ -165,7 +165,9 @@ export default function ElementDetailPage() {
           <span className="badge badge-default uppercase">
             {element.type}
           </span>
-          <span className="text-sm text-black">Pages: {element.pageNumbers.join(', ')}</span>
+          {element.highlightPage != null && (
+            <span className="text-sm text-black">p. {element.highlightPage}</span>
+          )}
         </div>
       </div>
 

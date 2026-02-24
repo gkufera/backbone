@@ -4,19 +4,22 @@ export interface ExistingElement {
   type: string;
   status: string;
   source: string;
-  pageNumbers: number[];
+  highlightPage: number | null;
+  highlightText: string | null;
 }
 
 export interface DetectedElement {
   name: string;
   type: string;
-  pageNumbers: number[];
+  highlightPage: number | null;
+  highlightText: string | null;
 }
 
 export interface MatchResult {
   detectedName: string;
   detectedType: string;
-  detectedPages: number[];
+  detectedPage: number | null;
+  detectedHighlightText: string | null;
   status: 'EXACT' | 'FUZZY' | 'NEW';
   oldElementId?: string;
   similarity?: number;
@@ -94,7 +97,8 @@ export function matchElements(
       matches.push({
         detectedName: det.name,
         detectedType: det.type,
-        detectedPages: det.pageNumbers,
+        detectedPage: det.highlightPage,
+        detectedHighlightText: det.highlightText,
         status: 'EXACT',
         oldElementId: exactMatch.id,
         similarity: 1,
@@ -120,7 +124,8 @@ export function matchElements(
       matches.push({
         detectedName: det.name,
         detectedType: det.type,
-        detectedPages: det.pageNumbers,
+        detectedPage: det.highlightPage,
+        detectedHighlightText: det.highlightText,
         status: 'FUZZY',
         oldElementId: bestMatch.id,
         similarity: bestSim,
@@ -129,7 +134,8 @@ export function matchElements(
       matches.push({
         detectedName: det.name,
         detectedType: det.type,
-        detectedPages: det.pageNumbers,
+        detectedPage: det.highlightPage,
+        detectedHighlightText: det.highlightText,
         status: 'NEW',
       });
     }

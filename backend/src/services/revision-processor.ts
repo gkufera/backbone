@@ -11,16 +11,14 @@ export async function processRevision(
   s3Key: string,
 ): Promise<void> {
   try {
-    // Step 1: Fetch PDF from S3 and parse
+    // Step 1: Fetch PDF from S3 and parse (returns per-page data)
     const buffer = await getFileBuffer(s3Key);
-    const { text, pageCount } = await parsePdf(buffer);
+    const { pages, pageCount } = await parsePdf(buffer);
 
-    // Step 2: Detect elements from new script
-    const pages = [{ pageNumber: 1, text }];
+    // Step 2: Detect elements from new script (per-page)
     const detectedElements = detectElements(pages);
 
-    // Step 3: Load existing elements from parent script (ACTIVE only for matching,
-    // but ARCHIVED are excluded inside matchElements)
+    // Step 3: Load existing elements from parent script
     const existingElements = await prisma.element.findMany({
       where: { scriptId: parentScriptId },
     });
@@ -33,12 +31,14 @@ export async function processRevision(
         type: e.type,
         status: e.status,
         source: e.source,
-        pageNumbers: e.pageNumbers,
+        highlightPage: e.highlightPage,
+        highlightText: e.highlightText,
       })),
       detectedElements.map((d) => ({
         name: d.name,
         type: d.type,
-        pageNumbers: d.pageNumbers,
+        highlightPage: d.highlightPage,
+        highlightText: d.highlightText,
       })),
     );
 
@@ -52,7 +52,8 @@ export async function processRevision(
             where: { id: match.oldElementId },
             data: {
               scriptId: newScriptId,
-              pageNumbers: match.detectedPages,
+              highlightPage: match.detectedPage,
+              highlightText: match.detectedHighlightText,
             },
           });
         }
@@ -66,7 +67,8 @@ export async function processRevision(
             scriptId: newScriptId,
             name: elem.detectedName,
             type: elem.detectedType as ElementType,
-            pageNumbers: elem.detectedPages,
+            highlightPage: elem.detectedPage,
+            highlightText: elem.detectedHighlightText,
             status: 'ACTIVE',
             source: 'AUTO',
           })),
@@ -84,7 +86,8 @@ export async function processRevision(
             newScriptId,
             detectedName: m.detectedName,
             detectedType: m.detectedType as ElementType,
-            detectedPages: m.detectedPages,
+            detectedPage: m.detectedPage,
+            detectedHighlightText: m.detectedHighlightText,
             matchStatus: 'FUZZY' as const,
             oldElementId: m.oldElementId ?? null,
             similarity: m.similarity ?? null,
@@ -94,7 +97,8 @@ export async function processRevision(
             newScriptId,
             detectedName: m.name,
             detectedType: m.type as ElementType,
-            detectedPages: [] as number[],
+            detectedPage: null,
+            detectedHighlightText: null,
             matchStatus: 'MISSING' as const,
             oldElementId: m.id,
             similarity: null,

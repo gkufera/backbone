@@ -48,7 +48,7 @@ describe('PDF Parser', () => {
     await expect(parsePdf(Buffer.from('bad data'))).rejects.toThrow('Corrupted PDF');
   });
 
-  it('splits text into pages when available', async () => {
+  it('returns per-page text when pages data is available', async () => {
     const mockGetText = vi.fn().mockResolvedValue({
       text: 'Page 1 content\n\nPage 2 content',
       total: 2,
@@ -62,7 +62,23 @@ describe('PDF Parser', () => {
     const result = await parsePdf(Buffer.from('fake pdf'));
 
     expect(result.pageCount).toBe(2);
-    expect(result.text).toBeTruthy();
+    expect(result.pages).toHaveLength(2);
+    expect(result.pages[0]).toEqual({ pageNumber: 1, text: 'Page 1 content' });
+    expect(result.pages[1]).toEqual({ pageNumber: 2, text: 'Page 2 content' });
+  });
+
+  it('falls back to single page when pages array is empty', async () => {
+    const mockGetText = vi.fn().mockResolvedValue({
+      text: 'All text content',
+      total: 3,
+      pages: [],
+    });
+    MockedPDFParse.prototype.getText = mockGetText;
+
+    const result = await parsePdf(Buffer.from('fake pdf'));
+
+    expect(result.pages).toHaveLength(1);
+    expect(result.pages[0]).toEqual({ pageNumber: 1, text: 'All text content' });
   });
 
   it('calls destroy after parsing', async () => {

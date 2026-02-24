@@ -33,7 +33,8 @@ export interface RevisionMatch {
   newScriptId: string;
   detectedName: string;
   detectedType: string;
-  detectedPages: number[];
+  detectedPage: number | null;
+  detectedHighlightText: string | null;
   matchStatus: RevisionMatchStatus;
   oldElementId: string | null;
   similarity: number | null;

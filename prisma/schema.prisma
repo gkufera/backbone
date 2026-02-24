@@ -155,7 +155,9 @@ model Element {
   scriptId       String               @map("script_id")
   name           String
   type           ElementType          @default(OTHER)
-  pageNumbers    Int[]                @map("page_numbers")
+  highlightPage  Int?                 @map("highlight_page")
+  highlightText  String?              @map("highlight_text")
+  departmentId   String?              @map("department_id")
   status         ElementStatus        @default(ACTIVE)
   source         ElementSource        @default(AUTO)
   workflowState  ElementWorkflowState @default(PENDING) @map("workflow_state")
@@ -163,6 +165,7 @@ model Element {
   updatedAt      DateTime             @updatedAt @map("updated_at")
 
   script          Script          @relation(fields: [scriptId], references: [id])
+  department      Department?     @relation(fields: [departmentId], references: [id])
   options         Option[]
   revisionMatches RevisionMatch[]
 
@@ -216,6 +219,7 @@ model Department {
 
   production   Production         @relation(fields: [productionId], references: [id])
   members      DepartmentMember[]
+  elements     Element[]
 
   @@unique([productionId, name])
   @@map("departments")
@@ -242,18 +246,19 @@ enum RevisionMatchStatus {
 }
 
 model RevisionMatch {
-  id            String              @id @default(cuid())
-  newScriptId   String              @map("new_script_id")
-  detectedName  String              @map("detected_name")
-  detectedType  ElementType         @map("detected_type")
-  detectedPages Int[]               @map("detected_pages")
-  matchStatus   RevisionMatchStatus @map("match_status")
-  oldElementId  String?             @map("old_element_id")
-  similarity    Float?
-  userDecision  String?             @map("user_decision")
-  resolved      Boolean             @default(false)
-  createdAt     DateTime            @default(now()) @map("created_at")
-  updatedAt     DateTime            @updatedAt @map("updated_at")
+  id                     String              @id @default(cuid())
+  newScriptId            String              @map("new_script_id")
+  detectedName           String              @map("detected_name")
+  detectedType           ElementType         @map("detected_type")
+  detectedPage           Int?                @map("detected_page")
+  detectedHighlightText  String?             @map("detected_highlight_text")
+  matchStatus            RevisionMatchStatus @map("match_status")
+  oldElementId           String?             @map("old_element_id")
+  similarity             Float?
+  userDecision           String?             @map("user_decision")
+  resolved               Boolean             @default(false)
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
 
   newScript     Script              @relation(fields: [newScriptId], references: [id])
   oldElement    Element?            @relation(fields: [oldElementId], references: [id])

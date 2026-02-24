@@ -9,7 +9,9 @@ describe('Element list', () => {
       id: 'elem-1',
       name: 'JOHN',
       type: 'CHARACTER',
-      pageNumbers: [1, 5, 12],
+      highlightPage: 1,
+      highlightText: 'JOHN',
+      departmentId: null,
       status: 'ACTIVE',
       source: 'AUTO',
     },
@@ -17,7 +19,9 @@ describe('Element list', () => {
       id: 'elem-2',
       name: 'MARY',
       type: 'CHARACTER',
-      pageNumbers: [3],
+      highlightPage: 3,
+      highlightText: 'MARY',
+      departmentId: null,
       status: 'ACTIVE',
       source: 'AUTO',
     },
@@ -25,7 +29,9 @@ describe('Element list', () => {
       id: 'elem-3',
       name: 'INT. OFFICE - DAY',
       type: 'LOCATION',
-      pageNumbers: [1],
+      highlightPage: 1,
+      highlightText: 'INT. OFFICE - DAY',
+      departmentId: null,
       status: 'ACTIVE',
       source: 'AUTO',
     },
@@ -33,7 +39,9 @@ describe('Element list', () => {
       id: 'elem-4',
       name: 'MAGIC RING',
       type: 'OTHER',
-      pageNumbers: [7],
+      highlightPage: 7,
+      highlightText: 'MAGIC RING',
+      departmentId: null,
       status: 'ACTIVE',
       source: 'MANUAL',
     },
@@ -53,13 +61,15 @@ describe('Element list', () => {
     expect(screen.getByText('Other')).toBeInTheDocument();
   });
 
-  it('shows page numbers for each element', () => {
+  it('shows highlight page for each element', () => {
     render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
 
-    // JOHN appears on pages 1, 5, 12
-    expect(screen.getByText('p. 1, 5, 12')).toBeInTheDocument();
-    // MARY appears on page 3
+    // JOHN and INT. OFFICE both on page 1
+    expect(screen.getAllByText('p. 1')).toHaveLength(2);
+    // MARY on page 3
     expect(screen.getByText('p. 3')).toBeInTheDocument();
+    // MAGIC RING on page 7
+    expect(screen.getByText('p. 7')).toBeInTheDocument();
   });
 
   it('renders archive button for each element', () => {

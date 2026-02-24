@@ -38,14 +38,16 @@ vi.mock('../lib/prisma.js', () => ({
 // Mock S3
 vi.mock('../lib/s3.js', () => ({
   generateUploadUrl: vi.fn(),
+  generateDownloadUrl: vi.fn(),
   getFileBuffer: vi.fn(),
 }));
 
 import { prisma } from '../lib/prisma.js';
-import { generateUploadUrl } from '../lib/s3.js';
+import { generateUploadUrl, generateDownloadUrl } from '../lib/s3.js';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGenerateUploadUrl = vi.mocked(generateUploadUrl);
+const mockedGenerateDownloadUrl = vi.mocked(generateDownloadUrl);
 
 const testUser = {
   userId: 'user-1',
@@ -248,7 +250,9 @@ describe('GET /api/productions/:id/scripts/:scriptId', () => {
           id: 'elem-1',
           name: 'JOHN',
           type: 'CHARACTER',
-          pageNumbers: [1, 5, 12],
+          highlightPage: 1,
+          highlightText: 'JOHN',
+          departmentId: null,
           status: 'ACTIVE',
           source: 'AUTO',
         },
@@ -281,5 +285,63 @@ describe('GET /api/productions/:id/scripts/:scriptId', () => {
       .set(authHeader());
 
     expect(res.status).toBe(404);
+  });
+});
+
+describe('GET /api/scripts/:scriptId/download-url', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 200 with download URL', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      s3Key: 'scripts/uuid/test.pdf',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedGenerateDownloadUrl.mockResolvedValue(
+      'https://s3.amazonaws.com/bucket/scripts/uuid/test.pdf?signed-download',
+    );
+
+    const res = await request(app)
+      .get('/api/scripts/script-1/download-url')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.downloadUrl).toContain('signed-download');
+  });
+
+  it('returns 404 when script not found', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get('/api/scripts/nonexistent/download-url')
+      .set(authHeader());
+
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 403 when not a member', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      s3Key: 'scripts/uuid/test.pdf',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get('/api/scripts/script-1/download-url')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
   });
 });

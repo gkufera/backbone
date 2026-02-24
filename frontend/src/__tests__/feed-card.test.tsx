@@ -7,7 +7,9 @@ const mockElement = {
   scriptId: 'script-1',
   name: 'JOHN',
   type: 'CHARACTER',
-  pageNumbers: [1, 5, 12],
+  highlightPage: 1,
+  highlightText: 'JOHN',
+  departmentId: null,
   status: 'ACTIVE',
   source: 'AUTO',
   workflowState: 'OUTSTANDING',
@@ -73,7 +75,7 @@ describe('FeedCard', () => {
   it('renders page numbers', () => {
     render(<FeedCard element={mockElement} productionId="prod-1" scriptId="script-1" />);
 
-    expect(screen.getByText(/1, 5, 12/)).toBeInTheDocument();
+    expect(screen.getByText(/p\. 1/)).toBeInTheDocument();
   });
 
   it('renders option count', () => {

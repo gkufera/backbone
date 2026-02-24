@@ -9,5 +9,9 @@ export {
   mediaTypeFromMime,
 } from './option.js';
 export { APPROVAL_NOTE_MAX_LENGTH } from './approval.js';
-export { DEFAULT_DEPARTMENTS, DEPARTMENT_NAME_MAX_LENGTH } from './departments.js';
+export {
+  DEFAULT_DEPARTMENTS,
+  DEPARTMENT_NAME_MAX_LENGTH,
+  ELEMENT_TYPE_DEPARTMENT_MAP,
+} from './departments.js';
 export { NOTIFICATION_MESSAGE_MAX_LENGTH } from './notification.js';

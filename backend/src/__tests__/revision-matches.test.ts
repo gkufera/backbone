@@ -35,6 +35,7 @@ vi.mock('../lib/prisma.js', () => ({
 // Mock S3
 vi.mock('../lib/s3.js', () => ({
   generateUploadUrl: vi.fn(),
+  generateDownloadUrl: vi.fn(),
   getFileBuffer: vi.fn(),
 }));
 
@@ -177,7 +178,8 @@ describe('GET /api/scripts/:scriptId/revision-matches', () => {
         newScriptId: 'script-2',
         detectedName: 'JOHN SMITHE',
         detectedType: 'CHARACTER',
-        detectedPages: [1, 2],
+        detectedPage: 1,
+        detectedHighlightText: 'JOHN SMITHE',
         matchStatus: 'FUZZY',
         oldElementId: 'elem-1',
         similarity: 0.91,
@@ -256,7 +258,8 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
         oldElementId: 'elem-1',
         detectedName: 'JOHN SMITHE',
         detectedType: 'CHARACTER',
-        detectedPages: [1, 2],
+        detectedPage: 1,
+        detectedHighlightText: 'JOHN SMITHE',
       },
       {
         id: 'match-2',
@@ -264,7 +267,8 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
         oldElementId: 'elem-2',
         detectedName: 'MARY JONEZ',
         detectedType: 'CHARACTER',
-        detectedPages: [3],
+        detectedPage: 3,
+        detectedHighlightText: 'MARY JONEZ',
       },
       {
         id: 'match-3',
@@ -272,7 +276,8 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
         oldElementId: 'elem-3',
         detectedName: 'BOB',
         detectedType: 'CHARACTER',
-        detectedPages: [],
+        detectedPage: null,
+        detectedHighlightText: null,
       },
       {
         id: 'match-4',
@@ -280,7 +285,8 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
         oldElementId: 'elem-4',
         detectedName: 'ALICE',
         detectedType: 'CHARACTER',
-        detectedPages: [],
+        detectedPage: null,
+        detectedHighlightText: null,
       },
     ] as any);
 
@@ -304,7 +310,7 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
 
     expect(res.status).toBe(200);
 
-    // map: update old element's scriptId
+    // map: update old element's scriptId with new highlight data
     expect(mockedPrisma.element.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'elem-1' },
@@ -339,7 +345,8 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
         oldElementId: 'elem-1',
         detectedName: 'JOHN SMITHE',
         detectedType: 'CHARACTER',
-        detectedPages: [1],
+        detectedPage: 1,
+        detectedHighlightText: 'JOHN SMITHE',
       },
     ] as any);
 
@@ -382,7 +389,8 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
         oldElementId: 'elem-1',
         detectedName: 'JOHN',
         detectedType: 'CHARACTER',
-        detectedPages: [1],
+        detectedPage: 1,
+        detectedHighlightText: 'JOHN',
       },
     ] as any);
 

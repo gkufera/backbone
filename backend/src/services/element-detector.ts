@@ -1,4 +1,5 @@
 import { ElementType } from '@backbone/shared/types';
+import { ELEMENT_TYPE_DEPARTMENT_MAP } from '@backbone/shared/constants';
 
 export interface PageText {
   pageNumber: number;
@@ -8,7 +9,9 @@ export interface PageText {
 export interface DetectedElement {
   name: string;
   type: ElementType.CHARACTER | ElementType.LOCATION;
-  pageNumbers: number[];
+  highlightPage: number;
+  highlightText: string;
+  suggestedDepartment: string | null;
 }
 
 // Words that appear as ALL-CAPS in scripts but aren't real elements
@@ -76,7 +79,7 @@ export function detectElements(pages: PageText[]): DetectedElement[] {
       if (SLUGLINE_REGEX.test(line)) {
         // Clean up the slugline - remove trailing colons or numbers
         const cleanName = line.replace(/:\s*$/, '').trim();
-        addElement(elementMap, cleanName, ElementType.LOCATION, page.pageNumber);
+        addElement(elementMap, cleanName, ElementType.LOCATION, page.pageNumber, line);
         continue;
       }
 
@@ -93,7 +96,7 @@ export function detectElements(pages: PageText[]): DetectedElement[] {
 
         if (isNoiseWord(normalized)) continue;
 
-        addElement(elementMap, normalized, ElementType.CHARACTER, page.pageNumber);
+        addElement(elementMap, normalized, ElementType.CHARACTER, page.pageNumber, line);
       }
     }
   }
@@ -106,15 +109,18 @@ function addElement(
   name: string,
   type: ElementType.CHARACTER | ElementType.LOCATION,
   pageNumber: number,
+  lineText: string,
 ): void {
-  const existing = map.get(name);
-  if (existing) {
-    if (!existing.pageNumbers.includes(pageNumber)) {
-      existing.pageNumbers.push(pageNumber);
-    }
-  } else {
-    map.set(name, { name, type, pageNumbers: [pageNumber] });
-  }
+  // Only record first occurrence
+  if (map.has(name)) return;
+
+  map.set(name, {
+    name,
+    type,
+    highlightPage: pageNumber,
+    highlightText: lineText,
+    suggestedDepartment: ELEMENT_TYPE_DEPARTMENT_MAP[type] ?? null,
+  });
 }
 
 function isNoiseWord(word: string): boolean {

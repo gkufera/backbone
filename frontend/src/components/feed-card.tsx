@@ -40,7 +40,9 @@ export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
           <h3 className="text-lg">{element.name}</h3>
           <div className="mt-1 flex items-center gap-2">
             <span className="badge badge-default uppercase">{element.type}</span>
-            <span className="text-xs font-mono">Pages: {element.pageNumbers.join(', ')}</span>
+            {element.highlightPage != null && (
+              <span className="text-xs font-mono">p. {element.highlightPage}</span>
+            )}
           </div>
         </div>
         <div className="text-right">

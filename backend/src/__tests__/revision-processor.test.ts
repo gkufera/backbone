@@ -51,6 +51,7 @@ describe('Revision Processor', () => {
     mockedParsePdf.mockResolvedValue({
       text: 'INT. OFFICE - DAY\n\nJOHN\nHello.',
       pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' }],
     });
 
     // Existing elements from parent script
@@ -61,7 +62,8 @@ describe('Revision Processor', () => {
         type: 'CHARACTER',
         status: 'ACTIVE',
         source: 'AUTO',
-        pageNumbers: [1, 2],
+        highlightPage: 1,
+        highlightText: 'JOHN',
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -72,7 +74,8 @@ describe('Revision Processor', () => {
         type: 'LOCATION',
         status: 'ACTIVE',
         source: 'AUTO',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'INT. OFFICE - DAY',
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -83,7 +86,7 @@ describe('Revision Processor', () => {
 
     await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.pdf');
 
-    // Elements should be migrated (updated scriptId)
+    // Elements should be migrated (updated scriptId + highlight data)
     expect(mockedPrisma.element.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'elem-1' },
@@ -114,6 +117,7 @@ describe('Revision Processor', () => {
     mockedParsePdf.mockResolvedValue({
       text: 'JOHN SMITHE\nHello.',
       pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'JOHN SMITHE\nHello.' }],
     });
 
     mockedPrisma.element.findMany.mockResolvedValue([
@@ -123,7 +127,8 @@ describe('Revision Processor', () => {
         type: 'CHARACTER',
         status: 'ACTIVE',
         source: 'AUTO',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'JOHN SMITH',
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -162,6 +167,7 @@ describe('Revision Processor', () => {
     mockedParsePdf.mockResolvedValue({
       text: 'XAVIER\nHello.\n\nZOEY\nHi.',
       pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'XAVIER\nHello.\n\nZOEY\nHi.' }],
     });
 
     // No existing elements
@@ -214,6 +220,7 @@ describe('Revision Processor', () => {
     mockedParsePdf.mockResolvedValue({
       text: 'JOHN\nHello.\n\nJOHN SMITHE\nHi.\n\nXAVIER\nHey.',
       pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'JOHN\nHello.\n\nJOHN SMITHE\nHi.\n\nXAVIER\nHey.' }],
     });
 
     mockedPrisma.element.findMany.mockResolvedValue([
@@ -223,7 +230,8 @@ describe('Revision Processor', () => {
         type: 'CHARACTER',
         status: 'ACTIVE',
         source: 'AUTO',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'JOHN',
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -234,7 +242,8 @@ describe('Revision Processor', () => {
         type: 'CHARACTER',
         status: 'ACTIVE',
         source: 'AUTO',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'JOHN SMITH',
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -245,7 +254,8 @@ describe('Revision Processor', () => {
         type: 'CHARACTER',
         status: 'ACTIVE',
         source: 'AUTO',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'BOB',
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -278,6 +288,7 @@ describe('Revision Processor', () => {
     mockedParsePdf.mockResolvedValue({
       text: 'JOHN\nHello.\n\nXAVIER\nHey.',
       pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'JOHN\nHello.\n\nXAVIER\nHey.' }],
     });
 
     // Existing element for exact match
@@ -288,7 +299,8 @@ describe('Revision Processor', () => {
         type: 'CHARACTER',
         status: 'ACTIVE',
         source: 'AUTO',
-        pageNumbers: [1],
+        highlightPage: 1,
+        highlightText: 'JOHN',
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -311,6 +323,7 @@ describe('Revision Processor', () => {
     mockedParsePdf.mockResolvedValue({
       text: 'CUSTOM PROP\nUsed in scene.',
       pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'CUSTOM PROP\nUsed in scene.' }],
     });
 
     mockedPrisma.element.findMany.mockResolvedValue([
@@ -320,7 +333,8 @@ describe('Revision Processor', () => {
         type: 'OTHER',
         status: 'ACTIVE',
         source: 'MANUAL',
-        pageNumbers: [],
+        highlightPage: null,
+        highlightText: null,
         scriptId: 'parent-script',
         createdAt: new Date(),
         updatedAt: new Date(),

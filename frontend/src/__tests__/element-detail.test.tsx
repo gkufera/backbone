@@ -71,7 +71,9 @@ const mockElement = {
   scriptId: 'script-1',
   name: 'JOHN',
   type: 'CHARACTER',
-  pageNumbers: [1, 5, 12],
+  highlightPage: 1,
+  highlightText: 'JOHN',
+  departmentId: null,
   status: 'ACTIVE',
   source: 'AUTO',
   createdAt: new Date().toISOString(),
@@ -118,7 +120,7 @@ describe('Element detail page', () => {
 
     render(<ElementDetailPage />);
 
-    expect(await screen.findByText(/1, 5, 12/)).toBeInTheDocument();
+    expect(await screen.findByText(/p\. 1/)).toBeInTheDocument();
   });
 
   it('calls optionsApi.list with elementId', async () => {

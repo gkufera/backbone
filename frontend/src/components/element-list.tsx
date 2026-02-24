@@ -78,7 +78,9 @@ function ElementGroup({
               ) : (
                 <span className="font-medium font-mono">{elem.name}</span>
               )}
-              <span className="ml-2 text-xs font-mono text-black">p. {elem.pageNumbers.join(', ')}</span>
+              {elem.highlightPage != null && (
+                <span className="ml-2 text-xs font-mono text-black">p. {elem.highlightPage}</span>
+              )}
               {elem._count?.options != null && (
                 <span className="ml-2 text-xs font-mono text-black">
                   {elem._count.options} {elem._count.options === 1 ? 'option' : 'options'}
