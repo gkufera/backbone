@@ -72,6 +72,7 @@ describe('AuthProvider', () => {
         id: 'test-id',
         name: 'Test User',
         email: 'test@example.com',
+        emailVerified: true,
         createdAt: new Date().toISOString(),
       },
     });
@@ -100,6 +101,7 @@ describe('AuthProvider', () => {
         id: 'test-id',
         name: 'Logged In User',
         email: 'test@example.com',
+        emailVerified: true,
         createdAt: new Date().toISOString(),
       },
     });
@@ -133,6 +135,7 @@ describe('AuthProvider', () => {
         id: 'test-id',
         name: 'Test User',
         email: 'test@example.com',
+        emailVerified: true,
         createdAt: new Date().toISOString(),
       },
     });
