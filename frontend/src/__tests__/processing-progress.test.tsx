@@ -63,6 +63,30 @@ describe('ProcessingProgress', () => {
     unmount();
   });
 
+  it('stops polling when unmounted', async () => {
+    let callCount = 0;
+    mockedScriptsApi.getProcessingStatus.mockImplementation(async () => {
+      callCount++;
+      return { status: 'PROCESSING', progress: { percent: 50, step: 'Working' } };
+    });
+
+    const { unmount } = render(
+      <ProcessingProgress scriptId="script-1" onComplete={vi.fn()} />,
+    );
+
+    await waitFor(() => {
+      expect(callCount).toBeGreaterThan(0);
+    });
+
+    const countAtUnmount = callCount;
+    unmount();
+
+    // Wait and verify no further calls happen
+    await new Promise((r) => setTimeout(r, 3000));
+    // Should not have made significantly more calls after unmount
+    expect(callCount).toBeLessThanOrEqual(countAtUnmount + 1);
+  });
+
   it('shows error message after 3 consecutive poll failures', async () => {
     mockedScriptsApi.getProcessingStatus.mockRejectedValue(new Error('Network error'));
 

@@ -63,9 +63,10 @@ vi.mock('../components/element-wizard', () => ({
   ),
 }));
 
-import { scriptsApi, elementsApi } from '../lib/api';
+import { scriptsApi, elementsApi, departmentsApi } from '../lib/api';
 const mockedScriptsApi = vi.mocked(scriptsApi);
 const mockedElementsApi = vi.mocked(elementsApi);
+const mockedDepartmentsApi = vi.mocked(departmentsApi);
 
 import ScriptViewerPage from '../app/productions/[id]/scripts/[scriptId]/page';
 
@@ -409,6 +410,61 @@ describe('Script viewer', () => {
     // PDF panel (left on desktop, bottom on mobile) has order-2
     const pdfPanel = screen.getByTestId('pdf-viewer-mock').closest('.order-2');
     expect(pdfPanel).toBeInTheDocument();
+  });
+
+  it('renders RECONCILING state with reconcile link', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'RECONCILING',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    expect(await screen.findByText(/reconciliation/i)).toBeInTheDocument();
+    expect(screen.getByText(/review and reconcile/i)).toBeInTheDocument();
+    const reconcileLink = screen.getByRole('link', { name: /review and reconcile/i });
+    expect(reconcileLink).toHaveAttribute(
+      'href',
+      '/productions/prod-1/scripts/script-1/reconcile',
+    );
+  });
+
+  it('fetches departments for REVIEWING status', async () => {
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: [] });
+
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 10,
+        status: 'REVIEWING',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+        sceneData: null,
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByTestId('element-wizard');
+
+    expect(mockedDepartmentsApi.list).toHaveBeenCalledWith('prod-1');
   });
 
   it('uses split layout with PDF panel and elements panel when READY', async () => {

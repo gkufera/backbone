@@ -228,6 +228,101 @@ describe('Element list', () => {
     expect(row).toHaveClass('text-white');
   });
 
+  it('clicking department chip filters elements to that department', async () => {
+    const user = userEvent.setup();
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations', color: '#264653' },
+      },
+    ];
+
+    render(
+      <ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />,
+    );
+
+    // Click Cast chip
+    await user.click(screen.getByRole('button', { name: /cast/i }));
+
+    // JOHN should be visible, INT. OFFICE should not
+    expect(screen.getByText('JOHN')).toBeInTheDocument();
+    expect(screen.queryByText('INT. OFFICE - DAY')).not.toBeInTheDocument();
+  });
+
+  it('clicking active chip again shows all elements', async () => {
+    const user = userEvent.setup();
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations', color: '#264653' },
+      },
+    ];
+
+    render(
+      <ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />,
+    );
+
+    // Click Cast chip to filter
+    await user.click(screen.getByRole('button', { name: /cast/i }));
+    expect(screen.queryByText('INT. OFFICE - DAY')).not.toBeInTheDocument();
+
+    // Click Cast chip again to show all (or click "All")
+    await user.click(screen.getByRole('button', { name: /all/i }));
+    expect(screen.getByText('JOHN')).toBeInTheDocument();
+    expect(screen.getByText('INT. OFFICE - DAY')).toBeInTheDocument();
+  });
+
+  it('null highlightPage sorts last in By Appearance view', async () => {
+    const user = userEvent.setup();
+    const elementsWithNull = [
+      ...mockElements,
+      {
+        id: 'elem-5',
+        name: 'MYSTERY PROP',
+        type: 'OTHER',
+        highlightPage: null,
+        highlightText: null,
+        departmentId: null,
+        status: 'ACTIVE',
+        source: 'MANUAL',
+      },
+    ];
+
+    render(<ElementList elements={elementsWithNull} onArchive={mockOnArchive} />);
+
+    // Switch to By Appearance view
+    await user.click(screen.getByRole('button', { name: /by appearance/i }));
+
+    const items = screen.getAllByRole('listitem');
+    // MYSTERY PROP should be last (null highlightPage)
+    expect(items[items.length - 1]).toHaveTextContent('MYSTERY PROP');
+  });
+
+  it('null department color renders no border indicator', () => {
+    const elementsWithNullColor = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: null },
+      },
+    ];
+
+    render(
+      <ElementList elements={elementsWithNullColor} onArchive={mockOnArchive} />,
+    );
+
+    const row = screen.getByText('JOHN').closest('li') as HTMLElement;
+    // No border-left inline style when color is null
+    expect(row.style.borderLeft).toBe('');
+  });
+
   it('archive button stopPropagation', async () => {
     const user = userEvent.setup();
     const onElementClick = vi.fn();

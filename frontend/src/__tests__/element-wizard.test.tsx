@@ -260,6 +260,56 @@ describe('ElementWizard', () => {
     });
   });
 
+  it('hides implied section when sceneData is null', () => {
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={null}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    // "Per Scene" and "Per Character" buttons should NOT be present
+    expect(screen.queryByRole('button', { name: /per scene/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /per character/i })).not.toBeInTheDocument();
+  });
+
+  it('per-character button calls generateImplied with per-character', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={mockSceneData}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /per character/i }));
+
+    await waitFor(() => {
+      expect(mockedScriptsApi.generateImplied).toHaveBeenCalledWith('script-1', 'per-character');
+    });
+  });
+
+  it('renders empty state with zero elements', () => {
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={[] as any}
+        sceneData={null}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Detected Elements (0)')).toBeInTheDocument();
+  });
+
   it('Step 2: renders department dropdowns', async () => {
     const user = userEvent.setup();
 
