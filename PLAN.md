@@ -1,7 +1,27 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 10 Auth Completeness check complete.
+None — Sprint 11 Director's Notes & Notifications complete.
+
+## Completed (Sprint 11: Director's Notes & Notifications)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Schema: DirectorNote model + emailNotificationsEnabled | `feat: add DirectorNote model and emailNotificationsEnabled user preference` | 0 (schema only) |
+| 2 | Backend: member invite notification (TDD) | `feat: trigger MEMBER_INVITED notification on team member invite` | +1 |
+| 3 | Backend: script upload notification (TDD) | `feat: trigger SCRIPT_UPLOADED notification on new script upload` | +1 |
+| 4 | Backend: email notification preference (TDD) | `feat: email notification respects user preference, PATCH /me accepts emailNotificationsEnabled` | +2 |
+| 5 | Backend: element stats endpoint (TDD) | `feat: add element-stats endpoint for production workflow dashboard` | +2 |
+| 6 | Backend: Director's Notes CRUD (TDD) | `feat: add Director's Notes CRUD endpoints` | +7 |
+| 7 | Frontend: email notification toggle (TDD) | `feat: add email notification toggle on account settings page` | +2 |
+| 8 | Frontend: element status dashboard (TDD) | `feat: add element status dashboard card on production page` | +1 |
+| 9 | Frontend: Director's Notes panel (TDD) | `feat: add Director's Notes panel on script page` | +5 |
+| 10 | Full test suite + docs | `docs: update test counts and PLAN.md after Sprint 11` | 0 |
+
+### Test Counts (Post Sprint 11)
+- **Frontend**: 365 tests (was 357, +8 new)
+- **Backend**: 335 tests (was 322, +13 new)
+- **Total**: 700 tests (was 679, +21 new)
 
 ## Completed (Sprint 10 Auth Completeness Check)
 

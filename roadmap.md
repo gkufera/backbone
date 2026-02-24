@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 357 frontend + 322 backend = 679 total
+**Test counts:** 365 frontend + 335 backend = 700 total
 
 ---
 
@@ -131,37 +131,26 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ### Tasks
 
-- [ ] DECIDER "Director's Notes" on PDF view
-  - Schema: add `DirectorNote` model — `{ id, scriptId, sceneSlug (text), note (text), createdBy (userId), createdAt, updatedAt }`
-  - Backend: `POST /api/scripts/:scriptId/notes` — create note (DECIDER only)
-  - Backend: `GET /api/scripts/:scriptId/notes` — list all notes for a script
-  - Backend: `PATCH /api/scripts/:scriptId/notes/:noteId` — update note (author only)
-  - Backend: `DELETE /api/scripts/:scriptId/notes/:noteId` — soft-delete (author only)
-  - Frontend: on the PDF view, show a "D" indicator next to each scene slugline that has a note
-  - Frontend: click "D" to expand/collapse the note text; DECIDER sees edit/delete controls
-  - Frontend: "Add Note" button next to each scene slugline (DECIDER only)
-  - Notes visible to all production members, editable only by the DECIDER who created them
-  - Uses existing `sceneData` on Script model to know where scene sluglines are
-  - Files: `prisma/schema.prisma`, `backend/src/routes/scripts.ts` or new `backend/src/routes/director-notes.ts`, `frontend/src/lib/api.ts`, `frontend/src/components/pdf-viewer.tsx`, `frontend/src/app/productions/[id]/scripts/[scriptId]/page.tsx`
+- [x] DECIDER "Director's Notes" on PDF view
+  - Schema: `DirectorNote` model with `sceneNumber` (Int), soft-delete via `deletedAt`
+  - Backend: CRUD endpoints in `backend/src/routes/director-notes.ts` — GET list, POST create (DECIDER only), PATCH update (author only), DELETE soft-delete (author only)
+  - Frontend: Director's Notes panel with Elements/Notes toggle on script page right panel
+  - Notes grouped by scene number, DECIDER sees Add/Edit/Delete controls, MEMBER sees read-only
 
-- [ ] Element status dashboard
-  - Backend: `GET /api/productions/:id/element-stats` — returns counts: `{ pending, outstanding, approved, total }`
-  - Frontend: dashboard card on production page showing workflow state counts with visual bars
-  - Files: `backend/src/routes/productions.ts` or `backend/src/routes/elements.ts`, `frontend/src/app/productions/[id]/page.tsx`
+- [x] Element status dashboard
+  - Backend: `GET /api/productions/:id/element-stats` — returns `{ pending, outstanding, approved, total }`
+  - Frontend: dashboard card on production page with workflow state badges and progress bar
 
-- [ ] Notify on team member invite (deferred from Sprint 7)
-  - Trigger notification to invitee when added to a production
-  - File: `backend/src/routes/productions.ts` (in addMember handler)
+- [x] Notify on team member invite (deferred from Sprint 7)
+  - Triggers `MEMBER_INVITED` notification after `productionMember.create()` in productions.ts
 
-- [ ] Notify on new script draft upload (deferred from Sprint 7)
-  - Trigger notification to all production members when a new script version is uploaded
-  - File: `backend/src/routes/scripts.ts` (in upload handler)
+- [x] Notify on new script draft upload (deferred from Sprint 7)
+  - Triggers `SCRIPT_UPLOADED` notification via `notifyProductionMembers` after `script.create()` in scripts.ts
 
-- [ ] User preference to enable/disable email notifications (deferred from Sprint 7)
-  - Schema: add `emailNotificationsEnabled: Boolean @default(true)` to User
-  - Backend: check preference before sending email in notification service
-  - Frontend: toggle on account settings page
-  - Files: `prisma/schema.prisma`, `backend/src/services/notifications.ts`, `frontend/src/app/settings/page.tsx`
+- [x] User preference to enable/disable email notifications (deferred from Sprint 7)
+  - Schema: `emailNotificationsEnabled Boolean @default(true)` on User
+  - Backend: notification service checks preference before sending email; PATCH /me accepts field
+  - Frontend: checkbox toggle on account settings page
 
 ### Tests
 - Director notes CRUD: create, read, update, delete; non-DECIDER gets 403 on create
