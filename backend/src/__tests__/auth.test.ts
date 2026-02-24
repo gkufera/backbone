@@ -42,19 +42,27 @@ describe('POST /api/auth/signup', () => {
     vi.clearAllMocks();
   });
 
-  it('creates a new user and returns a JWT token', async () => {
+  it('creates a new user and returns a message (no JWT)', async () => {
     const mockUser = {
       id: 'test-id-123',
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      emailVerified: true,
+      emailVerified: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     mockedPrisma.user.findUnique.mockResolvedValue(null);
     mockedPrisma.user.create.mockResolvedValue(mockUser);
+    mockedPrisma.emailVerificationToken.create.mockResolvedValue({
+      id: 'vtoken-1',
+      userId: 'test-id-123',
+      token: 'verify-token-abc',
+      expiresAt: new Date(Date.now() + 86400000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
 
     const res = await request(app).post('/api/auth/signup').send({
       name: 'Test User',
@@ -63,11 +71,10 @@ describe('POST /api/auth/signup', () => {
     });
 
     expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('token');
-    expect(res.body).toHaveProperty('user');
-    expect(res.body.user.email).toBe('test@example.com');
-    expect(res.body.user.name).toBe('Test User');
-    expect(res.body.user).not.toHaveProperty('passwordHash');
+    expect(res.body).toHaveProperty('message');
+    expect(res.body).not.toHaveProperty('token');
+    expect(mockedPrisma.emailVerificationToken.create).toHaveBeenCalled();
+    expect(mockedSendEmail).toHaveBeenCalled();
   });
 
   it('returns 400 when required fields are missing', async () => {
@@ -118,13 +125,21 @@ describe('POST /api/auth/signup', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      emailVerified: true,
+      emailVerified: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     mockedPrisma.user.findUnique.mockResolvedValue(null);
     mockedPrisma.user.create.mockResolvedValue(mockUser);
+    mockedPrisma.emailVerificationToken.create.mockResolvedValue({
+      id: 'vtoken-1',
+      userId: 'test-id-123',
+      token: 'verify-token-abc',
+      expiresAt: new Date(Date.now() + 86400000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
 
     const res = await request(app).post('/api/auth/signup').send({
       name: '  Test User  ',
@@ -493,5 +508,207 @@ describe('POST /api/auth/reset-password', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/password/i);
+  });
+});
+
+describe('Login with email verification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 403 with EMAIL_NOT_VERIFIED code for unverified user', async () => {
+    const bcryptjs = await import('bcryptjs');
+    const hashedPassword = bcryptjs.hashSync('securepassword123', 10);
+
+    const mockUser = {
+      id: 'test-id-123',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: hashedPassword,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'test@example.com',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe('EMAIL_NOT_VERIFIED');
+    expect(res.body.error).toMatch(/verify/i);
+  });
+
+  it('returns JWT for verified user', async () => {
+    const bcryptjs = await import('bcryptjs');
+    const hashedPassword = bcryptjs.hashSync('securepassword123', 10);
+
+    const mockUser = {
+      id: 'test-id-123',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: hashedPassword,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'test@example.com',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('token');
+  });
+});
+
+describe('POST /api/auth/verify-email', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('verifies email with valid token', async () => {
+    const mockToken = {
+      id: 'vtoken-1',
+      userId: 'user-1',
+      token: 'valid-verify-token',
+      expiresAt: new Date(Date.now() + 86400000),
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.emailVerificationToken.findFirst.mockResolvedValue(mockToken as any);
+    mockedPrisma.$transaction.mockResolvedValue([{}, {}]);
+
+    const res = await request(app).post('/api/auth/verify-email').send({
+      token: 'valid-verify-token',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/verified/i);
+  });
+
+  it('returns 400 for expired verification token', async () => {
+    const mockToken = {
+      id: 'vtoken-1',
+      userId: 'user-1',
+      token: 'expired-token',
+      expiresAt: new Date(Date.now() - 1000),
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.emailVerificationToken.findFirst.mockResolvedValue(mockToken as any);
+
+    const res = await request(app).post('/api/auth/verify-email').send({
+      token: 'expired-token',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/expired/i);
+  });
+
+  it('returns 400 for already-used verification token', async () => {
+    const mockToken = {
+      id: 'vtoken-1',
+      userId: 'user-1',
+      token: 'used-token',
+      expiresAt: new Date(Date.now() + 86400000),
+      usedAt: new Date(),
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.emailVerificationToken.findFirst.mockResolvedValue(mockToken as any);
+
+    const res = await request(app).post('/api/auth/verify-email').send({
+      token: 'used-token',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/invalid|used|expired/i);
+  });
+});
+
+describe('POST /api/auth/resend-verification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('resends verification for unverified user', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.emailVerificationToken.create.mockResolvedValue({
+      id: 'vtoken-2',
+      userId: 'user-1',
+      token: 'new-verify-token',
+      expiresAt: new Date(Date.now() + 86400000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/auth/resend-verification').send({
+      email: 'test@example.com',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/check your email/i);
+    expect(mockedSendEmail).toHaveBeenCalled();
+  });
+
+  it('returns 200 for unknown email without leaking info', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).post('/api/auth/resend-verification').send({
+      email: 'unknown@example.com',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/check your email/i);
+    expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/auth/me includes emailVerified', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns emailVerified field in response', async () => {
+    const mockUser = {
+      id: 'test-id-123',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const token = signToken({
+      userId: 'test-id-123',
+      email: 'test@example.com',
+    });
+
+    const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.emailVerified).toBe(true);
   });
 });
