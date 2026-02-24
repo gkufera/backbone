@@ -6,7 +6,7 @@ describe('AppFooter', () => {
   it('renders copyright text', () => {
     render(<AppFooter />);
 
-    expect(screen.getByText(/© 2026 Slug Max Corporation/)).toBeInTheDocument();
+    expect(screen.getByText(/© 2026 Slug Max Inc\./)).toBeInTheDocument();
   });
 
   it('text is centered', () => {

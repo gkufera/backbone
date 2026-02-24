@@ -30,7 +30,7 @@ Items identified during QA but requiring schema migrations or cross-cutting back
   - Files: `frontend/src/components/app-header.tsx` (new), `frontend/src/app/layout.tsx`, `frontend/src/app/page.tsx`
 
 - [x] Footer with copyright
-  - Add `<AppFooter>` component: "© 2026 Slug Max Corporation" centered, 1-bit style
+  - Add `<AppFooter>` component: "© 2026 Slug Max Inc." centered, 1-bit style
   - Add to root layout below `{children}`
   - Files: `frontend/src/components/app-footer.tsx` (new), `frontend/src/app/layout.tsx`
 
