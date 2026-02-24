@@ -195,6 +195,7 @@ describe('POST /api/auth/login', () => {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       emailVerified: true,
+      emailNotificationsEnabled: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -211,6 +212,7 @@ describe('POST /api/auth/login', () => {
     expect(res.body).toHaveProperty('user');
     expect(res.body.user.email).toBe('test@example.com');
     expect(res.body.user.emailVerified).toBe(true);
+    expect(res.body.user.emailNotificationsEnabled).toBeDefined();
     expect(res.body.user).not.toHaveProperty('passwordHash');
   });
 
@@ -719,6 +721,7 @@ describe('GET /api/auth/me includes emailVerified', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      emailNotificationsEnabled: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -734,6 +737,7 @@ describe('GET /api/auth/me includes emailVerified', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.user.emailVerified).toBe(true);
+    expect(res.body.user.emailNotificationsEnabled).toBeDefined();
   });
 });
 
