@@ -41,6 +41,22 @@ interface AuthResponse {
   };
 }
 
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  retries = 1,
+): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch (err) {
+    if (retries > 0 && err instanceof TypeError) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return fetchWithRetry(url, init, retries - 1);
+    }
+    throw err;
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const headers: Record<string, string> = {
@@ -53,7 +69,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, { ...options, headers });
+  const res = await fetchWithRetry(url, { ...options, headers });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
