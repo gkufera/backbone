@@ -191,7 +191,15 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
           <input
             ref={fileInputRef}
             type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              const picked = e.target.files?.[0] ?? null;
+              if (picked && !mediaTypeFromMime(picked.type)) {
+                setError('Unsupported file type');
+                return;
+              }
+              setError(null);
+              setFile(picked);
+            }}
             accept={OPTION_ALLOWED_CONTENT_TYPES.join(',')}
             className="hidden"
           />

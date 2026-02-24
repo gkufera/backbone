@@ -270,6 +270,21 @@ describe('OptionUploadForm', () => {
     expect(mockedOptionsApi.getUploadUrl).not.toHaveBeenCalled();
   });
 
+  it('rejects unsupported file type via file picker', () => {
+    const { fireEvent } = require('@testing-library/react');
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const zipFile = new File(['test'], 'archive.zip', { type: 'application/zip' });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+
+    fireEvent.change(fileInput, { target: { files: [zipFile] } });
+
+    expect(screen.getByText(/unsupported file type/i)).toBeInTheDocument();
+    // File should not be set — drop zone should still show placeholder
+    expect(screen.getByText(/drop file here/i)).toBeInTheDocument();
+  });
+
   it('rejects unsupported file type on drop', () => {
     const { fireEvent } = require('@testing-library/react');
 
