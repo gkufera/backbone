@@ -362,25 +362,35 @@ productionsRouter.patch(
         return;
       }
 
-      // Cannot change own role
+      // Self role-change rules: ADMIN↔DECIDER allowed, cannot demote self to MEMBER
       if (targetMember.userId === authReq.user.userId) {
-        res.status(400).json({ error: 'Cannot change your own role' });
-        return;
+        if (role === MemberRole.MEMBER) {
+          res.status(400).json({ error: 'Cannot demote yourself to MEMBER' });
+          return;
+        }
+      } else {
+        // DECIDER cannot set another user's role to ADMIN
+        if (requesterMembership.role === MemberRole.DECIDER && role === MemberRole.ADMIN) {
+          res.status(403).json({ error: 'Only an ADMIN can assign the ADMIN role' });
+          return;
+        }
       }
 
-      // DECIDER cannot set role to ADMIN
-      if (requesterMembership.role === MemberRole.DECIDER && role === MemberRole.ADMIN) {
-        res.status(403).json({ error: 'Only an ADMIN can assign the ADMIN role' });
-        return;
-      }
-
-      // Cannot demote the last ADMIN
-      if (targetMember.role === MemberRole.ADMIN && role !== MemberRole.ADMIN) {
-        const adminCount = await prisma.productionMember.count({
-          where: { productionId: id, role: MemberRole.ADMIN },
+      // Protect last privileged user: block any change that could leave 0 ADMIN/DECIDER
+      const isTargetPrivileged = [MemberRole.ADMIN, MemberRole.DECIDER].includes(
+        targetMember.role as MemberRole,
+      );
+      if (isTargetPrivileged) {
+        const privilegedCount = await prisma.productionMember.count({
+          where: {
+            productionId: id,
+            role: { in: [MemberRole.ADMIN, MemberRole.DECIDER] },
+          },
         });
-        if (adminCount <= 1) {
-          res.status(400).json({ error: 'Cannot demote the last ADMIN of a production' });
+        if (privilegedCount <= 1) {
+          res
+            .status(400)
+            .json({ error: 'Need at least 1 ADMIN or DECIDER in a production' });
           return;
         }
       }
