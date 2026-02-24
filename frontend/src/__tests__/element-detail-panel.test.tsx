@@ -320,4 +320,93 @@ describe('ElementDetailPanel', () => {
       expect(screen.queryByText('Failed to load element')).not.toBeInTheDocument();
     });
   });
+
+  it('pressing Escape when no lightbox open calls onBack', async () => {
+    const onBack = vi.fn();
+    render(
+      <ElementDetailPanel
+        elementId="elem-1"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={onBack}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('HERO CAPE')).toBeInTheDocument();
+    });
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onBack).toHaveBeenCalled();
+  });
+
+  it('pressing Escape when lightbox IS open does NOT call onBack', async () => {
+    const onBack = vi.fn();
+    render(
+      <ElementDetailPanel
+        elementId="elem-1"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={onBack}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('HERO CAPE')).toBeInTheDocument();
+    });
+
+    // Open lightbox — click the first thumbnail area (the IMAGE one)
+    const allButtons = screen.getAllByRole('button');
+    const imageThumb = allButtons.find((b) => b.textContent === 'IMAGE');
+    if (imageThumb) {
+      fireEvent.click(imageThumb);
+    }
+
+    // Now Escape should close lightbox, not call onBack
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onBack).not.toHaveBeenCalled();
+  });
+
+  it('disables department dropdown during save', async () => {
+    const departments = [
+      { id: 'dept-1', name: 'Props', productionId: 'prod-1', createdAt: '2026-02-24T00:00:00Z', updatedAt: '2026-02-24T00:00:00Z' },
+    ];
+    (departmentsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({ departments });
+
+    // Make update slow
+    let resolveUpdate: () => void;
+    (elementsApi.update as ReturnType<typeof vi.fn>).mockReturnValue(
+      new Promise<{ element: typeof mockElement }>((resolve) => {
+        resolveUpdate = () => resolve({ element: { ...mockElement, departmentId: 'dept-1' } });
+      }),
+    );
+
+    render(
+      <ElementDetailPanel
+        elementId="elem-1"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Department')).toBeInTheDocument();
+    });
+
+    const select = screen.getByLabelText('Department');
+    fireEvent.change(select, { target: { value: 'dept-1' } });
+
+    // Select should be disabled while saving
+    await waitFor(() => {
+      expect(select).toBeDisabled();
+    });
+
+    // Resolve the update
+    resolveUpdate!();
+
+    await waitFor(() => {
+      expect(select).not.toBeDisabled();
+    });
+  });
 });

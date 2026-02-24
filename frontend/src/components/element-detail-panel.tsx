@@ -42,6 +42,7 @@ export function ElementDetailPanel({
   const [lightboxOption, setLightboxOption] = useState<OptionResponse | null>(null);
   const [submittingApproval, setSubmittingApproval] = useState(false);
   const [optionHasNotes, setOptionHasNotes] = useState<Record<string, boolean>>({});
+  const [savingDepartment, setSavingDepartment] = useState(false);
 
   useEffect(() => {
     setLightboxOption(null);
@@ -50,6 +51,16 @@ export function ElementDetailPanel({
     setIsLoading(true);
     loadData();
   }, [elementId]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !lightboxOption) {
+        onBack();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOption, onBack]);
 
   async function loadData() {
     try {
@@ -153,11 +164,14 @@ export function ElementDetailPanel({
 
   async function handleDepartmentChange(departmentId: string | null) {
     setError(null);
+    setSavingDepartment(true);
     try {
       const { element: updated } = await elementsApi.update(elementId, { departmentId });
       setElement(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update department');
+    } finally {
+      setSavingDepartment(false);
     }
   }
 
@@ -210,8 +224,9 @@ export function ElementDetailPanel({
             <select
               value={element.departmentId ?? ''}
               onChange={(e) => handleDepartmentChange(e.target.value || null)}
-              className="border-2 border-black p-1 text-sm"
+              className="border-2 border-black p-1 text-sm disabled:opacity-50"
               aria-label="Department"
+              disabled={savingDepartment}
             >
               <option value="">None</option>
               {departments.map((dept) => (
