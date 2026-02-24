@@ -1,14 +1,24 @@
 'use client';
 
-import type { RevisionMatchResponse } from '../lib/api';
+import type { RevisionMatchResponse, DepartmentResponse } from '../lib/api';
 
 interface ReconciliationCardProps {
   match: RevisionMatchResponse;
   decision: string | null;
   onDecision: (matchId: string, decision: string) => void;
+  departments?: DepartmentResponse[];
+  selectedDepartmentId?: string | null;
+  onDepartmentChange?: (matchId: string, departmentId: string | null) => void;
 }
 
-export function ReconciliationCard({ match, decision, onDecision }: ReconciliationCardProps) {
+export function ReconciliationCard({
+  match,
+  decision,
+  onDecision,
+  departments,
+  selectedDepartmentId,
+  onDepartmentChange,
+}: ReconciliationCardProps) {
   const isFuzzy = match.matchStatus === 'FUZZY';
   const isMissing = match.matchStatus === 'MISSING';
 
@@ -46,7 +56,7 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
               )}
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="mb-3 flex gap-2">
             <button
               type="button"
               onClick={() => onDecision(match.id, 'map')}
@@ -68,6 +78,14 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
               Create as New
             </button>
           </div>
+          {departments && departments.length > 0 && onDepartmentChange && (
+            <DepartmentSelector
+              matchId={match.id}
+              departments={departments}
+              selectedDepartmentId={selectedDepartmentId ?? null}
+              onDepartmentChange={onDepartmentChange}
+            />
+          )}
         </>
       )}
 
@@ -115,6 +133,37 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function DepartmentSelector({
+  matchId,
+  departments,
+  selectedDepartmentId,
+  onDepartmentChange,
+}: {
+  matchId: string;
+  departments: DepartmentResponse[];
+  selectedDepartmentId: string | null;
+  onDepartmentChange: (matchId: string, departmentId: string | null) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-sm">Department:</label>
+      <select
+        value={selectedDepartmentId ?? ''}
+        onChange={(e) => onDepartmentChange(matchId, e.target.value || null)}
+        className="border-2 border-black p-1 text-sm"
+        aria-label="Department"
+      >
+        <option value="">None</option>
+        {departments.map((dept) => (
+          <option key={dept.id} value={dept.id}>
+            {dept.name}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

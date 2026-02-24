@@ -6,15 +6,18 @@ import {
   elementsApi,
   optionsApi,
   approvalsApi,
+  departmentsApi,
   type ElementResponse,
   type OptionResponse,
   type ApprovalResponse,
+  type DepartmentResponse,
 } from '../../../../../../../lib/api';
 import { OptionGallery } from '../../../../../../../components/option-gallery';
 import { OptionUploadForm } from '../../../../../../../components/option-upload-form';
 
 export default function ElementDetailPage() {
   const params = useParams();
+  const productionId = params.id as string;
   const elementId = params.elementId as string;
 
   const [element, setElement] = useState<ElementResponse | null>(null);
@@ -22,6 +25,7 @@ export default function ElementDetailPage() {
   const [optionApprovals, setOptionApprovals] = useState<
     Record<string, { latestDecision?: string; approvals: ApprovalResponse[] }>
   >({});
+  const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
@@ -33,13 +37,18 @@ export default function ElementDetailPage() {
 
   async function loadData() {
     try {
-      const { elements } = await elementsApi.list(params.scriptId as string);
-      const found = elements.find((e) => e.id === elementId);
+      const [elemResult, deptResult] = await Promise.all([
+        elementsApi.list(params.scriptId as string),
+        departmentsApi.list(productionId),
+      ]);
+
+      const found = elemResult.elements.find((e) => e.id === elementId);
       if (!found) {
         setError('Element not found');
         return;
       }
       setElement(found);
+      setDepartments(deptResult.departments);
 
       const { options: opts } = await optionsApi.list(elementId);
       setOptions(opts);
@@ -127,6 +136,16 @@ export default function ElementDetailPage() {
     await refreshOptions();
   }
 
+  async function handleDepartmentChange(departmentId: string | null) {
+    setError(null);
+    try {
+      const { element: updated } = await elementsApi.update(elementId, { departmentId });
+      setElement(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update department');
+    }
+  }
+
   async function handleConfirmApproval(approvalId: string) {
     setError(null);
     try {
@@ -166,9 +185,27 @@ export default function ElementDetailPage() {
             {element.type}
           </span>
           {element.highlightPage != null && (
-            <span className="text-sm text-black">p. {element.highlightPage}</span>
+            <span className="text-sm text-black font-mono">p. {element.highlightPage}</span>
           )}
         </div>
+        {departments.length > 0 && (
+          <div className="mt-2 flex items-center gap-2">
+            <label className="text-sm">Department:</label>
+            <select
+              value={element.departmentId ?? ''}
+              onChange={(e) => handleDepartmentChange(e.target.value || null)}
+              className="border-2 border-black p-1 text-sm"
+              aria-label="Department"
+            >
+              <option value="">None</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {isLocked && (

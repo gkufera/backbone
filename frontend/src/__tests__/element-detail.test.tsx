@@ -51,6 +51,9 @@ vi.mock('../lib/api', () => ({
   feedApi: {
     list: vi.fn(),
   },
+  departmentsApi: {
+    list: vi.fn(),
+  },
 }));
 
 vi.mock('../lib/thumbnail', () => ({
@@ -58,11 +61,12 @@ vi.mock('../lib/thumbnail', () => ({
   generateVideoThumbnail: vi.fn().mockResolvedValue(new Blob(['thumb'], { type: 'image/jpeg' })),
 }));
 
-import { elementsApi, optionsApi, approvalsApi } from '../lib/api';
+import { elementsApi, optionsApi, approvalsApi, departmentsApi } from '../lib/api';
 
 const mockedElementsApi = vi.mocked(elementsApi);
 const mockedOptionsApi = vi.mocked(optionsApi);
 const mockedApprovalsApi = vi.mocked(approvalsApi);
+const mockedDepartmentsApi = vi.mocked(departmentsApi);
 
 import ElementDetailPage from '../app/productions/[id]/scripts/[scriptId]/elements/[elementId]/page';
 
@@ -102,6 +106,7 @@ const mockOptions = [
 describe('Element detail page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: [] });
   });
 
   it('renders element name and type badge', async () => {

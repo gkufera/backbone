@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { revisionMatchesApi, type RevisionMatchResponse } from '../../../../../../lib/api';
+import {
+  revisionMatchesApi,
+  departmentsApi,
+  type RevisionMatchResponse,
+  type DepartmentResponse,
+} from '../../../../../../lib/api';
 import { ReconciliationCard } from '../../../../../../components/reconciliation-card';
+import { ELEMENT_TYPE_DEPARTMENT_MAP } from '@backbone/shared/constants/departments';
 
 export default function ReconcilePage() {
   const router = useRouter();
@@ -13,15 +19,35 @@ export default function ReconcilePage() {
 
   const [matches, setMatches] = useState<RevisionMatchResponse[]>([]);
   const [decisions, setDecisions] = useState<Record<string, string>>({});
+  const [departmentChoices, setDepartmentChoices] = useState<Record<string, string | null>>({});
+  const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    revisionMatchesApi
-      .get(scriptId)
-      .then(({ matches: data }) => {
-        setMatches(data);
+    Promise.all([
+      revisionMatchesApi.get(scriptId),
+      departmentsApi.list(productionId),
+    ])
+      .then(([matchesData, deptData]) => {
+        const loadedMatches = matchesData.matches;
+        const loadedDepts = deptData.departments;
+        setMatches(loadedMatches);
+        setDepartments(loadedDepts);
+
+        // Pre-fill department choices based on element type → department mapping
+        const defaultDepts: Record<string, string | null> = {};
+        for (const m of loadedMatches) {
+          const suggestedDeptName = ELEMENT_TYPE_DEPARTMENT_MAP[m.detectedType] ?? null;
+          if (suggestedDeptName) {
+            const dept = loadedDepts.find((d) => d.name === suggestedDeptName);
+            if (dept) {
+              defaultDepts[m.id] = dept.id;
+            }
+          }
+        }
+        setDepartmentChoices(defaultDepts);
       })
       .catch(() => {
         setError('Failed to load reconciliation data');
@@ -29,10 +55,14 @@ export default function ReconcilePage() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [scriptId]);
+  }, [scriptId, productionId]);
 
   function handleDecision(matchId: string, decision: string) {
     setDecisions((prev) => ({ ...prev, [matchId]: decision }));
+  }
+
+  function handleDepartmentChange(matchId: string, departmentId: string | null) {
+    setDepartmentChoices((prev) => ({ ...prev, [matchId]: departmentId }));
   }
 
   const fuzzyMatches = matches.filter((m) => m.matchStatus === 'FUZZY');
@@ -47,6 +77,7 @@ export default function ReconcilePage() {
       const decisionList = matches.map((m) => ({
         matchId: m.id,
         decision: decisions[m.id] as 'map' | 'create_new' | 'keep' | 'archive',
+        departmentId: departmentChoices[m.id] ?? undefined,
       }));
 
       await revisionMatchesApi.resolve(scriptId, decisionList);
@@ -89,6 +120,9 @@ export default function ReconcilePage() {
                 match={match}
                 decision={decisions[match.id] ?? null}
                 onDecision={handleDecision}
+                departments={departments}
+                selectedDepartmentId={departmentChoices[match.id] ?? null}
+                onDepartmentChange={handleDepartmentChange}
               />
             ))}
           </div>

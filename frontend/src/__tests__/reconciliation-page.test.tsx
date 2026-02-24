@@ -39,12 +39,22 @@ vi.mock('../lib/api', () => ({
     get: vi.fn(),
     resolve: vi.fn(),
   },
+  departmentsApi: {
+    list: vi.fn(),
+  },
 }));
 
-import { revisionMatchesApi } from '../lib/api';
+import { revisionMatchesApi, departmentsApi } from '../lib/api';
 const mockedRevisionMatchesApi = vi.mocked(revisionMatchesApi);
+const mockedDepartmentsApi = vi.mocked(departmentsApi);
 
 import ReconcilePage from '../app/productions/[id]/scripts/[scriptId]/reconcile/page';
+
+const mockDepartments = [
+  { id: 'dept-cast', name: 'Cast', productionId: 'prod-1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'dept-loc', name: 'Locations', productionId: 'prod-1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'dept-props', name: 'Props', productionId: 'prod-1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+];
 
 const fuzzyMatch = {
   id: 'match-1',
@@ -111,6 +121,8 @@ const missingMatch = {
 describe('Reconciliation page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: departments always resolve
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
   });
 
   it('renders fuzzy matches with similarity scores', async () => {
@@ -182,7 +194,7 @@ describe('Reconciliation page', () => {
     expect(confirmBtn).toBeDisabled();
   });
 
-  it('Confirm button calls resolve API', async () => {
+  it('Confirm button calls resolve API with department', async () => {
     const user = userEvent.setup();
     mockedRevisionMatchesApi.get.mockResolvedValue({
       matches: [fuzzyMatch as any],
@@ -202,14 +214,28 @@ describe('Reconciliation page', () => {
 
     await waitFor(() => {
       expect(mockedRevisionMatchesApi.resolve).toHaveBeenCalledWith('script-2', [
-        { matchId: 'match-1', decision: 'map' },
+        // CHARACTER type gets pre-filled with Cast department
+        { matchId: 'match-1', decision: 'map', departmentId: 'dept-cast' },
       ]);
     });
   });
 
+  it('shows department dropdown for fuzzy matches', async () => {
+    mockedRevisionMatchesApi.get.mockResolvedValue({
+      matches: [fuzzyMatch as any],
+    });
+
+    render(<ReconcilePage />);
+
+    await screen.findByText('JOHN SMITHE');
+
+    // Department dropdown should be present with pre-filled Cast
+    const deptSelect = screen.getByRole('combobox', { name: /department/i });
+    expect(deptSelect).toBeInTheDocument();
+    expect(deptSelect).toHaveValue('dept-cast');
+  });
+
   it('shows RECONCILING banner on script viewer', async () => {
-    // This test is about the script viewer page, which we already added the banner to
-    // in Phase 6. We'll test that the reconciliation page itself renders correctly.
     mockedRevisionMatchesApi.get.mockResolvedValue({
       matches: [fuzzyMatch as any, missingMatch as any],
     });
@@ -230,7 +256,6 @@ describe('Reconciliation page', () => {
 
     await screen.findByText('JOHN SMITH');
 
-    // The card with approved options should have a yellow indicator
     expect(screen.getByText(/approved/i)).toBeInTheDocument();
   });
 });
