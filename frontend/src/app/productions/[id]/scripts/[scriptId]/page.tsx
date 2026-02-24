@@ -21,6 +21,7 @@ import { ProcessingProgress } from '../../../../../components/processing-progres
 import { ElementWizard } from '../../../../../components/element-wizard';
 import type { HighlightInfo } from '../../../../../lib/pdf-highlights';
 import type { SceneInfo } from '@backbone/shared/types';
+import { SkeletonCard } from '../../../../../components/skeleton';
 
 const PdfViewer = dynamic(
   () => import('../../../../../components/pdf-viewer').then((m) => ({ default: m.PdfViewer })),
@@ -175,7 +176,7 @@ export default function ScriptViewerPage() {
   }
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6"><SkeletonCard /></div>;
   }
 
   if (error) {

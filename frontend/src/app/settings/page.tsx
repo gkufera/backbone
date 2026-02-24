@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../../lib/auth-context';
 import { authApi } from '../../lib/api';
 import { useToast } from '../../lib/toast-context';
+import { SkeletonCard } from '../../components/skeleton';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -81,7 +82,7 @@ export default function SettingsPage() {
   }
 
   if (!user) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6"><SkeletonCard /></div>;
   }
 
   return (

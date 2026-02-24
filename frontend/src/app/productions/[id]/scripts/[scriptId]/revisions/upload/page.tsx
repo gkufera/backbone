@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { scriptsApi, type ScriptResponse } from '../../../../../../../lib/api';
+import { SkeletonCard } from '../../../../../../../components/skeleton';
 
 export default function RevisionUploadPage() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function RevisionUploadPage() {
   }
 
   if (!parentScript) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6"><SkeletonCard /></div>;
   }
 
   return (

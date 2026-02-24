@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { notificationsApi, type NotificationResponse } from '../../../../lib/api';
+import { SkeletonCard } from '../../../../components/skeleton';
 
 export default function NotificationsPage() {
   const params = useParams();
@@ -34,7 +35,7 @@ export default function NotificationsPage() {
   }
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6"><SkeletonCard /></div>;
   }
 
   if (error) {

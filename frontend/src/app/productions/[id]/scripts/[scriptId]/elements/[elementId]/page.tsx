@@ -14,6 +14,7 @@ import {
 } from '../../../../../../../lib/api';
 import { OptionGallery } from '../../../../../../../components/option-gallery';
 import { OptionUploadForm } from '../../../../../../../components/option-upload-form';
+import { SkeletonCard } from '../../../../../../../components/skeleton';
 
 export default function ElementDetailPage() {
   const params = useParams();
@@ -157,7 +158,7 @@ export default function ElementDetailPage() {
   }
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6"><SkeletonCard /></div>;
   }
 
   if (error) {

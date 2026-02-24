@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { scriptsApi } from '../../../../../../lib/api';
 import { VersionHistory } from '../../../../../../components/version-history';
+import { SkeletonCard } from '../../../../../../components/skeleton';
 
 interface VersionItem {
   id: string;
@@ -39,7 +40,7 @@ export default function VersionHistoryPage() {
   }, [productionId, scriptId]);
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6"><SkeletonCard /></div>;
   }
 
   if (error) {

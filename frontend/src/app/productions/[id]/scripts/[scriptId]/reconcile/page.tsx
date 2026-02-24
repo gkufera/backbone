@@ -10,6 +10,7 @@ import {
 } from '../../../../../../lib/api';
 import { ReconciliationCard } from '../../../../../../components/reconciliation-card';
 import { ELEMENT_TYPE_DEPARTMENT_MAP } from '@backbone/shared/constants/departments';
+import { SkeletonCard } from '../../../../../../components/skeleton';
 
 export default function ReconcilePage() {
   const router = useRouter();
@@ -90,7 +91,7 @@ export default function ReconcilePage() {
   }
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6"><SkeletonCard /></div>;
   }
 
   if (error) {
