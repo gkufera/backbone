@@ -27,13 +27,13 @@ describe('Home page', () => {
     localStorage.clear();
   });
 
-  it('renders Slug Max heading', () => {
+  it('renders Slug Max logo', () => {
     render(
       <AuthProvider>
         <Home />
       </AuthProvider>,
     );
-    expect(screen.getByRole('heading', { name: /slug max/i })).toBeInTheDocument();
+    expect(screen.getByAltText('Slug Max')).toBeInTheDocument();
   });
 
   it('does not render tagline', () => {

@@ -141,12 +141,12 @@ describe('Notifications page', () => {
 
     await screen.findByText(/your option on john was approved/i);
 
-    // Unread notification should have font-medium (bold)
+    // Unread notification should have font-bold
     const unreadItem = screen.getByText(/your option on john was approved/i).closest('button');
-    expect(unreadItem?.className).toContain('font-medium');
+    expect(unreadItem?.className).toContain('font-bold');
 
-    // Read notification should not have font-medium
+    // Read notification should not have font-bold
     const readItem = screen.getByText(/new option on beach house is ready/i).closest('button');
-    expect(readItem?.className).not.toContain('font-medium');
+    expect(readItem?.className).not.toContain('font-bold');
   });
 });

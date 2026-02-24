@@ -2,8 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 // Mock next/font/google since fonts aren't available in test
 vi.mock('next/font/google', () => ({
-  Geist: () => ({ variable: '--font-geist-sans' }),
-  Geist_Mono: () => ({ variable: '--font-geist-mono' }),
+  VT323: () => ({ variable: '--font-vt323' }),
 }));
 
 import { metadata } from '../app/layout';
