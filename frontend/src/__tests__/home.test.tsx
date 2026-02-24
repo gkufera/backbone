@@ -43,8 +43,8 @@ describe('Home page', () => {
       </AuthProvider>,
     );
     expect(screen.getByText(/for film & tv creatives/i)).toBeInTheDocument();
-    expect(screen.getByText(/one place for every creative decision/i)).toBeInTheDocument();
-    expect(screen.getByText(/stop searching email threads, start making the film/i)).toBeInTheDocument();
+    expect(screen.getByText(/production's hub for creative decisions/i)).toBeInTheDocument();
+    expect(screen.getByText(/stop searching email threads, start shooting/i)).toBeInTheDocument();
   });
 
   it('shows login and signup links when not authenticated', async () => {

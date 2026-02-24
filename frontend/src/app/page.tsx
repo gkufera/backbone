@@ -29,10 +29,10 @@ export default function Home() {
             />
             <span className="text-sm uppercase tracking-widest">For Film &amp; TV Creatives</span>
             <p className="text-center text-2xl font-bold font-mono leading-tight">
-              One Place for EVERY Creative Decision
+              Production&apos;s hub for creative decisions
             </p>
             <p className="text-center text-lg font-mono">
-              Stop searching email threads, start making the film.
+              Stop searching email threads, start shooting.
             </p>
             {!isLoading && isAuthenticated && (
               <Link href="/productions" className="mac-btn-primary mt-2">
