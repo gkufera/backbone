@@ -10,6 +10,10 @@ export const DEFAULT_DEPARTMENTS = [
   'VFX',
   'Sound',
   'Production Design',
+  'Storyboard Artist',
+  'AD',
+  'Cinematographer',
+  'Stunt Coordinator',
 ] as const;
 
 export const ELEMENT_TYPE_DEPARTMENT_MAP: Record<string, string> = {

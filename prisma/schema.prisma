@@ -115,12 +115,13 @@ model ProductionMember {
   userId       String     @map("user_id")
   role         MemberRole @default(MEMBER)
   title        String?
+  departmentId String?    @map("department_id")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  production        Production         @relation(fields: [productionId], references: [id])
-  user              User               @relation(fields: [userId], references: [id])
-  departmentMembers DepartmentMember[]
+  production   Production  @relation(fields: [productionId], references: [id])
+  user         User        @relation(fields: [userId], references: [id])
+  department   Department? @relation(fields: [departmentId], references: [id])
 
   @@unique([productionId, userId])
   @@map("production_members")
@@ -218,25 +219,13 @@ model Department {
   updatedAt    DateTime           @updatedAt @map("updated_at")
 
   production   Production         @relation(fields: [productionId], references: [id])
-  members      DepartmentMember[]
+  members      ProductionMember[]
   elements     Element[]
 
   @@unique([productionId, name])
   @@map("departments")
 }
 
-model DepartmentMember {
-  id                 String           @id @default(cuid())
-  departmentId       String           @map("department_id")
-  productionMemberId String           @map("production_member_id")
-  createdAt          DateTime         @default(now()) @map("created_at")
-
-  department         Department       @relation(fields: [departmentId], references: [id])
-  productionMember   ProductionMember @relation(fields: [productionMemberId], references: [id])
-
-  @@unique([departmentId, productionMemberId])
-  @@map("department_members")
-}
 
 enum RevisionMatchStatus {
   EXACT

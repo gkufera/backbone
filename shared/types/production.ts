@@ -19,6 +19,7 @@ export interface ProductionMember {
   userId: string;
   role: MemberRole;
   title: string | null;
+  departmentId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,11 +30,4 @@ export interface Department {
   name: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface DepartmentMember {
-  id: string;
-  departmentId: string;
-  productionMemberId: string;
-  createdAt: Date;
 }
