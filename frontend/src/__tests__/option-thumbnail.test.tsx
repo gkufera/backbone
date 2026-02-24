@@ -86,15 +86,49 @@ describe('OptionThumbnail', () => {
     expect(thumb).toBeInTheDocument();
   });
 
-  it('renders with rejected state border class', () => {
+  it('renders rejected overlay with X when approvalState is REJECTED', () => {
     (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
 
-    const { container } = render(
+    render(
       <OptionThumbnail option={baseOption} approvalState="REJECTED" onClick={vi.fn()} />,
     );
 
-    const thumb = container.querySelector('.option-border-rejected');
-    expect(thumb).toBeInTheDocument();
+    const overlay = screen.getByTestId('rejected-overlay');
+    expect(overlay).toBeInTheDocument();
+    expect(overlay.textContent).toContain('\u2715');
+  });
+
+  it('does not render rejected overlay when approvalState is APPROVED', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    render(
+      <OptionThumbnail option={baseOption} approvalState="APPROVED" onClick={vi.fn()} />,
+    );
+
+    expect(screen.queryByTestId('rejected-overlay')).not.toBeInTheDocument();
+  });
+
+  it('uses default border when approvalState is MAYBE', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const { container } = render(
+      <OptionThumbnail option={baseOption} approvalState="MAYBE" onClick={vi.fn()} />,
+    );
+
+    // MAYBE should have no special border — just default border-2 border-black
+    expect(container.querySelector('.option-border-maybe')).not.toBeInTheDocument();
+    expect(container.querySelector('.option-border-approved')).not.toBeInTheDocument();
+  });
+
+  it('uses default border when approvalState is null', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const { container } = render(
+      <OptionThumbnail option={baseOption} approvalState={null} onClick={vi.fn()} />,
+    );
+
+    expect(container.querySelector('.option-border-approved')).not.toBeInTheDocument();
+    expect(container.querySelector('.option-border-rejected')).not.toBeInTheDocument();
   });
 
   it('clicking calls onClick', async () => {

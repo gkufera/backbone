@@ -370,14 +370,21 @@ select:focus {
   border: 3px solid #00A651;
 }
 
-.option-border-maybe {
-  border: 3px solid #FFD700;
-  filter: grayscale(50%);
-}
-
 .option-border-rejected {
   border: 3px solid #E63946;
   filter: grayscale(100%);
+}
+
+.rejected-x-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E63946;
+  font-size: 2rem;
+  font-weight: bold;
+  pointer-events: none;
 }
 
 /* ── Temperature Indicators for Element List ─────────────── */

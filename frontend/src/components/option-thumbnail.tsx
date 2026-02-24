@@ -11,12 +11,14 @@ interface OptionThumbnailProps {
 
 const BORDER_CLASS: Record<string, string> = {
   APPROVED: 'option-border-approved',
-  MAYBE: 'option-border-maybe',
   REJECTED: 'option-border-rejected',
 };
 
 export function OptionThumbnail({ option, approvalState, onClick }: OptionThumbnailProps) {
-  const borderClass = approvalState ? BORDER_CLASS[approvalState] : 'border-2 border-black';
+  const borderClass =
+    approvalState && BORDER_CLASS[approvalState]
+      ? BORDER_CLASS[approvalState]
+      : 'border-2 border-black';
 
   // Priority: thumbnailS3Key > s3Key (for IMAGE/VIDEO) > null (text fallback)
   const imageKey =
@@ -38,6 +40,15 @@ export function OptionThumbnail({ option, approvalState, onClick }: OptionThumbn
         />
       ) : (
         <span className="text-xs font-bold">{option.mediaType}</span>
+      )}
+
+      {approvalState === 'REJECTED' && (
+        <div
+          data-testid="rejected-overlay"
+          className="rejected-x-overlay"
+        >
+          &#x2715;
+        </div>
       )}
     </button>
   );
