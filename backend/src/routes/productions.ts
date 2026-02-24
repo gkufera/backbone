@@ -7,7 +7,8 @@ import {
   DEFAULT_DEPARTMENTS,
   DEFAULT_DEPARTMENT_COLORS,
 } from '@backbone/shared/constants';
-import { MemberRole } from '@backbone/shared/types';
+import { MemberRole, NotificationType } from '@backbone/shared/types';
+import { createNotification } from '../services/notification-service.js';
 
 const productionsRouter = Router();
 
@@ -271,6 +272,17 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
         title: finalTitle,
       },
     });
+
+    // Fire-and-forget: notify the invited user
+    const production = await prisma.production.findUnique({ where: { id }, select: { title: true } });
+    const prodTitle = production?.title ?? 'a production';
+    createNotification(
+      userToAdd.id,
+      id,
+      NotificationType.MEMBER_INVITED,
+      `You have been invited to "${prodTitle}"`,
+      `/productions/${id}`,
+    ).catch((err) => console.error('Failed to send member invite notification:', err));
 
     res.status(201).json({ member });
   } catch (error) {

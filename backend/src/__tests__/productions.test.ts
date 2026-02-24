@@ -3,6 +3,13 @@ import request from 'supertest';
 import { app } from '../app.js';
 import { signToken } from '../lib/jwt.js';
 
+// Mock notification service
+vi.mock('../services/notification-service.js', () => ({
+  createNotification: vi.fn().mockResolvedValue({ id: 'notif-1' }),
+  notifyProductionMembers: vi.fn().mockResolvedValue([]),
+  notifyDeciders: vi.fn().mockResolvedValue([]),
+}));
+
 // Mock Prisma client
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
@@ -21,14 +28,23 @@ vi.mock('../lib/prisma.js', () => ({
       findMany: vi.fn(),
       create: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
+    },
+    element: {
+      groupBy: vi.fn(),
+    },
+    script: {
+      findMany: vi.fn(),
     },
     $transaction: vi.fn(),
   },
 }));
 
 import { prisma } from '../lib/prisma.js';
+import { createNotification } from '../services/notification-service.js';
 
 const mockedPrisma = vi.mocked(prisma);
+const mockedCreateNotification = vi.mocked(createNotification);
 
 const testUser = {
   userId: 'user-1',
@@ -419,5 +435,58 @@ describe('PATCH /api/productions/:id', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/title/i);
+  });
+});
+
+describe('POST /api/productions/:id/members — notification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('triggers MEMBER_INVITED notification for the invited user', async () => {
+    // Requester is ADMIN
+    mockedPrisma.productionMember.findUnique
+      .mockResolvedValueOnce({
+        id: 'member-1',
+        productionId: 'prod-1',
+        userId: 'user-1',
+        role: 'ADMIN',
+      } as any)
+      // Check if already a member — not found
+      .mockResolvedValueOnce(null);
+
+    // Find user by email
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      id: 'user-2',
+      email: 'invited@example.com',
+    } as any);
+
+    // Production lookup for title
+    mockedPrisma.production.findUnique.mockResolvedValue({
+      id: 'prod-1',
+      title: 'My Film',
+    } as any);
+
+    // Create member
+    mockedPrisma.productionMember.create.mockResolvedValue({
+      id: 'member-2',
+      productionId: 'prod-1',
+      userId: 'user-2',
+      role: 'MEMBER',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/members')
+      .set(authHeader())
+      .send({ email: 'invited@example.com' });
+
+    expect(res.status).toBe(201);
+    expect(mockedCreateNotification).toHaveBeenCalledWith(
+      'user-2',
+      'prod-1',
+      'MEMBER_INVITED',
+      expect.stringContaining('My Film'),
+      expect.any(String),
+    );
   });
 });
