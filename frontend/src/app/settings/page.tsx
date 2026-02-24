@@ -5,8 +5,7 @@ import { useAuth } from '../../lib/auth-context';
 import { authApi } from '../../lib/api';
 import { useToast } from '../../lib/toast-context';
 import { SkeletonCard } from '../../components/skeleton';
-
-const PHONE_REGEX = /^\+[1-9]\d{1,14}$/;
+import { VALIDATION } from '@backbone/shared/constants';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -93,7 +92,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setPhoneError('');
 
-    if (!PHONE_REGEX.test(phone)) {
+    if (!VALIDATION.PHONE_REGEX.test(phone)) {
       setPhoneError('Invalid phone number. Must be E.164 format (e.g., +15551234567)');
       return;
     }
