@@ -395,4 +395,29 @@ describe('PATCH /api/productions/:id', () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/200 characters/i);
   });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .send({ title: 'New Title' });
+
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 with whitespace-only title', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .set(authHeader())
+      .send({ title: '   ' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/title/i);
+  });
 });
