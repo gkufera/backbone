@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 interface PermissionsTooltipProps {
   role: string;
+  inverted?: boolean;
 }
 
 const roleDescriptions: Record<string, string> = {
@@ -14,21 +15,27 @@ const roleDescriptions: Record<string, string> = {
     'Your approvals are tentative. A Decider must confirm them to make them official.',
 };
 
-export function PermissionsTooltip({ role }: PermissionsTooltipProps) {
+export function PermissionsTooltip({ role, inverted }: PermissionsTooltipProps) {
   const [open, setOpen] = useState(false);
+
+  const buttonClasses = inverted
+    ? 'ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-white text-xs text-white hover:bg-white hover:text-black'
+    : 'ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-black text-xs text-black hover:bg-black hover:text-white';
+
+  const description = roleDescriptions[role] || roleDescriptions.MEMBER;
 
   return (
     <span className="relative inline-block">
       <button
         onClick={() => setOpen(!open)}
-        className="ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-black text-xs text-black hover:bg-black hover:text-white"
+        className={buttonClasses}
         aria-label="Permissions info"
       >
         i
       </button>
       {open && (
         <span className="absolute left-6 top-0 z-10 w-56 border-2 border-black bg-white p-2 text-xs font-mono text-black">
-          {roleDescriptions[role] || roleDescriptions.MEMBER}
+          {role} &mdash; {description}
         </span>
       )}
     </span>

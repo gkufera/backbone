@@ -178,12 +178,7 @@ export default function ProductionDashboard() {
       {/* Team Members */}
       <section className="mac-window mb-8">
         <div className="mac-window-title">
-          <span>
-            Team Members
-            {production.memberRole && (
-              <PermissionsTooltip role={production.memberRole} />
-            )}
-          </span>
+          <span>Team Members</span>
         </div>
         <div className="mac-window-body">
           <ul className="mb-4 divide-y divide-black">
@@ -209,20 +204,28 @@ export default function ProductionDashboard() {
                     m.department && <div className="mt-1"><span className="text-xs font-mono">{m.department.name}</span></div>
                   )}
                 </div>
-                {canManageRoles ? (
-                  <select
-                    value={m.role}
-                    onChange={(e) => handleRoleChange(m.id, e.target.value)}
-                    className="border-2 border-black px-2 py-1 text-xs uppercase text-black"
-                    aria-label={`Role for ${m.user.name}`}
-                  >
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="DECIDER">DECIDER</option>
-                    <option value="MEMBER">MEMBER</option>
-                  </select>
-                ) : (
-                  <span className="text-xs uppercase text-black">{m.role}</span>
-                )}
+                <div className="flex items-center gap-1">
+                  {canManageRoles ? (
+                    <>
+                      <select
+                        value={m.role}
+                        onChange={(e) => handleRoleChange(m.id, e.target.value)}
+                        className="border-2 border-black px-2 py-1 text-xs uppercase text-black"
+                        aria-label={`Role for ${m.user.name}`}
+                      >
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="DECIDER">DECIDER</option>
+                        <option value="MEMBER">MEMBER</option>
+                      </select>
+                      <PermissionsTooltip role={m.role} />
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs uppercase text-black">{m.role}</span>
+                      <PermissionsTooltip role={m.role} />
+                    </>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

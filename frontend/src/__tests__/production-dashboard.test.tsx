@@ -488,13 +488,13 @@ describe('Production dashboard', () => {
     expect(disabledDelete).toBeInTheDocument();
     expect(disabledDelete).toHaveAttribute('title', 'Cannot delete department with members');
 
-    // Costume has 0 members — find its row with a regular delete button
+    // Costume has 0 members — find its row with a regular delete button (btn-text class)
     const costumeElements = screen.getAllByText('Costume');
     const costumeRow = costumeElements
       .map((el) => el.closest('li'))
-      .find((li) => li && li.querySelector('button'));
+      .find((li) => li && li.querySelector('.btn-text'));
     expect(costumeRow).toBeTruthy();
-    const deleteBtn = costumeRow!.querySelector('button');
+    const deleteBtn = costumeRow!.querySelector('.btn-text');
     expect(deleteBtn).toBeInTheDocument();
     expect(deleteBtn).toHaveTextContent(/delete/i);
   });
@@ -545,5 +545,37 @@ describe('Production dashboard', () => {
     render(<ProductionDashboard />);
 
     expect(await screen.findByText(/no elements pending review/i)).toBeInTheDocument();
+  });
+
+  it('each member row has a PermissionsTooltip when canManageRoles', async () => {
+    const multiMemberProduction = {
+      ...mockProduction,
+      memberRole: 'ADMIN',
+      members: [
+        ...mockProduction.members,
+        {
+          id: 'member-2',
+          productionId: 'prod-1',
+          userId: 'user-2',
+          role: 'MEMBER',
+          title: 'Designer',
+          user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
+          department: null,
+        },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: multiMemberProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Alice');
+
+    // Should be one tooltip per member (2 members)
+    const tooltipButtons = screen.getAllByRole('button', { name: /permissions info/i });
+    expect(tooltipButtons).toHaveLength(2);
   });
 });

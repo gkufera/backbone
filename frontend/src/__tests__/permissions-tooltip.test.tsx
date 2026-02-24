@@ -48,4 +48,29 @@ describe('PermissionsTooltip', () => {
     await user.click(btn);
     expect(screen.queryByText(/tentative/i)).not.toBeInTheDocument();
   });
+
+  it('uses white border/text when inverted prop is true', () => {
+    render(<PermissionsTooltip role="MEMBER" inverted />);
+
+    const btn = screen.getByRole('button', { name: /permissions info/i });
+    expect(btn).toHaveClass('border-white');
+    expect(btn).toHaveClass('text-white');
+  });
+
+  it('uses black border/text when inverted prop is false', () => {
+    render(<PermissionsTooltip role="MEMBER" />);
+
+    const btn = screen.getByRole('button', { name: /permissions info/i });
+    expect(btn).toHaveClass('border-black');
+    expect(btn).toHaveClass('text-black');
+  });
+
+  it('tooltip popup text includes role name prefix', async () => {
+    const user = userEvent.setup();
+    render(<PermissionsTooltip role="DECIDER" />);
+
+    await user.click(screen.getByRole('button', { name: /permissions info/i }));
+
+    expect(screen.getByText(/DECIDER —/)).toBeInTheDocument();
+  });
 });
