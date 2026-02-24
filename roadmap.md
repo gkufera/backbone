@@ -51,6 +51,18 @@ Current priorities and upcoming work. Completed sprint history (Sprints 0–8) i
   - Works alongside existing department filter chips
   - Files: `frontend/src/components/element-list.tsx`
 
+- [ ] Drag-and-drop zone on option upload form
+  - Wrap file input in a drop zone div with `onDragOver`, `onDragLeave`, `onDrop` handlers
+  - Visual feedback: dashed border idle, inverted (`bg-black text-white`) on drag-over
+  - Clicking the zone still opens the native file picker
+  - File: `frontend/src/components/option-upload-form.tsx`
+
+- [ ] Prominent review feed section on production page
+  - Fetch pending-review count from feed endpoint
+  - Upgrade bare "Review Feed" button to a `.mac-window` section showing pending count
+  - If count > 0, display "N elements pending review" with link to feed
+  - File: `frontend/src/app/productions/[id]/page.tsx`
+
 ### Tests
 - AppHeader renders logo linking home, breadcrumb when inside production
 - AppFooter renders copyright text
@@ -58,6 +70,8 @@ Current priorities and upcoming work. Completed sprint history (Sprints 0–8) i
 - Permission tooltip appears next to role dropdown with role name
 - Production rename: PATCH endpoint returns updated title; MEMBER gets 403
 - Element text filter narrows list by typed text
+- Drag-and-drop zone accepts dropped files and updates form state
+- Review feed section shows pending count and links to feed
 
 ---
 
