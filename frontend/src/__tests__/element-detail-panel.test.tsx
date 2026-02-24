@@ -13,6 +13,7 @@ vi.mock('../lib/api', () => ({
     update: vi.fn(),
     create: vi.fn(),
     getUploadUrl: vi.fn(),
+    getDownloadUrl: vi.fn(),
   },
   approvalsApi: {
     list: vi.fn(),
@@ -25,7 +26,14 @@ vi.mock('../lib/api', () => ({
   notesApi: {
     listForElement: vi.fn(),
     createForElement: vi.fn(),
+    listForOption: vi.fn(),
+    createForOption: vi.fn(),
   },
+}));
+
+// Mock useMediaUrl to avoid real S3 calls in component tests
+vi.mock('../lib/use-media-url', () => ({
+  useMediaUrl: vi.fn().mockReturnValue(null),
 }));
 
 // Mock OptionUploadForm to avoid complex file upload UI
