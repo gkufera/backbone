@@ -12,6 +12,7 @@ import {
 } from '../../../lib/api';
 import { PermissionsTooltip } from '../../../components/permissions-tooltip';
 import { SkeletonCard } from '../../../components/skeleton';
+import { useToast } from '../../../lib/toast-context';
 
 export default function ProductionDashboard() {
   const params = useParams();
@@ -19,13 +20,12 @@ export default function ProductionDashboard() {
 
   const [production, setProduction] = useState<ProductionDetailResponse | null>(null);
   const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
+  const toast = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [memberEmail, setMemberEmail] = useState('');
   const [memberTitle, setMemberTitle] = useState('');
-  const [memberError, setMemberError] = useState('');
   const [newDeptName, setNewDeptName] = useState('');
-  const [deptError, setDeptError] = useState('');
   const [feedPendingCount, setFeedPendingCount] = useState<number>(0);
   const [elementStats, setElementStats] = useState<{
     pending: number;
@@ -56,7 +56,6 @@ export default function ProductionDashboard() {
 
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
-    setMemberError('');
 
     try {
       await productionsApi.addMember(id, memberEmail, memberTitle || undefined);
@@ -65,13 +64,12 @@ export default function ProductionDashboard() {
       const data = await productionsApi.get(id);
       setProduction(data.production);
     } catch (err) {
-      setMemberError(err instanceof Error ? err.message : 'Failed to add member');
+      toast.show(err instanceof Error ? err.message : 'Failed to add member', 'error');
     }
   }
 
   async function handleCreateDepartment(e: React.FormEvent) {
     e.preventDefault();
-    setDeptError('');
 
     try {
       await departmentsApi.create(id, newDeptName);
@@ -79,7 +77,7 @@ export default function ProductionDashboard() {
       const deptData = await departmentsApi.list(id);
       setDepartments(deptData.departments);
     } catch (err) {
-      setDeptError(err instanceof Error ? err.message : 'Failed to create department');
+      toast.show(err instanceof Error ? err.message : 'Failed to create department', 'error');
     }
   }
 
@@ -99,24 +97,22 @@ export default function ProductionDashboard() {
   }
 
   async function handleRoleChange(memberId: string, newRole: string) {
-    setMemberError('');
     try {
       await productionsApi.updateMemberRole(id, memberId, newRole);
       const data = await productionsApi.get(id);
       setProduction(data.production);
     } catch (err) {
-      setMemberError(err instanceof Error ? err.message : 'Failed to update role');
+      toast.show(err instanceof Error ? err.message : 'Failed to update role', 'error');
     }
   }
 
   async function handleDepartmentChange(memberId: string, departmentId: string | null) {
-    setMemberError('');
     try {
       await productionsApi.updateMemberDepartment(id, memberId, departmentId);
       const data = await productionsApi.get(id);
       setProduction(data.production);
     } catch (err) {
-      setMemberError(err instanceof Error ? err.message : 'Failed to update department');
+      toast.show(err instanceof Error ? err.message : 'Failed to update department', 'error');
     }
   }
 
@@ -127,7 +123,7 @@ export default function ProductionDashboard() {
         prev.map((d) => (d.id === departmentId ? { ...d, color } : d)),
       );
     } catch (err) {
-      setDeptError(err instanceof Error ? err.message : 'Failed to update color');
+      toast.show(err instanceof Error ? err.message : 'Failed to update color', 'error');
     }
   }
 
@@ -137,7 +133,7 @@ export default function ProductionDashboard() {
       await departmentsApi.delete(id, departmentId);
       setDepartments((prev) => prev.filter((d) => d.id !== departmentId));
     } catch (err) {
-      setDeptError(err instanceof Error ? err.message : 'Failed to delete department');
+      toast.show(err instanceof Error ? err.message : 'Failed to delete department', 'error');
     }
   }
 
@@ -364,11 +360,6 @@ export default function ProductionDashboard() {
               Add Member
             </button>
           </form>
-          {memberError && (
-            <p role="alert" className="mt-2 text-sm text-black font-bold">
-              {memberError}
-            </p>
-          )}
         </div>
       </section>
 
@@ -439,11 +430,6 @@ export default function ProductionDashboard() {
               Add Department
             </button>
           </form>
-          {deptError && (
-            <p role="alert" className="mt-2 text-sm text-black font-bold">
-              {deptError}
-            </p>
-          )}
         </div>
       </section>
     </div>

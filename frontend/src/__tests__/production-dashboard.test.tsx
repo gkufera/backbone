@@ -2,6 +2,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockToastShow = vi.fn();
+
+vi.mock('../lib/toast-context', () => ({
+  useToast: () => ({ show: mockToastShow, toasts: [], dismiss: vi.fn() }),
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -259,7 +266,8 @@ describe('Production dashboard', () => {
     await user.type(emailInput, 'bad@example.com');
     await user.click(screen.getByRole('button', { name: /add member/i }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/no user found/i);
+    await screen.findByText('Film One');
+    expect(mockToastShow).toHaveBeenCalledWith('No user found with that email', 'error');
   });
 
   it('confirms before deleting a department', async () => {
@@ -704,7 +712,8 @@ describe('Production dashboard', () => {
     const colorInputs = screen.getAllByLabelText(/color for/i);
     fireEvent.change(colorInputs[0], { target: { value: '#FF0000' } });
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/color update failed/i);
+    await screen.findByText('Departments');
+    expect(mockToastShow).toHaveBeenCalledWith('Color update failed', 'error');
   });
 
   it('does not show color input for departments when MEMBER', async () => {
@@ -731,6 +740,23 @@ describe('Production dashboard', () => {
 
     expect(await screen.findByText('Element Status')).toBeInTheDocument();
     expect(screen.getByText('2 of 10 elements approved')).toBeInTheDocument();
+  });
+
+  it('shows toast on member add error', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    mockedProductionsApi.addMember.mockRejectedValue(new Error('No user found with that email'));
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Film One');
+
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    await user.type(emailInput, 'bad@example.com');
+    await user.click(screen.getByRole('button', { name: /add member/i }));
+
+    await screen.findByText('Film One');
+    expect(mockToastShow).toHaveBeenCalledWith('No user found with that email', 'error');
   });
 
   it('MEMBER cannot edit title (no cursor-pointer, click does not enter edit mode)', async () => {

@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useAuth } from '../../lib/auth-context';
 import { authApi } from '../../lib/api';
+import { useToast } from '../../lib/toast-context';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
+  const toast = useToast();
   const [name, setName] = useState(user?.name ?? '');
-  const [profileMessage, setProfileMessage] = useState('');
   const [profileError, setProfileError] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
 
@@ -26,13 +27,12 @@ export default function SettingsPage() {
   async function handleProfileSubmit(e: React.FormEvent) {
     e.preventDefault();
     setProfileError('');
-    setProfileMessage('');
     setProfileLoading(true);
 
     try {
       const response = await authApi.updateMe({ name });
       updateUser(response.user);
-      setProfileMessage('Profile updated successfully');
+      toast.show('Profile updated successfully');
     } catch (err) {
       setProfileError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
@@ -93,9 +93,6 @@ export default function SettingsPage() {
           <span>Profile</span>
         </div>
         <div className="mac-window-body space-y-4">
-          {profileMessage && (
-            <div className="mac-alert p-3 text-sm font-mono">{profileMessage}</div>
-          )}
           {profileError && (
             <div role="alert" className="mac-alert-error p-3 text-sm">
               {profileError}

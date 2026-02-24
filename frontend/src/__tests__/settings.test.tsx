@@ -13,9 +13,15 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Use vi.hoisted to avoid variable reference issues with vi.mock hoisting
-const { mockUpdateUser, mockUpdateMe } = vi.hoisted(() => ({
+const { mockUpdateUser, mockUpdateMe, mockToastShow } = vi.hoisted(() => ({
   mockUpdateUser: vi.fn(),
   mockUpdateMe: vi.fn(),
+  mockToastShow: vi.fn(),
+}));
+
+vi.mock('../lib/toast-context', () => ({
+  useToast: () => ({ show: mockToastShow, toasts: [], dismiss: vi.fn() }),
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock the auth context
@@ -153,6 +159,32 @@ describe('Settings page', () => {
     const checkbox = screen.getByLabelText(/email notifications/i);
     expect(checkbox).toBeInTheDocument();
     expect(checkbox).toBeChecked();
+  });
+
+  it('shows toast on successful profile update', async () => {
+    const user = userEvent.setup();
+
+    mockUpdateMe.mockResolvedValue({
+      user: {
+        id: 'user-1',
+        name: 'New Name',
+        email: 'test@example.com',
+        emailVerified: true,
+        emailNotificationsEnabled: true,
+        createdAt: new Date().toISOString(),
+      },
+    });
+
+    render(<SettingsPage />);
+
+    const nameInput = screen.getByLabelText(/name/i);
+    await user.clear(nameInput);
+    await user.type(nameInput, 'New Name');
+    await user.click(screen.getByRole('button', { name: /save profile/i }));
+
+    await waitFor(() => {
+      expect(mockToastShow).toHaveBeenCalledWith('Profile updated successfully');
+    });
   });
 
   it('calls updateMe with emailNotificationsEnabled when toggled', async () => {
