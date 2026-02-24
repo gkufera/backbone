@@ -991,6 +991,18 @@ describe('POST /api/auth/send-phone-code', () => {
     );
   });
 
+  it('returns 400 when phone field is missing', async () => {
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/send-phone-code')
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/phone/i);
+  });
+
   it('generates a 6-digit numeric code', async () => {
     const mockUser = {
       id: 'user-1',
@@ -1078,6 +1090,33 @@ describe('POST /api/auth/verify-phone', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/verified/i);
+  });
+
+  it('returns 400 when code field is missing', async () => {
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/verify-phone')
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/code.*required/i);
+  });
+
+  it('returns 400 for already-used code', async () => {
+    // Code with usedAt set should not be found by the query (usedAt: null filter)
+    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(null);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/verify-phone')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ code: '123456' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/invalid/i);
   });
 
   it('returns 400 for expired code', async () => {
