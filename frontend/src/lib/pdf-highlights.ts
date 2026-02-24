@@ -59,7 +59,6 @@ export function applyHighlightStyle(
     span.style.backgroundColor = color;
     span.style.color = '#fff';
     span.style.border = `2px solid ${color}`;
-    span.style.borderStyle = 'solid';
   } else {
     span.classList.remove(ACTIVE_CLASS);
     span.classList.add(INACTIVE_CLASS);
@@ -81,7 +80,6 @@ export function clearHighlights(textLayerEl: HTMLElement): void {
     span.style.backgroundColor = '';
     span.style.color = '';
     span.style.border = '';
-    span.style.borderStyle = '';
     span.style.cursor = '';
   }
 }

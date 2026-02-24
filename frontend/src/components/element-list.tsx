@@ -230,7 +230,7 @@ function ElementRow({
       className={`flex items-center justify-between py-2 ${
         onElementClick ? 'cursor-pointer' : ''
       } ${isActive ? 'bg-black text-white' : ''}`}
-      style={deptColor ? { borderLeft: `4px solid ${deptColor}`, paddingLeft: '8px', borderLeftColor: deptColor } : undefined}
+      style={deptColor ? { borderLeft: `4px solid ${deptColor}`, paddingLeft: '8px' } : undefined}
       onClick={() => onElementClick?.(elem.id)}
     >
       <div>

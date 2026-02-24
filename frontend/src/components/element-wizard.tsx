@@ -7,11 +7,12 @@ import {
   type ElementWithCountResponse,
   type DepartmentResponse,
 } from '../lib/api';
+import type { SceneInfo } from '@backbone/shared/types';
 
 interface ElementWizardProps {
   scriptId: string;
   elements: ElementWithCountResponse[];
-  sceneData: Array<{ sceneNumber: number; location: string; characters: string[] }> | null;
+  sceneData: SceneInfo[] | null;
   departments: DepartmentResponse[];
   onComplete: () => void;
 }

@@ -16,13 +16,17 @@ import { ElementList } from '../../../../../components/element-list';
 import { ProcessingProgress } from '../../../../../components/processing-progress';
 import { ElementWizard } from '../../../../../components/element-wizard';
 import type { HighlightInfo } from '../../../../../lib/pdf-highlights';
+import type { SceneInfo } from '@backbone/shared/types';
 
 const PdfViewer = dynamic(
   () => import('../../../../../components/pdf-viewer').then((m) => ({ default: m.PdfViewer })),
   { ssr: false, loading: () => <div className="p-6">Loading PDF viewer...</div> },
 );
 
-type ScriptDetail = ScriptResponse & { elements: ElementWithCountResponse[] };
+type ScriptDetail = ScriptResponse & {
+  elements: ElementWithCountResponse[];
+  sceneData?: SceneInfo[] | null;
+};
 
 export default function ScriptViewerPage() {
   const params = useParams();
@@ -189,7 +193,7 @@ export default function ScriptViewerPage() {
         <ElementWizard
           scriptId={scriptId}
           elements={script.elements}
-          sceneData={(script as any).sceneData ?? null}
+          sceneData={script.sceneData ?? null}
           departments={departments}
           onComplete={handleWizardComplete}
         />
