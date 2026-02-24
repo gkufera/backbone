@@ -136,6 +136,30 @@ describe('AppHeader', () => {
     });
   });
 
+  it('hamburger menu button exists with aria-label "Menu"', () => {
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    expect(screen.getByLabelText('Menu')).toBeInTheDocument();
+  });
+
+  it('clicking hamburger opens mobile nav', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    await user.click(screen.getByLabelText('Menu'));
+    expect(screen.getByTestId('mobile-nav')).toBeInTheDocument();
+  });
+
   it('does not show breadcrumb or notification bell on home page', () => {
     mockUsePathname.mockReturnValue('/');
 
