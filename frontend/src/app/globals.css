@@ -332,6 +332,68 @@ select:focus {
   right: -4px;
 }
 
+/* ── Approval Color Buttons (exception to 1-bit rule, like dept colors) */
+
+.approval-btn-approved {
+  background-color: #00A651;
+  color: #fff;
+  border: 2px solid #000;
+}
+.approval-btn-approved:hover:not(:disabled) {
+  background-color: #008c44;
+  color: #fff;
+}
+
+.approval-btn-maybe {
+  background-color: #FFD700;
+  color: #000;
+  border: 2px solid #000;
+}
+.approval-btn-maybe:hover:not(:disabled) {
+  background-color: #e6c200;
+  color: #000;
+}
+
+.approval-btn-rejected {
+  background-color: #E63946;
+  color: #fff;
+  border: 2px solid #000;
+}
+.approval-btn-rejected:hover:not(:disabled) {
+  background-color: #c72d39;
+  color: #fff;
+}
+
+/* ── Option Thumbnail Approval Border States ─────────────── */
+
+.option-border-approved {
+  border: 3px solid #00A651;
+}
+
+.option-border-maybe {
+  border: 3px solid #FFD700;
+  filter: grayscale(50%);
+}
+
+.option-border-rejected {
+  border: 3px solid #E63946;
+  filter: grayscale(100%);
+}
+
+/* ── Temperature Indicators for Element List ─────────────── */
+
+.temp-green {
+  color: #00A651;
+}
+
+.temp-yellow {
+  color: #FFD700;
+}
+
+.temp-red {
+  color: #E63946;
+}
+
 /* ── Custom Scrollbar ──────────────────────────────────────── */
 
 ::-webkit-scrollbar {
