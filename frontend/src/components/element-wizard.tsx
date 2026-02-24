@@ -38,7 +38,7 @@ export function ElementWizard({
   const hasCharacters =
     sceneData && sceneData.some((s) => s.characters && s.characters.length > 0);
 
-  async function handleStep1Next() {
+  async function handleReviewNext() {
     setIsProcessing(true);
     setError(null);
     try {
@@ -47,7 +47,17 @@ export function ElementWizard({
       for (const elem of toDelete) {
         await elementsApi.hardDelete(elem.id);
       }
-      setCurrentElements(elements.filter((e) => checkedElements.has(e.id)));
+      const kept = elements.filter((e) => checkedElements.has(e.id));
+      setCurrentElements(kept);
+
+      // Update department assignments
+      for (const [elemId, deptId] of Object.entries(elementDepts)) {
+        const original = elements.find((e) => e.id === elemId);
+        if (original && original.departmentId !== deptId) {
+          await elementsApi.update(elemId, { departmentId: deptId });
+        }
+      }
+
       setStep(2);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -61,25 +71,6 @@ export function ElementWizard({
     setError(null);
     try {
       await scriptsApi.generateImplied(scriptId, mode);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsProcessing(false);
-    }
-  }
-
-  async function handleStep2Next() {
-    setIsProcessing(true);
-    setError(null);
-    try {
-      // Update department assignments
-      for (const [elemId, deptId] of Object.entries(elementDepts)) {
-        const original = elements.find((e) => e.id === elemId);
-        if (original && original.departmentId !== deptId) {
-          await elementsApi.update(elemId, { departmentId: deptId });
-        }
-      }
-      setStep(3);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -120,7 +111,7 @@ export function ElementWizard({
 
       {/* Step indicator */}
       <div className="mb-6 flex gap-4">
-        {[1, 2, 3].map((s) => (
+        {[1, 2].map((s) => (
           <span
             key={s}
             className={`badge ${step === s ? 'badge-approved' : 'badge-default'}`}
@@ -136,28 +127,6 @@ export function ElementWizard({
           <p className="mb-4 text-sm font-mono">
             This is the only time you can delete elements. After accepting, you can only archive.
           </p>
-
-          <div className="mac-window mb-4">
-            <div className="mac-window-title">
-              <span>Detected Elements ({elements.length})</span>
-            </div>
-            <div className="mac-window-body">
-              <ul className="divide-y divide-black">
-                {elements.map((elem) => (
-                  <li key={elem.id} className="flex items-center gap-3 py-2 px-3">
-                    <input
-                      type="checkbox"
-                      checked={checkedElements.has(elem.id)}
-                      onChange={() => toggleElement(elem.id)}
-                      className="h-4 w-4"
-                    />
-                    <span className="font-mono text-sm">{elem.name}</span>
-                    <span className="badge badge-default text-xs">{elem.type}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
 
           {hasCharacters && (
             <div className="mac-window mb-4">
@@ -188,35 +157,28 @@ export function ElementWizard({
             </div>
           )}
 
-          <button
-            onClick={handleStep1Next}
-            disabled={isProcessing}
-            className="mac-btn-primary px-4 py-2 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div>
-          <h2 className="mb-4 text-xl">Step 2: Review Departments</h2>
-
           <div className="mac-window mb-4">
             <div className="mac-window-title">
-              <span>Department Assignments</span>
+              <span>Detected Elements ({elements.length})</span>
             </div>
             <div className="mac-window-body">
               <ul className="divide-y divide-black">
-                {currentElements.map((elem) => (
-                  <li key={elem.id} className="flex items-center justify-between py-2 px-3">
+                {elements.map((elem) => (
+                  <li key={elem.id} className="flex items-center gap-3 py-2 px-3">
+                    <input
+                      type="checkbox"
+                      checked={checkedElements.has(elem.id)}
+                      onChange={() => toggleElement(elem.id)}
+                      className="h-4 w-4"
+                    />
                     <span className="font-mono text-sm">{elem.name}</span>
+                    <span className="badge badge-default text-xs">{elem.type}</span>
                     <select
                       value={elementDepts[elem.id] || ''}
                       onChange={(e) =>
                         setElementDepts((prev) => ({ ...prev, [elem.id]: e.target.value }))
                       }
-                      className="border-2 border-black p-1 text-sm"
+                      className="ml-auto border-2 border-black p-1 text-sm"
                     >
                       <option value="">No department</option>
                       {departments.map((dept) => (
@@ -232,7 +194,7 @@ export function ElementWizard({
           </div>
 
           <button
-            onClick={handleStep2Next}
+            onClick={handleReviewNext}
             disabled={isProcessing}
             className="mac-btn-primary px-4 py-2 disabled:opacity-50"
           >
@@ -241,9 +203,9 @@ export function ElementWizard({
         </div>
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <div>
-          <h2 className="mb-4 text-xl">Step 3: Accept</h2>
+          <h2 className="mb-4 text-xl">Step 2: Accept</h2>
           <p className="mb-4 font-mono">
             You&apos;re all set! You can always add more elements from the script viewer.
           </p>

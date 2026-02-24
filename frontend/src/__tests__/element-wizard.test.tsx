@@ -67,6 +67,22 @@ describe('ElementWizard', () => {
     mockedScriptsApi.generateImplied.mockResolvedValue({ message: 'done', count: 2 });
   });
 
+  it('shows only 2 step indicators', () => {
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={mockSceneData}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Step 1')).toBeInTheDocument();
+    expect(screen.getByText('Step 2')).toBeInTheDocument();
+    expect(screen.queryByText('Step 3')).not.toBeInTheDocument();
+  });
+
   it('Step 1: renders elements with checkboxes', () => {
     render(
       <ElementWizard
@@ -80,14 +96,50 @@ describe('ElementWizard', () => {
 
     expect(screen.getByText('JOHN')).toBeInTheDocument();
     expect(screen.getByText('REVOLVER')).toBeInTheDocument();
-    // Should have checkboxes
     const checkboxes = screen.getAllByRole('checkbox');
     expect(checkboxes).toHaveLength(2);
     expect(checkboxes[0]).toBeChecked();
     expect(checkboxes[1]).toBeChecked();
   });
 
-  it('Step 1: unchecking and clicking Next calls hard-delete', async () => {
+  it('Step 1: shows department dropdowns inline with elements', () => {
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={null}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    // Department dropdowns should be visible in Step 1
+    const selects = screen.getAllByRole('combobox');
+    expect(selects.length).toBeGreaterThan(0);
+  });
+
+  it('Step 1: implied elements section appears at top when scene data has characters', () => {
+    const { container } = render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={mockSceneData}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    // Implied Elements window should appear before Detected Elements window
+    const windows = container.querySelectorAll('.mac-window');
+    const titles = Array.from(windows).map(
+      (w) => w.querySelector('.mac-window-title span')?.textContent?.trim(),
+    );
+    const impliedIdx = titles.findIndex((t) => t?.includes('Implied'));
+    const detectedIdx = titles.findIndex((t) => t?.includes('Detected'));
+    expect(impliedIdx).toBeLessThan(detectedIdx);
+  });
+
+  it('Step 1: unchecking and clicking Next calls hard-delete and saves dept assignments', async () => {
     const user = userEvent.setup();
 
     render(
@@ -102,13 +154,18 @@ describe('ElementWizard', () => {
 
     // Uncheck REVOLVER
     const checkboxes = screen.getAllByRole('checkbox');
-    await user.click(checkboxes[1]); // Uncheck second element
+    await user.click(checkboxes[1]);
+
+    // Change dept for JOHN
+    const selects = screen.getAllByRole('combobox');
+    await user.selectOptions(selects[0], 'dept-costume');
 
     // Click Next
     await user.click(screen.getByRole('button', { name: /next/i }));
 
     await waitFor(() => {
       expect(mockedElementsApi.hardDelete).toHaveBeenCalledWith('elem-2');
+      expect(mockedElementsApi.update).toHaveBeenCalledWith('elem-1', { departmentId: 'dept-costume' });
     });
   });
 
@@ -161,11 +218,9 @@ describe('ElementWizard', () => {
       />,
     );
 
-    // Uncheck one element so it will be deleted
     const checkboxes = screen.getAllByRole('checkbox');
     await user.click(checkboxes[1]);
 
-    // Click Next — triggers hardDelete which fails
     await user.click(screen.getByRole('button', { name: /next/i }));
 
     await waitFor(() => {
@@ -194,7 +249,7 @@ describe('ElementWizard', () => {
     });
   });
 
-  it('shows error message when department update fails in step 2', async () => {
+  it('shows error message when department update fails during Next', async () => {
     const user = userEvent.setup();
     mockedElementsApi.update.mockRejectedValue(new Error('Update failed'));
 
@@ -208,13 +263,7 @@ describe('ElementWizard', () => {
       />,
     );
 
-    // Go to step 2
-    await user.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() => {
-      expect(screen.getByText('Step 2: Review Departments')).toBeInTheDocument();
-    });
-
-    // Change a department assignment
+    // Change a department assignment in Step 1
     const selects = screen.getAllByRole('combobox');
     await user.selectOptions(selects[0], 'dept-costume');
 
@@ -226,7 +275,7 @@ describe('ElementWizard', () => {
     });
   });
 
-  it('shows error message when acceptElements fails in step 3', async () => {
+  it('shows error message when acceptElements fails in step 2', async () => {
     const user = userEvent.setup();
     mockedScriptsApi.acceptElements.mockRejectedValue(new Error('Accept failed'));
 
@@ -243,13 +292,7 @@ describe('ElementWizard', () => {
     // Step 1 → Step 2
     await user.click(screen.getByRole('button', { name: /next/i }));
     await waitFor(() => {
-      expect(screen.getByText('Step 2: Review Departments')).toBeInTheDocument();
-    });
-
-    // Step 2 → Step 3
-    await user.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() => {
-      expect(screen.getByText('Step 3: Accept')).toBeInTheDocument();
+      expect(screen.getByText('Step 2: Accept')).toBeInTheDocument();
     });
 
     // Accept — fails
@@ -271,7 +314,6 @@ describe('ElementWizard', () => {
       />,
     );
 
-    // "Per Scene" and "Per Character" buttons should NOT be present
     expect(screen.queryByRole('button', { name: /per scene/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /per character/i })).not.toBeInTheDocument();
   });
@@ -310,32 +352,7 @@ describe('ElementWizard', () => {
     expect(screen.getByText('Detected Elements (0)')).toBeInTheDocument();
   });
 
-  it('Step 2: renders department dropdowns', async () => {
-    const user = userEvent.setup();
-
-    render(
-      <ElementWizard
-        scriptId="script-1"
-        elements={mockElements as any}
-        sceneData={null}
-        departments={mockDepartments as any}
-        onComplete={vi.fn()}
-      />,
-    );
-
-    // Go to step 2
-    await user.click(screen.getByRole('button', { name: /next/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Step 2: Review Departments')).toBeInTheDocument();
-    });
-
-    // Should have department dropdowns
-    const selects = screen.getAllByRole('combobox');
-    expect(selects.length).toBeGreaterThan(0);
-  });
-
-  it('Step 3: Accept calls acceptElements and onComplete', async () => {
+  it('Step 2: Accept calls acceptElements and onComplete', async () => {
     const user = userEvent.setup();
     const onComplete = vi.fn();
 
@@ -352,13 +369,7 @@ describe('ElementWizard', () => {
     // Step 1 → Step 2
     await user.click(screen.getByRole('button', { name: /next/i }));
     await waitFor(() => {
-      expect(screen.getByText('Step 2: Review Departments')).toBeInTheDocument();
-    });
-
-    // Step 2 → Step 3
-    await user.click(screen.getByRole('button', { name: /next/i }));
-    await waitFor(() => {
-      expect(screen.getByText('Step 3: Accept')).toBeInTheDocument();
+      expect(screen.getByText('Step 2: Accept')).toBeInTheDocument();
     });
 
     // Accept
