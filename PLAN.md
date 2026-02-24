@@ -1,7 +1,23 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 12 complete.
+None — Sprint 12 check complete.
+
+## Completed (Sprint 12 Check)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Fix fetchWithRetry — only retry GET requests (CRITICAL) | `fix: only retry GET requests in fetchWithRetry to prevent duplicate mutations` | +1 |
+| 2 | Validate file type in file picker onChange handler | `fix: validate file type in file picker onChange handler` | +1 |
+| 3 | Auto-close hamburger menu on route change | `fix: auto-close mobile hamburger menu on route change` | +1 |
+| 4 | Replace remaining Loading... text with SkeletonCard on 7 pages | `fix: replace remaining Loading... text with SkeletonCard on 7 pages` | 0 |
+| 5 | Clean up toast auto-dismiss timeouts on unmount | `fix: clean up toast auto-dismiss timeouts on unmount` | 0 |
+| 6 | Full test suite + docs + deploy | `docs: update test counts and PLAN.md after Sprint 12 check` | 0 |
+
+### Test Counts (Post Sprint 12 Check)
+- **Frontend**: 390 tests (was 387, +3 new)
+- **Backend**: 335 tests (unchanged)
+- **Total**: 725 tests (was 722, +3 new)
 
 ## Completed (Sprint 12: Error Handling & Mobile)
 
