@@ -1,7 +1,22 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 10 Auth Completeness complete.
+None — Sprint 10 Auth Completeness check complete.
+
+## Completed (Sprint 10 Auth Completeness Check)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Fix login response missing emailVerified (TDD) | `fix: include emailVerified in login response` | 0 (strengthened assertion) |
+| 2 | Add resend-verification test for already-verified user | `test: add resend-verification test for already-verified user` | +1 |
+| 3 | Fix auth context test mocks — add emailVerified | `test: add emailVerified to auth context test mocks` | 0 (mock data fix) |
+| 4 | Create Prisma migration for auth tokens + emailVerified | `feat: add migration for auth tokens and emailVerified` | 0 (migration only) |
+| 5 | Run full test suite + update docs | `docs: update test counts and PLAN.md after Sprint 10 Auth check` | 0 |
+
+### Test Counts (Post Sprint 10 Auth Completeness Check)
+- **Frontend**: 357 tests (unchanged)
+- **Backend**: 322 tests (was 321, +1 new)
+- **Total**: 679 tests (was 678, +1 new)
 
 ## Completed (Sprint 10: Auth Completeness — Email Verification, Forgot Password, Account Settings)
 
