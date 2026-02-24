@@ -22,10 +22,10 @@ export function ApprovalButtons({ onSubmit, currentDecision, disabled }: Approva
         <button
           onClick={() => handleDecision('APPROVED')}
           disabled={disabled}
-          className={`rounded px-3 py-1 text-xs font-medium ${
+          className={`px-3 py-1 text-xs font-medium ${
             currentDecision === 'APPROVED'
-              ? 'bg-green-600 text-white'
-              : 'bg-green-100 text-green-800 hover:bg-green-200'
+              ? 'bg-black text-white'
+              : 'bg-white text-black hover:bg-black hover:text-white'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Approve
@@ -33,10 +33,10 @@ export function ApprovalButtons({ onSubmit, currentDecision, disabled }: Approva
         <button
           onClick={() => handleDecision('REJECTED')}
           disabled={disabled}
-          className={`rounded px-3 py-1 text-xs font-medium ${
+          className={`px-3 py-1 text-xs font-medium ${
             currentDecision === 'REJECTED'
-              ? 'bg-red-600 text-white'
-              : 'bg-red-100 text-red-800 hover:bg-red-200'
+              ? 'bg-black text-white'
+              : 'bg-white text-black hover:bg-black hover:text-white'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Reject
@@ -44,17 +44,17 @@ export function ApprovalButtons({ onSubmit, currentDecision, disabled }: Approva
         <button
           onClick={() => handleDecision('MAYBE')}
           disabled={disabled}
-          className={`rounded px-3 py-1 text-xs font-medium ${
+          className={`px-3 py-1 text-xs font-medium ${
             currentDecision === 'MAYBE'
-              ? 'bg-yellow-600 text-white'
-              : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+              ? 'bg-black text-white'
+              : 'bg-white text-black hover:bg-black hover:text-white'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           Maybe
         </button>
         <button
           onClick={() => setShowNote(!showNote)}
-          className="rounded px-2 py-1 text-xs text-zinc-500 hover:text-zinc-700"
+          className="px-2 py-1 text-xs text-black hover:bg-black hover:text-white"
         >
           Add Note
         </button>
@@ -65,7 +65,7 @@ export function ApprovalButtons({ onSubmit, currentDecision, disabled }: Approva
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Add a note..."
-          className="w-full rounded border p-2 text-sm"
+          className="w-full border-2 border-black p-2 text-sm"
           rows={2}
         />
       )}

@@ -12,15 +12,15 @@ interface FeedCardProps {
 const WORKFLOW_BADGE: Record<string, { label: string; className: string }> = {
   PENDING: {
     label: 'Pending',
-    className: 'bg-zinc-100 text-zinc-600',
+    className: 'badge badge-default',
   },
   OUTSTANDING: {
     label: 'Outstanding',
-    className: 'bg-yellow-100 text-yellow-800',
+    className: 'badge badge-outstanding',
   },
   APPROVED: {
     label: 'Approved',
-    className: 'bg-green-100 text-green-800',
+    className: 'badge badge-approved',
   },
 };
 
@@ -33,24 +33,20 @@ export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
   return (
     <Link
       href={`/productions/${productionId}/scripts/${scriptId}/elements/${element.id}`}
-      className="block rounded border p-4 hover:bg-zinc-50"
+      className="block border-2 border-black p-4 hover:bg-black hover:text-white"
     >
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">{element.name}</h3>
           <div className="mt-1 flex items-center gap-2">
-            <span className="rounded bg-zinc-200 px-2 py-0.5 text-xs font-medium uppercase">
-              {element.type}
-            </span>
-            <span className="text-xs text-zinc-500">Pages: {element.pageNumbers.join(', ')}</span>
+            <span className="badge badge-default uppercase">{element.type}</span>
+            <span className="text-xs">Pages: {element.pageNumbers.join(', ')}</span>
           </div>
         </div>
         <div className="text-right">
-          <span className="text-sm text-zinc-600">{optionLabel}</span>
+          <span className="text-sm">{optionLabel}</span>
           {badge && (
-            <span
-              className={`ml-2 rounded px-2 py-0.5 text-xs font-medium ${badge.className}`}
-            >
+            <span className={`ml-2 ${badge.className}`}>
               {badge.label}
             </span>
           )}

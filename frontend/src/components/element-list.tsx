@@ -66,28 +66,28 @@ function ElementGroup({
       <h3 className="mb-2 text-lg font-semibold">{title}</h3>
       <ul className="space-y-1">
         {elements.map((elem) => (
-          <li key={elem.id} className="flex items-center justify-between rounded border p-2">
+          <li key={elem.id} className="flex items-center justify-between border-2 border-black p-2">
             <div>
               {productionId && scriptId ? (
                 <Link
                   href={`/productions/${productionId}/scripts/${scriptId}/elements/${elem.id}`}
-                  className="font-medium text-blue-600 hover:underline"
+                  className="font-medium underline"
                 >
                   {elem.name}
                 </Link>
               ) : (
                 <span className="font-medium">{elem.name}</span>
               )}
-              <span className="ml-2 text-xs text-zinc-400">p. {elem.pageNumbers.join(', ')}</span>
+              <span className="ml-2 text-xs text-black">p. {elem.pageNumbers.join(', ')}</span>
               {elem._count?.options != null && (
-                <span className="ml-2 text-xs text-zinc-500">
+                <span className="ml-2 text-xs text-black">
                   {elem._count.options} {elem._count.options === 1 ? 'option' : 'options'}
                 </span>
               )}
             </div>
             <button
               onClick={() => onArchive(elem.id)}
-              className="text-xs text-red-500 hover:text-red-700"
+              className="text-xs text-black underline hover:bg-black hover:text-white"
               aria-label={`Archive ${elem.name}`}
             >
               Archive

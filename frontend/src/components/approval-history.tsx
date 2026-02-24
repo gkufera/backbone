@@ -6,10 +6,10 @@ interface ApprovalHistoryProps {
   approvals: ApprovalResponse[];
 }
 
-const decisionColors: Record<string, string> = {
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  MAYBE: 'bg-yellow-100 text-yellow-800',
+const decisionBadge: Record<string, string> = {
+  APPROVED: 'badge badge-approved',
+  REJECTED: 'badge badge-rejected',
+  MAYBE: 'badge badge-maybe',
 };
 
 export function ApprovalHistory({ approvals }: ApprovalHistoryProps) {
@@ -21,18 +21,16 @@ export function ApprovalHistory({ approvals }: ApprovalHistoryProps) {
     <div className="mt-2 space-y-1">
       {approvals.map((approval) => (
         <div key={approval.id} className="flex items-start gap-2 text-xs">
-          <span
-            className={`rounded px-1.5 py-0.5 font-medium ${decisionColors[approval.decision] || ''}`}
-          >
+          <span className={decisionBadge[approval.decision] || 'badge badge-default'}>
             {approval.decision}
           </span>
           {approval.tentative && (
-            <span className="rounded bg-orange-100 px-1.5 py-0.5 font-medium text-orange-800">
+            <span className="border-2 border-black px-1.5 py-0.5 font-bold text-black">
               Tentative
             </span>
           )}
-          <span className="text-zinc-600">{approval.user?.name}</span>
-          {approval.note && <span className="text-zinc-500">— {approval.note}</span>}
+          <span className="text-black">{approval.user?.name}</span>
+          {approval.note && <span className="text-black">— {approval.note}</span>}
         </div>
       ))}
     </div>

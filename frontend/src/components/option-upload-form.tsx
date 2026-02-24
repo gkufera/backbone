@@ -129,13 +129,13 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded border p-4">
+    <form onSubmit={handleSubmit} className="border-2 border-black p-4">
       <div className="mb-3 flex gap-2">
         <button
           type="button"
           onClick={() => setMode('file')}
-          className={`rounded px-3 py-1 text-sm ${
-            mode === 'file' ? 'bg-black text-white' : 'bg-zinc-100'
+          className={`px-3 py-1 text-sm ${
+            mode === 'file' ? 'bg-black text-white' : 'bg-white text-black'
           }`}
         >
           File
@@ -143,8 +143,8 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
         <button
           type="button"
           onClick={() => setMode('link')}
-          className={`rounded px-3 py-1 text-sm ${
-            mode === 'link' ? 'bg-black text-white' : 'bg-zinc-100'
+          className={`px-3 py-1 text-sm ${
+            mode === 'link' ? 'bg-black text-white' : 'bg-white text-black'
           }`}
         >
           Link
@@ -164,7 +164,7 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
           placeholder="Enter URL"
           value={externalUrl}
           onChange={(e) => setExternalUrl(e.target.value)}
-          className="mb-3 w-full rounded border p-2 text-sm"
+          className="mb-3 w-full border-2 border-black p-2 text-sm"
         />
       )}
 
@@ -173,16 +173,16 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
         placeholder="Description (optional)"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        className="mb-3 w-full rounded border p-2 text-sm"
+        className="mb-3 w-full border-2 border-black p-2 text-sm"
         maxLength={500}
       />
 
-      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-3 text-sm text-black font-bold">{error}</p>}
 
       <button
         type="submit"
         disabled={isUploading}
-        className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+        className="mac-btn-primary disabled:opacity-50"
       >
         {isUploading ? 'Uploading...' : 'Add Option'}
       </button>

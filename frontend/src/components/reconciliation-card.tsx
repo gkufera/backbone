@@ -20,27 +20,27 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
 
   return (
     <div
-      className={`rounded border p-4 ${hasApproved ? 'border-yellow-400 bg-yellow-50' : 'border-zinc-200'}`}
+      className={`border-2 border-black p-4 ${hasApproved ? 'border-l-8' : ''}`}
     >
       {isFuzzy && (
         <>
           <div className="mb-2 flex items-center justify-between">
             <div>
               <span className="font-semibold">{match.detectedName}</span>
-              <span className="ml-2 text-sm text-zinc-500">
+              <span className="ml-2 text-sm text-black">
                 {Math.round((match.similarity ?? 0) * 100)}% match
               </span>
             </div>
-            <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+            <span className="badge badge-fuzzy">
               FUZZY
             </span>
           </div>
           {match.oldElement && (
-            <div className="mb-3 text-sm text-zinc-600">
+            <div className="mb-3 text-sm text-black">
               Best match: <strong>{match.oldElement.name}</strong> ({optionCount} option
               {optionCount !== 1 ? 's' : ''})
               {hasApproved && (
-                <span className="ml-2 rounded bg-yellow-200 px-1.5 py-0.5 text-xs font-medium text-yellow-800">
+                <span className="badge badge-approved ml-2">
                   Has Approved
                 </span>
               )}
@@ -50,8 +50,8 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
             <button
               type="button"
               onClick={() => onDecision(match.id, 'map')}
-              className={`rounded px-3 py-1 text-sm ${
-                decision === 'map' ? 'bg-black text-white' : 'border border-zinc-300'
+              className={`px-3 py-1 text-sm ${
+                decision === 'map' ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Map to Existing"
             >
@@ -60,8 +60,8 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
             <button
               type="button"
               onClick={() => onDecision(match.id, 'create_new')}
-              className={`rounded px-3 py-1 text-sm ${
-                decision === 'create_new' ? 'bg-black text-white' : 'border border-zinc-300'
+              className={`px-3 py-1 text-sm ${
+                decision === 'create_new' ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Create as New"
             >
@@ -77,15 +77,15 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
             <div>
               <span className="font-semibold">{match.detectedName}</span>
             </div>
-            <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+            <span className="badge badge-missing">
               MISSING
             </span>
           </div>
           {match.oldElement && (
-            <div className="mb-3 text-sm text-zinc-600">
+            <div className="mb-3 text-sm text-black">
               {optionCount} option{optionCount !== 1 ? 's' : ''}
               {hasApproved && (
-                <span className="ml-2 rounded bg-yellow-200 px-1.5 py-0.5 text-xs font-medium text-yellow-800">
+                <span className="badge badge-approved ml-2">
                   Has Approved
                 </span>
               )}
@@ -95,8 +95,8 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
             <button
               type="button"
               onClick={() => onDecision(match.id, 'keep')}
-              className={`rounded px-3 py-1 text-sm ${
-                decision === 'keep' ? 'bg-black text-white' : 'border border-zinc-300'
+              className={`px-3 py-1 text-sm ${
+                decision === 'keep' ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Keep"
             >
@@ -105,8 +105,8 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
             <button
               type="button"
               onClick={() => onDecision(match.id, 'archive')}
-              className={`rounded px-3 py-1 text-sm ${
-                decision === 'archive' ? 'bg-black text-white' : 'border border-zinc-300'
+              className={`px-3 py-1 text-sm ${
+                decision === 'archive' ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Archive"
             >

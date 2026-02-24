@@ -23,7 +23,7 @@ export function OptionGallery({
   onConfirmApproval,
 }: OptionGalleryProps) {
   if (options.length === 0) {
-    return <p className="text-zinc-500">No options yet. Add an option to get started.</p>;
+    return <p className="text-black">No options yet. Add an option to get started.</p>;
   }
 
   return (

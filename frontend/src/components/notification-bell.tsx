@@ -51,7 +51,7 @@ export function NotificationBell({ productionId }: NotificationBellProps) {
       <button
         onClick={handleOpen}
         aria-label="Notifications"
-        className="relative rounded-md p-1.5 text-zinc-600 hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-700"
+        className="relative p-1.5 text-black hover:bg-black hover:text-white"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -67,31 +67,31 @@ export function NotificationBell({ productionId }: NotificationBellProps) {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          <span className="mac-notification-dot">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 w-80 rounded-md border bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-          <div className="border-b p-3 text-sm font-semibold dark:border-zinc-700">
+        <div className="mac-window absolute right-0 z-50 mt-2 w-80">
+          <div className="mac-panel-title">
             Notifications
           </div>
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-zinc-500">No notifications</div>
+            <div className="p-4 text-center text-sm text-black">No notifications</div>
           ) : (
             <ul className="max-h-80 overflow-y-auto">
               {notifications.map((notif) => (
                 <li key={notif.id}>
                   <button
                     onClick={() => handleNotificationClick(notif)}
-                    className={`w-full px-4 py-3 text-left text-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 ${
-                      notif.read ? 'text-zinc-500' : 'font-medium text-zinc-900 dark:text-zinc-100'
+                    className={`w-full border-b border-black px-4 py-3 text-left text-sm hover:bg-black hover:text-white ${
+                      notif.read ? 'text-black' : 'font-bold text-black'
                     }`}
                   >
                     <p>{notif.message}</p>
-                    <p className="mt-1 text-xs text-zinc-400">
+                    <p className="mt-1 text-xs">
                       {new Date(notif.createdAt).toLocaleString()}
                     </p>
                   </button>

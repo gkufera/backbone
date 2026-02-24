@@ -26,21 +26,21 @@ export function VersionHistory({ versions, currentScriptId, productionId }: Vers
         return (
           <div
             key={version.id}
-            className={`flex items-center justify-between rounded border p-4 ${
-              isCurrent ? 'border-blue-300 bg-blue-50' : 'border-zinc-200'
+            className={`flex items-center justify-between border-2 border-black p-4 ${
+              isCurrent ? 'border-4' : ''
             }`}
           >
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold">v{version.version}</span>
-                <span className="text-sm text-zinc-500">{version.title}</span>
+                <span className="text-sm text-black">{version.title}</span>
                 {isCurrent && (
-                  <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  <span className="badge badge-approved">
                     Current
                   </span>
                 )}
               </div>
-              <div className="mt-1 flex gap-3 text-sm text-zinc-400">
+              <div className="mt-1 flex gap-3 text-sm text-black">
                 <span className="uppercase">{version.status}</span>
                 {version.pageCount && <span>{version.pageCount} pages</span>}
                 <span>{new Date(version.createdAt).toLocaleDateString()}</span>
@@ -49,7 +49,7 @@ export function VersionHistory({ versions, currentScriptId, productionId }: Vers
             {!isCurrent && (
               <Link
                 href={`/productions/${productionId}/scripts/${version.id}`}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm underline"
               >
                 View
               </Link>
