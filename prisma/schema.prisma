@@ -85,6 +85,8 @@ model User {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
+  emailNotificationsEnabled Boolean @default(true) @map("email_notifications_enabled")
+
   createdProductions      Production[]             @relation("CreatedProductions")
   productionMembers       ProductionMember[]
   uploadedScripts         Script[]
@@ -92,6 +94,7 @@ model User {
   approvals               Approval[]
   notifications           Notification[]
   notes                   Note[]
+  directorNotes           DirectorNote[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
 
@@ -181,6 +184,7 @@ model Script {
   childScripts    Script[]         @relation("ScriptVersions")
   elements        Element[]
   revisionMatches RevisionMatch[]
+  directorNotes   DirectorNote[]
 
   @@map("scripts")
 }
@@ -324,4 +328,20 @@ model Notification {
 
   @@index([userId, productionId, read])
   @@map("notifications")
+}
+
+model DirectorNote {
+  id          String    @id @default(cuid())
+  scriptId    String    @map("script_id")
+  sceneNumber Int       @map("scene_number")
+  note        String
+  createdById String    @map("created_by_id")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  script      Script    @relation(fields: [scriptId], references: [id])
+  createdBy   User      @relation(fields: [createdById], references: [id])
+
+  @@map("director_notes")
 }

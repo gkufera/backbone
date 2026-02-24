@@ -19,3 +19,5 @@ export { NotificationType } from './notification.js';
 export type { Notification } from './notification.js';
 
 export type { Note } from './note.js';
+
+export type { DirectorNote } from './director-note.js';
