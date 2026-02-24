@@ -566,33 +566,15 @@ describe('PATCH /api/options/:id', () => {
   });
 });
 
-// ── Element locking: 409 when element has approved option ──────────
+// ── Element locking removed: approvals never block new options ──────────
 
-describe('POST /api/elements/:elementId/options (element locking)', () => {
+describe('POST /api/elements/:elementId/options (no locking)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('returns 409 when element has an approved option', async () => {
+  it('allows creation even when element has approved option', async () => {
     mockElementWithMembership();
-    mockedPrisma.approval.findFirst.mockResolvedValue({
-      id: 'appr-1',
-      decision: 'APPROVED',
-    } as any);
-
-    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
-      mediaType: 'IMAGE',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
-    });
-
-    expect(res.status).toBe(409);
-    expect(res.body.error).toMatch(/locked/i);
-  });
-
-  it('allows creation when element has only REJECTED approvals', async () => {
-    mockElementWithMembership();
-    mockedPrisma.approval.findFirst.mockResolvedValue(null);
     mockedPrisma.option.create.mockResolvedValue({
       id: 'opt-new',
       elementId: 'elem-1',
@@ -608,55 +590,7 @@ describe('POST /api/elements/:elementId/options (element locking)', () => {
     });
 
     expect(res.status).toBe(201);
-  });
-
-  it('allows creation when element has only tentative APPROVED approvals', async () => {
-    mockElementWithMembership();
-    // findFirst returns null because tentative: false is in the filter
-    mockedPrisma.approval.findFirst.mockResolvedValue(null);
-    mockedPrisma.option.create.mockResolvedValue({
-      id: 'opt-new',
-      elementId: 'elem-1',
-      mediaType: 'IMAGE',
-      status: 'ACTIVE',
-      readyForReview: false,
-    } as any);
-
-    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
-      mediaType: 'IMAGE',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
-    });
-
-    expect(res.status).toBe(201);
-    // Verify the lock check includes tentative: false filter
-    expect(mockedPrisma.approval.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({
-          decision: 'APPROVED',
-          tentative: false,
-        }),
-      }),
-    );
-  });
-
-  it('allows creation when element has only MAYBE approvals', async () => {
-    mockElementWithMembership();
-    mockedPrisma.approval.findFirst.mockResolvedValue(null);
-    mockedPrisma.option.create.mockResolvedValue({
-      id: 'opt-new',
-      elementId: 'elem-1',
-      mediaType: 'IMAGE',
-      status: 'ACTIVE',
-      readyForReview: false,
-    } as any);
-
-    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
-      mediaType: 'IMAGE',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
-    });
-
-    expect(res.status).toBe(201);
+    // No approval.findFirst call — locking is removed
+    expect(mockedPrisma.approval.findFirst).not.toHaveBeenCalled();
   });
 });

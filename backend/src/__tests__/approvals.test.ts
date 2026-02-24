@@ -451,7 +451,7 @@ describe('Tentative approval logic', () => {
     expect(mockedPrisma.element.update).not.toHaveBeenCalled();
   });
 
-  it('official APPROVED does lock element (workflow state APPROVED)', async () => {
+  it('official APPROVED does NOT update element workflowState (locking removed)', async () => {
     mockOptionWithMembership(); // DECIDER role
     mockedPrisma.approval.create.mockResolvedValue({
       id: 'appr-1',
@@ -464,7 +464,6 @@ describe('Tentative approval logic', () => {
       updatedAt: new Date(),
     } as any);
 
-    mockedPrisma.element.update.mockResolvedValue({} as any);
     mockedPrisma.notification.create.mockResolvedValue({} as any);
 
     const res = await request(app)
@@ -473,10 +472,8 @@ describe('Tentative approval logic', () => {
       .send({ decision: 'APPROVED' });
 
     expect(res.status).toBe(201);
-    expect(mockedPrisma.element.update).toHaveBeenCalledWith({
-      where: { id: 'elem-1' },
-      data: { workflowState: 'APPROVED' },
-    });
+    // Element should NOT be updated — locking is removed
+    expect(mockedPrisma.element.update).not.toHaveBeenCalled();
   });
 });
 
@@ -539,7 +536,7 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
     });
   });
 
-  it('confirming APPROVED triggers element lock', async () => {
+  it('confirming APPROVED does NOT update element workflowState (locking removed)', async () => {
     mockedPrisma.approval.findUnique.mockResolvedValue({
       id: 'appr-1',
       optionId: 'opt-1',
@@ -572,7 +569,6 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
       tentative: false,
     } as any);
 
-    mockedPrisma.element.update.mockResolvedValue({} as any);
     mockedPrisma.notification.create.mockResolvedValue({} as any);
 
     const res = await request(app)
@@ -580,10 +576,8 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
       .set(authHeader());
 
     expect(res.status).toBe(200);
-    expect(mockedPrisma.element.update).toHaveBeenCalledWith({
-      where: { id: 'elem-1' },
-      data: { workflowState: 'APPROVED' },
-    });
+    // Element should NOT be updated — locking is removed
+    expect(mockedPrisma.element.update).not.toHaveBeenCalled();
   });
 
   it('ADMIN cannot confirm tentative approval', async () => {

@@ -51,7 +51,7 @@ describe('Workflow state on approval', () => {
     vi.clearAllMocks();
   });
 
-  it('sets element workflowState to APPROVED when option approved', async () => {
+  it('does NOT set element workflowState to APPROVED when option approved (locking removed)', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',
       elementId: 'elem-1',
@@ -82,7 +82,6 @@ describe('Workflow state on approval', () => {
       updatedAt: new Date(),
     } as any);
 
-    mockedPrisma.element.update.mockResolvedValue({} as any);
     mockedPrisma.notification.create.mockResolvedValue({} as any);
 
     const res = await request(app)
@@ -91,10 +90,8 @@ describe('Workflow state on approval', () => {
       .send({ decision: 'APPROVED' });
 
     expect(res.status).toBe(201);
-    expect(mockedPrisma.element.update).toHaveBeenCalledWith({
-      where: { id: 'elem-1' },
-      data: { workflowState: 'APPROVED' },
-    });
+    // Element should NOT be updated — locking is removed
+    expect(mockedPrisma.element.update).not.toHaveBeenCalled();
   });
 
   it('does not change workflowState on REJECTED decision', async () => {
@@ -355,7 +352,6 @@ describe('Notification triggers on approval', () => {
       updatedAt: new Date(),
     } as any);
 
-    mockedPrisma.element.update.mockResolvedValue({} as any);
     mockedPrisma.notification.create.mockResolvedValue({} as any);
 
     const res = await request(app)
@@ -458,7 +454,6 @@ describe('Notification triggers on approval', () => {
       updatedAt: new Date(),
     } as any);
 
-    mockedPrisma.element.update.mockResolvedValue({} as any);
     mockedPrisma.notification.create.mockResolvedValue({} as any);
 
     const res = await request(app)

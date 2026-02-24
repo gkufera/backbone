@@ -314,7 +314,7 @@ describe('Element detail page', () => {
     });
   });
 
-  it('shows Locked banner when element has non-tentative approved option', async () => {
+  it('shows Add Option button even when element has approved option (no locking)', async () => {
     const approvedOptions = [
       {
         ...mockOptions[0],
@@ -342,71 +342,11 @@ describe('Element detail page', () => {
 
     render(<ElementDetailPage />);
 
-    expect(await screen.findByText(/locked/i)).toBeInTheDocument();
-  });
-
-  it('does NOT show Locked banner when approval is tentative', async () => {
-    const tentativeOptions = [
-      {
-        ...mockOptions[0],
-        readyForReview: true,
-        approvals: [
-          {
-            id: 'appr-1',
-            optionId: 'opt-1',
-            userId: 'user-1',
-            decision: 'APPROVED',
-            note: null,
-            tentative: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            user: { id: 'user-1', name: 'Jane Director' },
-          },
-        ],
-      },
-    ];
-    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
-    mockedOptionsApi.list.mockResolvedValue({ options: tentativeOptions });
-    mockedApprovalsApi.list.mockResolvedValue({
-      approvals: tentativeOptions[0].approvals,
-    });
-
-    render(<ElementDetailPage />);
-
     await screen.findByText('Costume reference');
+    // No locked banner should appear
     expect(screen.queryByText(/locked/i)).not.toBeInTheDocument();
-  });
-
-  it('hides Add Option button when element is locked', async () => {
-    const approvedOptions = [
-      {
-        ...mockOptions[0],
-        readyForReview: true,
-        approvals: [
-          {
-            id: 'appr-1',
-            optionId: 'opt-1',
-            userId: 'user-1',
-            decision: 'APPROVED',
-            note: null,
-            tentative: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            user: { id: 'user-1', name: 'Jane Director' },
-          },
-        ],
-      },
-    ];
-    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
-    mockedOptionsApi.list.mockResolvedValue({ options: approvedOptions });
-    mockedApprovalsApi.list.mockResolvedValue({
-      approvals: approvedOptions[0].approvals,
-    });
-
-    render(<ElementDetailPage />);
-
-    await screen.findByText('Costume reference');
-    expect(screen.queryByRole('button', { name: /add option/i })).not.toBeInTheDocument();
+    // Add Option button should always be available
+    expect(screen.getByRole('button', { name: /add option/i })).toBeInTheDocument();
   });
 
   it('calls approvalsApi.confirm when confirm button is clicked', async () => {

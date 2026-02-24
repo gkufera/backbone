@@ -84,14 +84,6 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
       },
     });
 
-    // Update element workflow state on official (non-tentative) APPROVED decision
-    if (decision === 'APPROVED' && !tentative) {
-      await prisma.element.update({
-        where: { id: option.elementId },
-        data: { workflowState: 'APPROVED' },
-      });
-    }
-
     // Notify option uploader (if different from approver)
     if (option.uploadedById !== authReq.user.userId) {
       const notifType = DECISION_TO_NOTIFICATION_TYPE[decision];
@@ -178,14 +170,6 @@ approvalsRouter.patch('/api/approvals/:approvalId/confirm', requireAuth, async (
       where: { id: approvalId },
       data: { tentative: false },
     });
-
-    // If confirmed decision is APPROVED, lock the element
-    if (approval.decision === 'APPROVED') {
-      await prisma.element.update({
-        where: { id: approval.option.elementId },
-        data: { workflowState: 'APPROVED' },
-      });
-    }
 
     // Notify the original approver that their approval was confirmed
     if (approval.userId !== authReq.user.userId) {

@@ -171,11 +171,6 @@ export default function ElementDetailPage() {
   const optionCount = options.length;
   const optionLabel = optionCount === 1 ? '1 option' : `${optionCount} options`;
 
-  const isLocked = options.some((opt) => {
-    const approvalData = optionApprovals[opt.id];
-    return approvalData?.approvals?.some((a) => a.decision === 'APPROVED' && !a.tentative);
-  });
-
   return (
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6">
@@ -208,26 +203,18 @@ export default function ElementDetailPage() {
         )}
       </div>
 
-      {isLocked && (
-        <div className="mac-alert mb-4">
-          Element is locked — an option has been approved.
-        </div>
-      )}
-
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl">Options ({optionLabel})</h2>
-          {!isLocked && (
-            <button
-              onClick={() => setShowUploadForm(!showUploadForm)}
-              className="mac-btn-primary px-3 py-1 text-sm"
-            >
-              Add Option
-            </button>
-          )}
+          <button
+            onClick={() => setShowUploadForm(!showUploadForm)}
+            className="mac-btn-primary px-3 py-1 text-sm"
+          >
+            Add Option
+          </button>
         </div>
 
-        {showUploadForm && !isLocked && (
+        {showUploadForm && (
           <div className="mb-4">
             <OptionUploadForm elementId={elementId} onOptionCreated={handleOptionCreated} />
           </div>
