@@ -422,10 +422,69 @@ describe('POST /api/scripts/:scriptId/accept-elements', () => {
     expect(res.status).toBe(200);
     expect(mockedPrisma.script.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: 'script-1' },
+        where: { id: 'script-1', status: 'REVIEWING' },
         data: { status: 'READY' },
       }),
     );
+  });
+
+  it('uses atomic update with status check in where clause', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'REVIEWING',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.update.mockResolvedValue({
+      id: 'script-1',
+      status: 'READY',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/accept-elements')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    // Atomic: where clause includes both id AND status
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'script-1', status: 'REVIEWING' },
+        data: { status: 'READY' },
+      }),
+    );
+  });
+
+  it('returns 409 on concurrent race (status already changed)', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'REVIEWING',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    // Prisma throws P2025 when the where clause doesn't match (status already changed)
+    const prismaError = new Error('Record not found') as any;
+    prismaError.code = 'P2025';
+    mockedPrisma.script.update.mockRejectedValue(prismaError);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/accept-elements')
+      .set(authHeader());
+
+    expect(res.status).toBe(409);
   });
 
   it('returns 400 if not REVIEWING', async () => {
@@ -477,6 +536,9 @@ describe('POST /api/scripts/:scriptId/generate-implied', () => {
       { id: 'dept-hm', name: 'Hair & Makeup' },
     ] as any);
 
+    // No existing elements
+    mockedPrisma.element.findMany.mockResolvedValue([] as any);
+
     mockedPrisma.element.createMany.mockResolvedValue({ count: 4 });
 
     const res = await request(app)
@@ -517,6 +579,9 @@ describe('POST /api/scripts/:scriptId/generate-implied', () => {
       { id: 'dept-hm', name: 'Hair & Makeup' },
     ] as any);
 
+    // No existing elements
+    mockedPrisma.element.findMany.mockResolvedValue([] as any);
+
     mockedPrisma.element.createMany.mockResolvedValue({ count: 4 });
 
     const res = await request(app)
@@ -532,6 +597,56 @@ describe('POST /api/scripts/:scriptId/generate-implied', () => {
     expect(names).toContain('JOHN - Hair & Makeup (Scene 1)');
     expect(names).toContain('JOHN - Wardrobe (Scene 2)');
     expect(names).toContain('JOHN - Hair & Makeup (Scene 2)');
+  });
+});
+
+describe('POST /api/scripts/:scriptId/generate-implied (dedup)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('does not create duplicate elements when called twice', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'REVIEWING',
+      sceneData: [
+        { sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] },
+      ],
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.department.findMany.mockResolvedValue([
+      { id: 'dept-costume', name: 'Costume' },
+      { id: 'dept-hm', name: 'Hair & Makeup' },
+    ] as any);
+
+    // Simulate existing elements from a previous call
+    mockedPrisma.element.findMany.mockResolvedValue([
+      { name: 'JOHN - Wardrobe' },
+      { name: 'JOHN - Hair & Makeup' },
+    ] as any);
+
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 0 });
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/generate-implied')
+      .set(authHeader())
+      .send({ mode: 'per-character' });
+
+    expect(res.status).toBe(200);
+    // Should not create any elements because they already exist
+    const createCall = mockedPrisma.element.createMany.mock.calls;
+    if (createCall.length > 0) {
+      const data = (createCall[0][0] as any).data;
+      expect(data).toHaveLength(0);
+    }
   });
 });
 

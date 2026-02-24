@@ -220,9 +220,10 @@ function isNoiseWord(word: string): boolean {
   // Check exact match
   if (NOISE_WORDS.has(word)) return true;
 
-  // Check if it starts with a noise word (e.g., "FADE IN:")
+  // Check if it starts with a noise word followed by a space or colon (e.g., "FADE IN:", "CUT TO:")
+  // This avoids false positives like "PANEL" matching "PAN"
   for (const noise of NOISE_WORDS) {
-    if (word.startsWith(noise)) return true;
+    if (word.startsWith(noise + ' ') || word.startsWith(noise + ':')) return true;
   }
 
   return false;

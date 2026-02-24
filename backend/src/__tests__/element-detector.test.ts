@@ -279,6 +279,43 @@ describe('Element detection', () => {
     expect(maryIdx).toBeLessThan(johnIdx);
   });
 
+  it('does not filter FADED as noise word (FADE is noise but FADED is not)', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nThe lights FADED as they walked out.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const faded = elements.find((e) => e.name === 'FADED');
+    expect(faded).toBeDefined();
+    expect(faded!.type).toBe('OTHER');
+  });
+
+  it('does not filter PANEL as noise word (PAN is noise but PANEL is not)', () => {
+    const pages = [
+      { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nShe opens the PANEL on the wall.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const panel = elements.find((e) => e.name === 'PANEL');
+    expect(panel).toBeDefined();
+    expect(panel!.type).toBe('OTHER');
+  });
+
+  it('still filters FADE IN: as noise word', () => {
+    const pages = [
+      { pageNumber: 1, text: 'FADE IN:\n\nINT. OFFICE - DAY\n\nJOHN\nHello.' },
+    ];
+
+    const { elements } = detectElements(pages);
+
+    const names = elements.map((e) => e.name);
+    expect(names).not.toContain('FADE IN');
+    expect(names).not.toContain('FADE IN:');
+    expect(names).toContain('JOHN');
+  });
+
   it('does not create duplicate props for same name', () => {
     const pages = [
       { pageNumber: 1, text: 'INT. OFFICE - DAY\n\nShe grabs the KNIFE. He looks at the KNIFE.' },

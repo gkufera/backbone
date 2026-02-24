@@ -434,10 +434,18 @@ scriptsRouter.post('/api/scripts/:scriptId/accept-elements', requireAuth, async 
       return;
     }
 
-    await prisma.script.update({
-      where: { id: scriptId },
-      data: { status: 'READY' },
-    });
+    try {
+      await prisma.script.update({
+        where: { id: scriptId, status: 'REVIEWING' },
+        data: { status: 'READY' },
+      });
+    } catch (updateError: any) {
+      if (updateError?.code === 'P2025') {
+        res.status(409).json({ error: 'Script status was changed by another request' });
+        return;
+      }
+      throw updateError;
+    }
 
     res.json({ message: 'Elements accepted, script is now READY' });
   } catch (error) {
@@ -555,11 +563,19 @@ scriptsRouter.post('/api/scripts/:scriptId/generate-implied', requireAuth, async
       }
     }
 
-    if (elementsToCreate.length > 0) {
-      await prisma.element.createMany({ data: elementsToCreate });
+    // Filter out elements that already exist to prevent duplicates on re-run
+    const existing = await prisma.element.findMany({
+      where: { scriptId, status: 'ACTIVE' },
+      select: { name: true },
+    });
+    const existingNames = new Set(existing.map((e) => e.name));
+    const filtered = elementsToCreate.filter((e) => !existingNames.has(e.name));
+
+    if (filtered.length > 0) {
+      await prisma.element.createMany({ data: filtered });
     }
 
-    res.json({ message: `Created ${elementsToCreate.length} implied elements`, count: elementsToCreate.length });
+    res.json({ message: `Created ${filtered.length} implied elements`, count: filtered.length });
   } catch (error) {
     console.error('Generate implied elements error:', error);
     res.status(500).json({ error: 'Internal server error' });
