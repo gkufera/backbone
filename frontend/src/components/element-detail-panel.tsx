@@ -116,6 +116,16 @@ export function ElementDetailPanel({
     }
   }
 
+  async function handleConfirmApproval(approvalId: string) {
+    setError(null);
+    try {
+      await approvalsApi.confirm(approvalId);
+      await refreshOptions();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to confirm approval');
+    }
+  }
+
   async function handleThumbnailApprove(optionId: string, decision: string) {
     setError(null);
     try {
@@ -249,6 +259,8 @@ export function ElementDetailPanel({
           onClose={() => setLightboxOption(null)}
           onApprove={handleApprove}
           disableApproval={submittingApproval}
+          approvals={optionApprovals[lightboxOption.id]?.approvals}
+          onConfirmApproval={handleConfirmApproval}
         />
       )}
     </div>
