@@ -96,10 +96,11 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       return;
     }
 
-    // Check if element is locked (has an approved option)
+    // Check if element is locked (has an official approved option — not tentative)
     const approvedOption = await prisma.approval.findFirst({
       where: {
         decision: 'APPROVED',
+        tentative: false,
         option: {
           elementId,
           status: OptionStatus.ACTIVE,

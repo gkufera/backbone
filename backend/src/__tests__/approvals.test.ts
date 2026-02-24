@@ -255,6 +255,209 @@ describe('POST /api/options/:optionId/approvals', () => {
   });
 });
 
+// ── Tentative approval logic ──────────────────────────────────────
+
+describe('Tentative approval logic', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('MEMBER creates tentative approval', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-2',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'OUTSTANDING',
+        name: 'JOHN',
+        scriptId: 'script-1',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      tentative: true,
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.approval.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ tentative: true }),
+    });
+  });
+
+  it('ADMIN creates tentative approval', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-2',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'OUTSTANDING',
+        name: 'JOHN',
+        scriptId: 'script-1',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      tentative: true,
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.approval.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ tentative: true }),
+    });
+  });
+
+  it('DECIDER creates official (non-tentative) approval', async () => {
+    mockOptionWithMembership();
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      tentative: false,
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.approval.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ tentative: false }),
+    });
+  });
+
+  it('tentative APPROVED does NOT lock element (no workflow state update)', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-2',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'OUTSTANDING',
+        name: 'JOHN',
+        scriptId: 'script-1',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      tentative: true,
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    // Element should NOT be updated because the approval is tentative
+    expect(mockedPrisma.element.update).not.toHaveBeenCalled();
+  });
+
+  it('official APPROVED does lock element (workflow state APPROVED)', async () => {
+    mockOptionWithMembership(); // DECIDER role
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      tentative: false,
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.element.update).toHaveBeenCalledWith({
+      where: { id: 'elem-1' },
+      data: { workflowState: 'APPROVED' },
+    });
+  });
+});
+
 // ── GET /api/options/:optionId/approvals ──────────────────────────
 
 describe('GET /api/options/:optionId/approvals', () => {

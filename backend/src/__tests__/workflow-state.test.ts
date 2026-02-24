@@ -177,6 +177,49 @@ describe('Workflow state on approval', () => {
     expect(res.status).toBe(201);
     expect(mockedPrisma.element.update).not.toHaveBeenCalled();
   });
+
+  it('does not set element workflowState when MEMBER tentative APPROVED', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-2',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        workflowState: 'OUTSTANDING',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+
+    mockedPrisma.approval.create.mockResolvedValue({
+      id: 'appr-4',
+      optionId: 'opt-1',
+      userId: 'user-1',
+      decision: 'APPROVED',
+      tentative: true,
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.element.update).not.toHaveBeenCalled();
+  });
 });
 
 // ── Workflow state transitions on readyForReview ────────────────────

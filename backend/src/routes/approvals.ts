@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
-import { ApprovalDecision, NotificationType } from '@backbone/shared/types';
+import { ApprovalDecision, MemberRole, NotificationType } from '@backbone/shared/types';
 import { createNotification } from '../services/notification-service.js';
 
 const DECISION_TO_NOTIFICATION_TYPE: Record<string, NotificationType> = {
@@ -71,17 +71,21 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
       return;
     }
 
+    // Only DECIDER approvals are official; ADMIN and MEMBER are tentative
+    const tentative = membership.role !== MemberRole.DECIDER;
+
     const approval = await prisma.approval.create({
       data: {
         optionId,
         userId: authReq.user.userId,
         decision,
         note: note || null,
+        tentative,
       },
     });
 
-    // Update element workflow state on APPROVED decision
-    if (decision === 'APPROVED') {
+    // Update element workflow state on official (non-tentative) APPROVED decision
+    if (decision === 'APPROVED' && !tentative) {
       await prisma.element.update({
         where: { id: option.elementId },
         data: { workflowState: 'APPROVED' },
