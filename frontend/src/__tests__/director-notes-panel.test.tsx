@@ -161,4 +161,55 @@ describe('DirectorNotesPanel', () => {
       });
     });
   });
+
+  it('displays error when create fails', async () => {
+    const user = userEvent.setup();
+
+    mockCreate.mockRejectedValue(new Error('Server error'));
+
+    render(
+      <DirectorNotesPanel
+        scriptId="script-1"
+        sceneData={sceneData}
+        userRole="DECIDER"
+        userId="user-decider"
+      />,
+    );
+
+    await screen.findByText(/Scene 1/);
+
+    const addButtons = screen.getAllByRole('button', { name: /add note/i });
+    await user.click(addButtons[0]);
+
+    const textarea = screen.getByPlaceholderText(/director.s note/i);
+    await user.type(textarea, 'Failing note');
+
+    await user.click(screen.getByRole('button', { name: /save/i }));
+
+    expect(await screen.findByText(/failed to create note/i)).toBeInTheDocument();
+  });
+
+  it('displays error when delete fails', async () => {
+    const user = userEvent.setup();
+
+    mockDelete.mockRejectedValue(new Error('Server error'));
+
+    render(
+      <DirectorNotesPanel
+        scriptId="script-1"
+        sceneData={sceneData}
+        userRole="DECIDER"
+        userId="user-decider"
+      />,
+    );
+
+    // Wait for notes to load (note-1 is created by user-decider)
+    await screen.findByText('More dramatic lighting');
+
+    // Click delete on the first note
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    await user.click(deleteButtons[0]);
+
+    expect(await screen.findByText(/failed to delete note/i)).toBeInTheDocument();
+  });
 });

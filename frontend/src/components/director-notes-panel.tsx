@@ -19,6 +19,7 @@ export function DirectorNotesPanel({
 }: DirectorNotesPanelProps) {
   const [notes, setNotes] = useState<DirectorNoteResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [addingForScene, setAddingForScene] = useState<number | null>(null);
   const [newNoteText, setNewNoteText] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -29,8 +30,11 @@ export function DirectorNotesPanel({
   useEffect(() => {
     directorNotesApi
       .list(scriptId)
-      .then((data) => setNotes(data.notes))
-      .catch(() => {})
+      .then((data) => {
+        setNotes(data.notes);
+        setError(null);
+      })
+      .catch(() => setError('Failed to load notes'))
       .finally(() => setIsLoading(false));
   }, [scriptId]);
 
@@ -53,8 +57,9 @@ export function DirectorNotesPanel({
       setNotes((prev) => [...prev, created]);
       setNewNoteText('');
       setAddingForScene(null);
+      setError(null);
     } catch {
-      // Error handling omitted for simplicity
+      setError('Failed to create note');
     }
   }
 
@@ -68,8 +73,9 @@ export function DirectorNotesPanel({
       setNotes((prev) => prev.map((n) => (n.id === noteId ? { ...n, note: updated.note } : n)));
       setEditingNoteId(null);
       setEditNoteText('');
+      setError(null);
     } catch {
-      // Error handling omitted for simplicity
+      setError('Failed to update note');
     }
   }
 
@@ -77,8 +83,9 @@ export function DirectorNotesPanel({
     try {
       await directorNotesApi.delete(noteId);
       setNotes((prev) => prev.filter((n) => n.id !== noteId));
+      setError(null);
     } catch {
-      // Error handling omitted for simplicity
+      setError('Failed to delete note');
     }
   }
 
@@ -89,6 +96,8 @@ export function DirectorNotesPanel({
   return (
     <div className="p-4">
       <h2 className="text-xl mb-4">Director&apos;s Notes</h2>
+
+      {error && <p className="text-sm text-black font-bold mb-4">{error}</p>}
 
       <ul className="divide-y divide-black">
         {sceneData.map((scene) => {
