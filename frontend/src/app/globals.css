@@ -1,26 +1,283 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff;
+  --foreground: #000;
+  --font-pixel: var(--font-vt323), monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-pixel);
+  --font-mono: var(--font-pixel);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Reset & Base ──────────────────────────────────────────── */
+
+* {
+  border-color: #000;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  color: #000;
+  font-family: var(--font-pixel);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+  image-rendering: pixelated;
+}
+
+/* ── Links ─────────────────────────────────────────────────── */
+
+a {
+  color: #000;
+  text-decoration: underline;
+}
+a:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+
+button {
+  border: 2px solid #000;
+  background: #fff;
+  color: #000;
+  font-family: var(--font-pixel);
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  background: #000;
+  color: #fff;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Inputs / Textareas / Selects ──────────────────────────── */
+
+input,
+textarea,
+select {
+  border: 2px solid #000;
+  background: #fff;
+  color: #000;
+  font-family: var(--font-pixel);
+  outline: none;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid #000;
+  outline-offset: 1px;
+}
+
+/* ── Mac Window Chrome ─────────────────────────────────────── */
+
+.mac-window {
+  border: 2px solid #000;
+  background: #fff;
+}
+
+.mac-window-title {
+  background: #000;
+  color: #fff;
+  padding: 4px 8px;
+  font-weight: bold;
+  font-size: 14px;
+  border-bottom: 2px solid #000;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    #fff 2px,
+    #fff 4px
+  );
+  background-clip: padding-box;
+  color: #000;
+  text-shadow: 0 0 0 #000;
+  /* Solid center strip for text readability */
+  position: relative;
+}
+.mac-window-title::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 0;
+}
+.mac-window-title span,
+.mac-window-title * {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+}
+
+.mac-window-body {
+  padding: 12px;
+}
+
+/* ── Simpler inverted panel title ──────────────────────────── */
+
+.mac-panel-title {
+  background: #000;
+  color: #fff;
+  padding: 4px 8px;
+  font-weight: bold;
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  border: 2px solid #000;
+  font-family: var(--font-pixel);
+}
+
+.badge-default {
+  background: #fff;
+  color: #000;
+}
+
+.badge-approved {
+  background: #000;
+  color: #fff;
+}
+
+.badge-rejected {
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff,
+    #fff 3px,
+    #000 3px,
+    #000 6px
+  );
+  color: #000;
+}
+
+.badge-maybe {
+  background: repeating-conic-gradient(
+    #000 0% 25%,
+    #fff 0% 50%
+  ) 50% / 6px 6px;
+  color: #000;
+}
+
+.badge-outstanding {
+  background: #fff;
+  color: #000;
+  border-style: dashed;
+}
+
+.badge-ready {
+  background: #000;
+  color: #fff;
+}
+
+.badge-fuzzy {
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff,
+    #fff 3px,
+    #000 3px,
+    #000 6px
+  );
+  color: #000;
+}
+
+.badge-missing {
+  background: #000;
+  color: #fff;
+  border-style: dashed;
+}
+
+/* ── Mac Buttons ───────────────────────────────────────────── */
+
+.mac-btn-primary {
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  padding: 6px 16px;
+  font-family: var(--font-pixel);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.mac-btn-primary:hover {
+  background: #fff;
+  color: #000;
+}
+
+.mac-btn-secondary {
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+  padding: 6px 16px;
+  font-family: var(--font-pixel);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.mac-btn-secondary:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* ── Alerts ────────────────────────────────────────────────── */
+
+.mac-alert {
+  border: 2px solid #000;
+  padding: 12px;
+  background: #fff;
+}
+
+.mac-alert-error {
+  border: 2px solid #000;
+  padding: 12px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff,
+    #fff 4px,
+    #000 4px,
+    #000 5px
+  );
+  color: #000;
+}
+
+/* ── Notification Dot ──────────────────────────────────────── */
+
+.mac-notification-dot {
+  background: #000;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+}
+
+/* ── Custom Scrollbar ──────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #fff;
+  border-left: 2px solid #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #000;
+  border: 2px solid #fff;
 }
