@@ -18,6 +18,11 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
 
+  const [emailNotifications, setEmailNotifications] = useState(
+    user?.emailNotificationsEnabled ?? true,
+  );
+  const [notifLoading, setNotifLoading] = useState(false);
+
   async function handleProfileSubmit(e: React.FormEvent) {
     e.preventDefault();
     setProfileError('');
@@ -57,6 +62,21 @@ export default function SettingsPage() {
       setPasswordError(err instanceof Error ? err.message : 'Failed to change password');
     } finally {
       setPasswordLoading(false);
+    }
+  }
+
+  async function handleEmailNotificationsToggle() {
+    const newValue = !emailNotifications;
+    setEmailNotifications(newValue);
+    setNotifLoading(true);
+
+    try {
+      const response = await authApi.updateMe({ emailNotificationsEnabled: newValue });
+      updateUser(response.user);
+    } catch {
+      setEmailNotifications(!newValue); // revert
+    } finally {
+      setNotifLoading(false);
     }
   }
 
@@ -117,6 +137,27 @@ export default function SettingsPage() {
               {profileLoading ? 'Saving...' : 'Save Profile'}
             </button>
           </form>
+        </div>
+      </div>
+
+      <div className="mac-window mb-6">
+        <div className="mac-window-title">
+          <span>Notifications</span>
+        </div>
+        <div className="mac-window-body space-y-4">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={emailNotifications}
+              onChange={handleEmailNotificationsToggle}
+              disabled={notifLoading}
+              className="h-4 w-4 border-2 border-black"
+            />
+            <span className="font-mono text-sm">Email Notifications</span>
+          </label>
+          <p className="font-mono text-xs">
+            When enabled, you will receive email notifications for approvals, script uploads, and team invites.
+          </p>
         </div>
       </div>
 

@@ -8,6 +8,7 @@ interface AuthUser {
   name: string;
   email: string;
   emailVerified: boolean;
+  emailNotificationsEnabled: boolean;
   createdAt: string;
 }
 

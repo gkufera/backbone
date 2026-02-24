@@ -26,6 +26,7 @@ vi.mock('../lib/auth-context', () => ({
       name: 'Test User',
       email: 'test@example.com',
       emailVerified: true,
+      emailNotificationsEnabled: true,
       createdAt: new Date().toISOString(),
     },
     isAuthenticated: true,
@@ -144,5 +145,37 @@ describe('Settings page', () => {
     await user.click(screen.getByRole('button', { name: /change password/i }));
 
     expect(await screen.findByText(/incorrect/i)).toBeInTheDocument();
+  });
+
+  it('renders email notifications checkbox', () => {
+    render(<SettingsPage />);
+
+    const checkbox = screen.getByLabelText(/email notifications/i);
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).toBeChecked();
+  });
+
+  it('calls updateMe with emailNotificationsEnabled when toggled', async () => {
+    const user = userEvent.setup();
+
+    mockUpdateMe.mockResolvedValue({
+      user: {
+        id: 'user-1',
+        name: 'Test User',
+        email: 'test@example.com',
+        emailVerified: true,
+        emailNotificationsEnabled: false,
+        createdAt: new Date().toISOString(),
+      },
+    });
+
+    render(<SettingsPage />);
+
+    const checkbox = screen.getByLabelText(/email notifications/i);
+    await user.click(checkbox);
+
+    await waitFor(() => {
+      expect(mockUpdateMe).toHaveBeenCalledWith({ emailNotificationsEnabled: false });
+    });
   });
 });

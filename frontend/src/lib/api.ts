@@ -36,6 +36,7 @@ interface AuthResponse {
     name: string;
     email: string;
     emailVerified: boolean;
+    emailNotificationsEnabled: boolean;
     createdAt: string;
   };
 }
@@ -440,6 +441,7 @@ export const authApi = {
     name?: string;
     currentPassword?: string;
     newPassword?: string;
+    emailNotificationsEnabled?: boolean;
   }): Promise<{ user: AuthResponse['user'] }> {
     return request<{ user: AuthResponse['user'] }>('/api/auth/me', {
       method: 'PATCH',
