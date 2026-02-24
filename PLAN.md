@@ -1,7 +1,23 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 9 QA check complete.
+None — Sprint 10 UX polish complete.
+
+## Completed (Sprint 10: UX Polish — Roles, Colors, Wizard, Highlights, Element List)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Fix solo ADMIN↔DECIDER role switch | `fix: allow solo admin/decider to switch between admin and decider roles` | +2 (replaced 1) |
+| 2 | Department color picker on production page | `feat: add inline department color picker to production page` | +3 |
+| 3 | Merge wizard from 3 steps to 2 | `feat: merge wizard into 2 steps with implied elements at top` | +2 (net, rewritten) |
+| 4 | PDF highlights translucent fill | `feat: change PDF highlights from dashed border to translucent highlighter fill` | 0 (updated assertions) |
+| 5 | Element list defaults + By Department | `feat: element list defaults to appearance sort, rename By Type to By Department, add labels` | +5 (net, rewritten) |
+| 6 | Full test suite + PLAN.md + deploy | `docs: update PLAN.md after Sprint 10 UX polish` | 0 |
+
+### Test Counts (Post Sprint 10)
+- **Frontend**: 326 tests (was 319, +7 net)
+- **Backend**: 300 tests (was 299, +1 net)
+- **Total**: 626 tests (was 618, +8 net)
 
 ## Completed (Sprint 9 QA Check)
 
