@@ -114,6 +114,33 @@ describe('Script upload page', () => {
     });
   });
 
+  it('shows error when S3 upload fails', async () => {
+    const user = userEvent.setup();
+
+    mockedScriptsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'scripts/uuid/test-script.pdf',
+    });
+
+    // S3 returns a non-ok response (e.g., CORS error, 403)
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 403 });
+
+    render(<ScriptUploadPage />);
+
+    const file = new File(['dummy'], 'test-script.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/pdf/i);
+    await user.upload(fileInput, file);
+
+    await user.click(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/upload.*failed|failed.*upload/i);
+    });
+
+    // Should NOT proceed to create the script record
+    expect(mockedScriptsApi.create).not.toHaveBeenCalled();
+  });
+
   it('redirects to script page on success', async () => {
     const user = userEvent.setup();
 

@@ -45,11 +45,14 @@ export default function ScriptUploadPage() {
       const { uploadUrl, s3Key } = await scriptsApi.getUploadUrl(file.name, 'application/pdf');
 
       // Step 2: Upload to S3
-      await fetch(uploadUrl, {
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': 'application/pdf' },
       });
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload file to storage');
+      }
 
       // Step 3: Create script record
       const { script } = await scriptsApi.create(productionId, {
