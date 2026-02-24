@@ -253,6 +253,41 @@ describe('OptionUploadForm', () => {
     expect(dropZone).toHaveClass('cursor-pointer');
   });
 
+  it('rejects file exceeding max size', async () => {
+    const user = userEvent.setup();
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    // Create a file mock with size > 200MB
+    const bigFile = new File(['x'], 'huge.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(bigFile, 'size', { value: 201 * 1024 * 1024 });
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, bigFile);
+    await user.click(screen.getByRole('button', { name: /upload|submit|add/i }));
+
+    expect(await screen.findByText(/file is too large/i)).toBeInTheDocument();
+    expect(mockedOptionsApi.getUploadUrl).not.toHaveBeenCalled();
+  });
+
+  it('rejects unsupported file type on drop', () => {
+    const { fireEvent } = require('@testing-library/react');
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const dropZone = screen.getByText(/drop file here/i).closest('div')!;
+    const zipFile = new File(['test'], 'archive.zip', { type: 'application/zip' });
+
+    fireEvent.drop(dropZone, {
+      dataTransfer: {
+        files: [zipFile],
+        types: ['Files'],
+      },
+    });
+
+    expect(screen.getByText(/unsupported file type/i)).toBeInTheDocument();
+  });
+
   it('succeeds uploading file even when thumbnail generation fails', async () => {
     const user = userEvent.setup();
 

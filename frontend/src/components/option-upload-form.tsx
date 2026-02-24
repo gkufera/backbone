@@ -3,7 +3,11 @@
 import { useState, useRef } from 'react';
 import { optionsApi } from '../lib/api';
 import { generateImageThumbnail, generateVideoThumbnail } from '../lib/thumbnail';
-import { OPTION_ALLOWED_CONTENT_TYPES, mediaTypeFromMime } from '@backbone/shared/constants';
+import {
+  OPTION_ALLOWED_CONTENT_TYPES,
+  OPTION_MAX_FILE_SIZE_BYTES,
+  mediaTypeFromMime,
+} from '@backbone/shared/constants';
 import { MediaType } from '@backbone/shared/types';
 
 interface OptionUploadFormProps {
@@ -55,6 +59,12 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
 
   async function submitFile() {
     if (!file) return;
+
+    if (file.size > OPTION_MAX_FILE_SIZE_BYTES) {
+      setError('File is too large. Maximum size is 200 MB.');
+      return;
+    }
+
     setIsUploading(true);
     try {
       const mediaType = mediaTypeFromMime(file.type);
@@ -168,7 +178,14 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
             e.preventDefault();
             setIsDragging(false);
             const droppedFile = e.dataTransfer.files[0];
-            if (droppedFile) setFile(droppedFile);
+            if (droppedFile) {
+              if (!mediaTypeFromMime(droppedFile.type)) {
+                setError('Unsupported file type');
+                return;
+              }
+              setError(null);
+              setFile(droppedFile);
+            }
           }}
         >
           <input
