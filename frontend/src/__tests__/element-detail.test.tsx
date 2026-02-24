@@ -445,4 +445,43 @@ describe('Element detail page', () => {
 
     expect(mockedApprovalsApi.confirm).toHaveBeenCalledWith('appr-1');
   });
+
+  it('renders department dropdown when departments exist', async () => {
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: [] });
+    mockedDepartmentsApi.list.mockResolvedValue({
+      departments: [
+        { id: 'dept-1', productionId: 'prod-1', name: 'Cast', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        { id: 'dept-2', productionId: 'prod-1', name: 'Locations', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      ],
+    });
+
+    render(<ElementDetailPage />);
+
+    const select = await screen.findByRole('combobox', { name: /department/i });
+    expect(select).toBeInTheDocument();
+    expect(screen.getByText('Cast')).toBeInTheDocument();
+    expect(screen.getByText('Locations')).toBeInTheDocument();
+  });
+
+  it('calls elementsApi.update when department is changed', async () => {
+    const user = userEvent.setup();
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: [] });
+    mockedDepartmentsApi.list.mockResolvedValue({
+      departments: [
+        { id: 'dept-1', productionId: 'prod-1', name: 'Cast', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      ],
+    });
+    mockedElementsApi.update.mockResolvedValue({
+      element: { ...mockElement, departmentId: 'dept-1' },
+    });
+
+    render(<ElementDetailPage />);
+
+    const select = await screen.findByRole('combobox', { name: /department/i });
+    await user.selectOptions(select, 'dept-1');
+
+    expect(mockedElementsApi.update).toHaveBeenCalledWith('elem-1', { departmentId: 'dept-1' });
+  });
 });
