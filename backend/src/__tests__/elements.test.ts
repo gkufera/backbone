@@ -306,6 +306,36 @@ describe('GET /api/scripts/:scriptId/elements', () => {
   });
 });
 
+describe('DELETE /api/elements/:id (safety check)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 409 when element has options', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      script: { productionId: 'prod-1', status: 'REVIEWING' },
+      _count: { options: 3 },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .delete('/api/elements/elem-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/options/i);
+  });
+});
+
 describe('PATCH /api/elements/:id (archive/soft-delete)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

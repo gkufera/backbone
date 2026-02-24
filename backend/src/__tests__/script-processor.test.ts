@@ -153,6 +153,14 @@ describe('Script Processor', () => {
     );
   });
 
+  it('does not throw when ERROR status update also fails', async () => {
+    mockedGetFileBuffer.mockRejectedValue(new Error('S3 error'));
+    mockedPrisma.script.update.mockRejectedValue(new Error('DB connection lost'));
+
+    // Should not throw — the error should be caught internally
+    await expect(processScript('script-1', 'scripts/uuid/test.pdf')).resolves.toBeUndefined();
+  });
+
   it('stores page count on script', async () => {
     mockedGetFileBuffer.mockResolvedValue(Buffer.from('fake pdf'));
     mockedParsePdf.mockResolvedValue({

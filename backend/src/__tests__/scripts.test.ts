@@ -661,6 +661,7 @@ describe('DELETE /api/elements/:id (hard-delete)', () => {
       scriptId: 'script-1',
       name: 'JOHN',
       script: { productionId: 'prod-1', status: 'REVIEWING' },
+      _count: { options: 0 },
     } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
@@ -686,6 +687,7 @@ describe('DELETE /api/elements/:id (hard-delete)', () => {
       scriptId: 'script-1',
       name: 'JOHN',
       script: { productionId: 'prod-1', status: 'READY' },
+      _count: { options: 0 },
     } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({

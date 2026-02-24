@@ -211,6 +211,10 @@ departmentsRouter.patch(
         updateData.name = trimmedName;
       }
       if (color !== undefined) {
+        if (color !== null && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
+          res.status(400).json({ error: 'Color must be a valid hex color (e.g., #FF0000) or null' });
+          return;
+        }
         updateData.color = color;
       }
 

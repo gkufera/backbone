@@ -184,7 +184,10 @@ elementsRouter.delete('/api/elements/:id', requireAuth, async (req, res) => {
 
     const element = await prisma.element.findUnique({
       where: { id },
-      include: { script: { select: { productionId: true, status: true } } },
+      include: {
+        script: { select: { productionId: true, status: true } },
+        _count: { select: { options: true } },
+      },
     });
 
     if (!element) {
@@ -208,6 +211,11 @@ elementsRouter.delete('/api/elements/:id', requireAuth, async (req, res) => {
 
     if (element.script.status !== 'REVIEWING') {
       res.status(403).json({ error: 'Elements can only be deleted when script is in REVIEWING status' });
+      return;
+    }
+
+    if (element._count.options > 0) {
+      res.status(409).json({ error: 'Cannot delete element with options. Archive it instead.' });
       return;
     }
 

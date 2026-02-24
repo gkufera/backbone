@@ -79,9 +79,13 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
     clearProgress(scriptId);
 
     // Update script status to ERROR
-    await prisma.script.update({
-      where: { id: scriptId },
-      data: { status: 'ERROR' },
-    });
+    try {
+      await prisma.script.update({
+        where: { id: scriptId },
+        data: { status: 'ERROR' },
+      });
+    } catch (updateError) {
+      console.error(`Failed to set ERROR status for ${scriptId}:`, updateError);
+    }
   }
 }

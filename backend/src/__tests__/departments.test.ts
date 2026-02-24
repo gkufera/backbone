@@ -491,5 +491,73 @@ describe('PATCH /api/productions/:id/departments/:departmentId', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('returns 400 for invalid color string', async () => {
+    mockAdminMembership();
+
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(adminUser))
+      .send({ color: 'blah' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/hex color/i);
+  });
+
+  it('accepts valid hex color', async () => {
+    mockAdminMembership();
+
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    mockedPrisma.department.update.mockResolvedValue({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+      color: '#FF0000',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(adminUser))
+      .send({ color: '#FF0000' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.department.color).toBe('#FF0000');
+  });
+
+  it('accepts null color to clear', async () => {
+    mockAdminMembership();
+
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    mockedPrisma.department.update.mockResolvedValue({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+      color: null,
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(adminUser))
+      .send({ color: null });
+
+    expect(res.status).toBe(200);
+    expect(res.body.department.color).toBeNull();
+  });
 });
 
