@@ -125,6 +125,7 @@ authRouter.post('/api/auth/login', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        emailVerified: user.emailVerified,
         createdAt: user.createdAt,
       },
     });

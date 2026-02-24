@@ -210,6 +210,7 @@ describe('POST /api/auth/login', () => {
     expect(res.body).toHaveProperty('token');
     expect(res.body).toHaveProperty('user');
     expect(res.body.user.email).toBe('test@example.com');
+    expect(res.body.user.emailVerified).toBe(true);
     expect(res.body.user).not.toHaveProperty('passwordHash');
   });
 
