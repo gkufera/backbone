@@ -9,6 +9,11 @@ vi.mock('../services/email-service.js', () => ({
   sendNotificationEmail: vi.fn(),
 }));
 
+// Mock SMS service
+vi.mock('../services/sms-service.js', () => ({
+  sendSms: vi.fn(),
+}));
+
 // Mock Prisma client
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
@@ -27,15 +32,22 @@ vi.mock('../lib/prisma.js', () => ({
       findFirst: vi.fn(),
       update: vi.fn(),
     },
+    phoneVerificationCode: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
 
 import { prisma } from '../lib/prisma.js';
 import { sendEmail } from '../services/email-service.js';
+import { sendSms } from '../services/sms-service.js';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedSendEmail = vi.mocked(sendEmail);
+const mockedSendSms = vi.mocked(sendSms);
 
 describe('POST /api/auth/signup', () => {
   beforeEach(() => {
@@ -913,5 +925,146 @@ describe('PATCH /api/auth/me', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.user.emailNotificationsEnabled).toBe(false);
+  });
+});
+
+describe('POST /api/auth/send-phone-code', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app)
+      .post('/api/auth/send-phone-code')
+      .send({ phone: '+15551234567' });
+
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 for invalid phone format', async () => {
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/send-phone-code')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ phone: '555-1234' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/phone/i);
+  });
+
+  it('creates code and returns success for valid phone', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.phoneVerificationCode.create.mockResolvedValue({
+      id: 'pvc-1',
+      userId: 'user-1',
+      phone: '+15551234567',
+      code: '123456',
+      expiresAt: new Date(Date.now() + 600000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/send-phone-code')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ phone: '+15551234567' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/code sent/i);
+    expect(mockedPrisma.phoneVerificationCode.create).toHaveBeenCalled();
+    expect(mockedSendSms).toHaveBeenCalledWith(
+      '+15551234567',
+      expect.stringContaining('verification code'),
+    );
+  });
+});
+
+describe('POST /api/auth/verify-phone', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app)
+      .post('/api/auth/verify-phone')
+      .send({ code: '123456' });
+
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 for invalid/unknown code', async () => {
+    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(null);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/verify-phone')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ code: '000000' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/invalid|not found/i);
+  });
+
+  it('succeeds with valid code', async () => {
+    const mockCode = {
+      id: 'pvc-1',
+      userId: 'user-1',
+      phone: '+15551234567',
+      code: '123456',
+      expiresAt: new Date(Date.now() + 600000),
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(mockCode as any);
+    mockedPrisma.$transaction.mockResolvedValue([{}, {}]);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/verify-phone')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ code: '123456' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/verified/i);
+  });
+
+  it('returns 400 for expired code', async () => {
+    const mockCode = {
+      id: 'pvc-1',
+      userId: 'user-1',
+      phone: '+15551234567',
+      code: '123456',
+      expiresAt: new Date(Date.now() - 1000),
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(mockCode as any);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/verify-phone')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ code: '123456' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/expired/i);
   });
 });
