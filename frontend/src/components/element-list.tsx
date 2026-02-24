@@ -151,7 +151,7 @@ export function ElementList({
         </div>
       ) : (
         <div>
-          <ul className="divide-y divide-black">
+          <ul className="divide-y divide-black" aria-label="Elements sorted by appearance">
             {sortedByAppearance.map((elem) => (
               <ElementRow
                 key={elem.id}
@@ -190,7 +190,7 @@ function ElementGroup({
   return (
     <div>
       <h3 className="mb-2 text-lg">{title}</h3>
-      <ul className="divide-y divide-black">
+      <ul className="divide-y divide-black" aria-label={title}>
         {elements.map((elem) => (
           <ElementRow
             key={elem.id}

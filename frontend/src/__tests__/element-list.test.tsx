@@ -323,6 +323,25 @@ describe('Element list', () => {
     expect(row.style.borderLeft).toBe('');
   });
 
+  it('type group lists have aria-label', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    // Characters group should have an aria-labeled list
+    const charactersList = screen.getByRole('list', { name: 'Characters' });
+    expect(charactersList).toBeInTheDocument();
+  });
+
+  it('appearance view list has aria-label', async () => {
+    const user = userEvent.setup();
+
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    await user.click(screen.getByRole('button', { name: /by appearance/i }));
+
+    const sortedList = screen.getByRole('list', { name: 'Elements sorted by appearance' });
+    expect(sortedList).toBeInTheDocument();
+  });
+
   it('archive button stopPropagation', async () => {
     const user = userEvent.setup();
     const onElementClick = vi.fn();
