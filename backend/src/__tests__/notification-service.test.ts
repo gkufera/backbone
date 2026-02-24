@@ -152,6 +152,44 @@ describe('createNotification', () => {
   });
 });
 
+describe('notifyProductionMembers', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('does not reject if one notification in the batch fails', async () => {
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-1' },
+      { userId: 'user-2' },
+      { userId: 'user-3' },
+    ] as any);
+
+    // First call succeeds, second fails, third succeeds
+    mockedPrisma.notification.create
+      .mockResolvedValueOnce({ id: 'notif-1' } as any)
+      .mockRejectedValueOnce(new Error('DB write failed'))
+      .mockResolvedValueOnce({ id: 'notif-3' } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Should not throw even though one notification failed
+    await expect(
+      notifyProductionMembers(
+        'prod-1',
+        'user-actor',
+        'SCRIPT_UPLOADED',
+        'New script uploaded',
+      ),
+    ).resolves.not.toThrow();
+
+    // All 3 members should have been attempted (none is excluded since actor is different)
+    expect(mockedPrisma.notification.create).toHaveBeenCalledTimes(3);
+
+    consoleSpy.mockRestore();
+  });
+});
+
 describe('notifyDeciders', () => {
   beforeEach(() => {
     vi.clearAllMocks();

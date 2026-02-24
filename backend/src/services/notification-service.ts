@@ -53,7 +53,7 @@ export async function notifyProductionMembers(
       createNotification(m.userId, productionId, type, message, link),
     );
 
-  return Promise.all(notifications);
+  return Promise.allSettled(notifications);
 }
 
 export async function notifyDeciders(
@@ -74,5 +74,5 @@ export async function notifyDeciders(
       createNotification(m.userId, productionId, type, message, link),
     );
 
-  return Promise.all(notifications);
+  return Promise.allSettled(notifications);
 }
