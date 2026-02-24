@@ -435,6 +435,62 @@ All bugs, features, and planned work are tracked in [`roadmap.md`](./roadmap.md)
 - **Immutable records** — Elements, options, and approval decisions are never hard-deleted. Use status fields and soft-delete patterns.
 - **Script is the anchor** — Every feature connects back to the script. Elements live on script pages. Options belong to elements.
 
+## Visual Design System: 1-Bit Macintosh
+
+The frontend uses a **1-bit monochromatic design** inspired by the early Macintosh (System 1–6 era). All new features and UI changes MUST follow these rules:
+
+### Core Rules
+
+- **Pure black and white only** — `#000` and `#fff`. No grays, no colors, no gradients. No exceptions.
+- **VT323 pixel font** — Loaded via `next/font/google`. This is the only font. No fallback to system fonts in the UI.
+- **No rounded corners** — `border-radius: 0` everywhere. Never use `rounded-*` Tailwind classes.
+- **No shadows** — Never use `shadow-*` Tailwind classes. Visual hierarchy comes from borders and inversion.
+- **No dark mode** — No `dark:*` classes. The early Mac was always white.
+- **2px solid black borders** — On all containers, inputs, buttons, cards.
+- **Font smoothing disabled** — `-webkit-font-smoothing: none` for authentic bitmap rendering.
+
+### Component Patterns
+
+| Pattern | Implementation |
+|---------|---------------|
+| **Cards / Sections** | Use `.mac-window` + `.mac-window-title` + `.mac-window-body` for windowed chrome with striped title bar |
+| **Primary buttons** | `.mac-btn-primary` (inverted: white text on black, hover reverses) |
+| **Secondary buttons** | `.mac-btn-secondary` (outlined: black text, black border, hover inverts) |
+| **Hover states** | Invert colors: `hover:bg-black hover:text-white` |
+| **Selected state** | `bg-black text-white` |
+| **Unselected state** | `bg-white text-black border-2 border-black` |
+| **Links** | Underlined black text, invert on hover (handled by global CSS) |
+| **Alerts** | `.mac-alert` (bordered) or `.mac-alert-error` (diagonal stripe pattern) |
+| **Notification dot** | `.mac-notification-dot` (square, inverted, no border-radius) |
+
+### Badge Classes for Status
+
+| Status | Class | Visual |
+|--------|-------|--------|
+| Default | `.badge .badge-default` | White bg, black border |
+| Approved | `.badge .badge-approved` | Inverted (black bg, white text) |
+| Rejected | `.badge .badge-rejected` | Diagonal stripe pattern |
+| Maybe | `.badge .badge-maybe` | Checkerboard pattern |
+| Outstanding | `.badge .badge-outstanding` | Dashed border |
+| Ready | `.badge .badge-ready` | Inverted |
+| Fuzzy | `.badge .badge-fuzzy` | Diagonal stripe pattern |
+| Missing | `.badge .badge-missing` | Inverted, dashed border |
+
+### What NOT to Do
+
+- Never add `bg-blue-*`, `bg-green-*`, `bg-red-*`, `bg-yellow-*`, or any color classes
+- Never add `text-zinc-*`, `text-gray-*`, or any gray text classes — use `text-black`
+- Never add `rounded-*` — all corners are square
+- Never add `shadow-*` — no shadows anywhere
+- Never add `dark:*` — no dark mode
+- Never add `focus:ring-*` — use `outline: 2px solid #000` (handled by globals.css)
+
+### Assets
+
+- **Favicon**: `frontend/public/favicon.png` (32x32 1-bit slug icon)
+- **Logo**: `frontend/public/logo.png` ("SLUG MAX" text with slug illustration, 1-bit style)
+- Both use `image-rendering: pixelated` when displayed
+
 ## Code Organization
 
 ### Single Source of Truth (CRITICAL)
