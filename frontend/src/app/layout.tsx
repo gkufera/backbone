@@ -36,7 +36,7 @@ export default function RootLayout({
       <body className={`${vt323.variable} ${courierPrime.variable} flex min-h-screen flex-col`}>
         <Providers>
           <AppHeader />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 px-4">{children}</main>
           <AppFooter />
           <ToastContainer />
         </Providers>
