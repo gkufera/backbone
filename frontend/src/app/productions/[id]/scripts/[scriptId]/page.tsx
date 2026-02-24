@@ -1,16 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {
   scriptsApi,
   elementsApi,
+  departmentsApi,
   type ScriptResponse,
   type ElementWithCountResponse,
+  type DepartmentResponse,
 } from '../../../../../lib/api';
 import { ElementList } from '../../../../../components/element-list';
+import { ProcessingProgress } from '../../../../../components/processing-progress';
+import { ElementWizard } from '../../../../../components/element-wizard';
 import type { HighlightInfo } from '../../../../../lib/pdf-highlights';
 
 const PdfViewer = dynamic(
@@ -37,6 +41,7 @@ export default function ScriptViewerPage() {
     page: number;
     text: string;
   } | null>(null);
+  const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
 
   const elementListRef = useRef<HTMLDivElement>(null);
 
@@ -49,8 +54,18 @@ export default function ScriptViewerPage() {
       const { script: data } = await scriptsApi.get(productionId, scriptId);
       setScript(data);
 
+      // Fetch departments for wizard and filters
+      if (data.status === 'REVIEWING' || data.status === 'READY') {
+        try {
+          const { departments: depts } = await departmentsApi.list(productionId);
+          setDepartments(depts);
+        } catch {
+          // Departments are optional
+        }
+      }
+
       // Fetch PDF download URL if script is ready
-      if (data.status === 'READY') {
+      if (data.status === 'READY' || data.status === 'REVIEWING') {
         try {
           const { downloadUrl } = await scriptsApi.getDownloadUrl(scriptId);
           setPdfUrl(downloadUrl);
@@ -133,6 +148,17 @@ export default function ScriptViewerPage() {
     setShowAddForm(true);
   }
 
+  const handleProcessingComplete = useCallback(
+    (newStatus: string) => {
+      loadScript();
+    },
+    [productionId, scriptId],
+  );
+
+  function handleWizardComplete() {
+    loadScript();
+  }
+
   if (isLoading) {
     return <div className="p-6">Loading...</div>;
   }
@@ -145,19 +171,36 @@ export default function ScriptViewerPage() {
     return <div className="p-6">Script not found.</div>;
   }
 
-  // Non-READY states: show single-column
+  // PROCESSING state: show progress bar
+  if (script.status === 'PROCESSING') {
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
+        <ProcessingProgress scriptId={scriptId} onComplete={handleProcessingComplete} />
+      </div>
+    );
+  }
+
+  // REVIEWING state: show wizard
+  if (script.status === 'REVIEWING') {
+    return (
+      <div>
+        <ElementWizard
+          scriptId={scriptId}
+          elements={script.elements}
+          sceneData={(script as any).sceneData ?? null}
+          departments={departments}
+          onComplete={handleWizardComplete}
+        />
+      </div>
+    );
+  }
+
+  // Non-READY states (RECONCILING, ERROR): show single-column
   if (script.status !== 'READY') {
     return (
       <div className="mx-auto max-w-3xl p-6">
         <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
-
-        {script.status === 'PROCESSING' && (
-          <div className="mac-alert mb-6">
-            <p className="text-black">
-              Script is processing. Elements will appear once extraction is complete.
-            </p>
-          </div>
-        )}
 
         {script.status === 'RECONCILING' && (
           <div className="mac-alert mb-6">
@@ -180,7 +223,7 @@ export default function ScriptViewerPage() {
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
       {/* Left panel: PDF viewer */}
-      <div className="h-1/2 border-b-2 border-black lg:h-full lg:w-1/2 lg:border-b-0 lg:border-r-2">
+      <div className="order-2 h-1/2 border-b-2 border-black lg:order-1 lg:h-full lg:w-1/2 lg:border-b-0 lg:border-r-2">
         {pdfUrl ? (
           <PdfViewer
             pdfUrl={pdfUrl}
@@ -198,7 +241,7 @@ export default function ScriptViewerPage() {
       </div>
 
       {/* Right panel: script metadata + elements */}
-      <div className="h-1/2 overflow-y-auto lg:h-full lg:w-1/2" ref={elementListRef}>
+      <div className="order-1 h-1/2 overflow-y-auto lg:order-2 lg:h-full lg:w-1/2" ref={elementListRef}>
         <div className="p-4">
           <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
 

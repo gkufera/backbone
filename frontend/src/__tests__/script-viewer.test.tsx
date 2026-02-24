@@ -27,11 +27,18 @@ vi.mock('../lib/api', () => ({
     create: vi.fn(),
     list: vi.fn(),
     get: vi.fn(),
+    getProcessingStatus: vi.fn(),
+    acceptElements: vi.fn(),
+    generateImplied: vi.fn(),
   },
   elementsApi: {
     list: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    hardDelete: vi.fn(),
+  },
+  departmentsApi: {
+    list: vi.fn(),
   },
 }));
 
@@ -39,6 +46,20 @@ vi.mock('../lib/api', () => ({
 vi.mock('../components/pdf-viewer', () => ({
   PdfViewer: ({ pdfUrl }: { pdfUrl: string }) => (
     <div data-testid="pdf-viewer-mock">PDF: {pdfUrl}</div>
+  ),
+}));
+
+// Mock ProcessingProgress
+vi.mock('../components/processing-progress', () => ({
+  ProcessingProgress: ({ scriptId }: { scriptId: string }) => (
+    <div data-testid="processing-progress">Processing: {scriptId}</div>
+  ),
+}));
+
+// Mock ElementWizard
+vi.mock('../components/element-wizard', () => ({
+  ElementWizard: ({ scriptId }: { scriptId: string }) => (
+    <div data-testid="element-wizard">Wizard: {scriptId}</div>
   ),
 }));
 
@@ -124,7 +145,7 @@ describe('Script viewer', () => {
     expect(screen.getByText('INT. OFFICE - DAY')).toBeInTheDocument();
   });
 
-  it('shows processing state when PROCESSING', async () => {
+  it('renders processing progress when status is PROCESSING', async () => {
     mockedScriptsApi.get.mockResolvedValue({
       script: {
         id: 'script-1',
@@ -143,7 +164,43 @@ describe('Script viewer', () => {
 
     render(<ScriptViewerPage />);
 
-    expect(await screen.findByText(/script is processing/i)).toBeInTheDocument();
+    expect(await screen.findByTestId('processing-progress')).toBeInTheDocument();
+  });
+
+  it('renders wizard when status is REVIEWING', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 10,
+        status: 'REVIEWING',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [
+          {
+            id: 'elem-1',
+            name: 'JOHN',
+            type: 'CHARACTER',
+            highlightPage: 1,
+            highlightText: 'JOHN',
+            departmentId: null,
+            status: 'ACTIVE',
+            source: 'AUTO',
+          },
+        ],
+        sceneData: [
+          { sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] },
+        ],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    expect(await screen.findByTestId('element-wizard')).toBeInTheDocument();
   });
 
   it('renders "Add Element" button', async () => {
