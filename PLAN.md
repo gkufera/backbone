@@ -1,7 +1,24 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 11 Director's Notes & Notifications complete.
+None — Sprint 11 check complete.
+
+## Completed (Sprint 11 Check)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Fix shared User type — add emailNotificationsEnabled | `fix: add emailNotificationsEnabled to shared User type` | 0 (type only) |
+| 2 | Add error handling to DirectorNotesPanel (TDD) | `fix: add error handling to DirectorNotesPanel` | +2 |
+| 3 | Mock DirectorNotesPanel + toggle tests in script viewer | `test: add DirectorNotesPanel mock and toggle tests to script viewer` | +2 |
+| 4 | Use enum constants in element-stats endpoint | `fix: use enum constants in element-stats endpoint` | 0 (refactor) |
+| 5 | Strengthen auth tests for emailNotificationsEnabled | `test: assert emailNotificationsEnabled in login and GET /me responses` | 0 (strengthened assertions) |
+| 6 | Add DirectorNote schema index | `feat: add index on DirectorNote(scriptId, deletedAt)` | 0 (schema only) |
+| 7 | Full test suite + docs | `docs: update test counts and PLAN.md after Sprint 11 check` | 0 |
+
+### Test Counts (Post Sprint 11 Check)
+- **Frontend**: 369 tests (was 365, +4 new)
+- **Backend**: 335 tests (unchanged)
+- **Total**: 704 tests (was 700, +4 new)
 
 ## Completed (Sprint 11: Director's Notes & Notifications)
 
