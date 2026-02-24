@@ -82,21 +82,24 @@ model User {
   email         String   @unique
   passwordHash  String   @map("password_hash")
   emailVerified Boolean  @default(false) @map("email_verified")
+  phone         String?
+  phoneVerified Boolean  @default(false) @map("phone_verified")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   emailNotificationsEnabled Boolean @default(true) @map("email_notifications_enabled")
 
-  createdProductions      Production[]             @relation("CreatedProductions")
+  createdProductions      Production[]               @relation("CreatedProductions")
   productionMembers       ProductionMember[]
   uploadedScripts         Script[]
-  uploadedOptions         Option[]                 @relation("UploadedOptions")
+  uploadedOptions         Option[]                   @relation("UploadedOptions")
   approvals               Approval[]
   notifications           Notification[]
   notes                   Note[]
   directorNotes           DirectorNote[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  phoneVerificationCodes  PhoneVerificationCode[]
 
   @@map("users")
 }
@@ -125,6 +128,20 @@ model EmailVerificationToken {
   user User @relation(fields: [userId], references: [id])
 
   @@map("email_verification_tokens")
+}
+
+model PhoneVerificationCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  phone     String
+  code      String
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("phone_verification_codes")
 }
 
 model Production {
