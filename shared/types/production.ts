@@ -28,6 +28,7 @@ export interface Department {
   id: string;
   productionId: string;
   name: string;
+  color: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

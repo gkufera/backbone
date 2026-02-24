@@ -1,9 +1,16 @@
 export enum ScriptStatus {
   UPLOADING = 'UPLOADING',
   PROCESSING = 'PROCESSING',
+  REVIEWING = 'REVIEWING',
   READY = 'READY',
   RECONCILING = 'RECONCILING',
   ERROR = 'ERROR',
+}
+
+export interface SceneInfo {
+  sceneNumber: number;
+  location: string;
+  characters: string[];
 }
 
 export interface Script {
@@ -17,6 +24,7 @@ export interface Script {
   version: number;
   parentScriptId: string | null;
   uploadedById: string;
+  sceneData: SceneInfo[] | null;
   createdAt: Date;
   updatedAt: Date;
 }

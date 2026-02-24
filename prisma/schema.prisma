@@ -17,6 +17,7 @@ enum MemberRole {
 enum ScriptStatus {
   UPLOADING
   PROCESSING
+  REVIEWING
   READY
   RECONCILING
   ERROR
@@ -141,6 +142,8 @@ model Script {
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
+  sceneData      Json?            @map("scene_data")
+
   production      Production       @relation(fields: [productionId], references: [id])
   uploadedBy      User             @relation(fields: [uploadedById], references: [id])
   parentScript    Script?          @relation("ScriptVersions", fields: [parentScriptId], references: [id])
@@ -215,6 +218,7 @@ model Department {
   id           String             @id @default(cuid())
   productionId String             @map("production_id")
   name         String
+  color        String?            @map("color")
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
 
