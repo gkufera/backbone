@@ -3,6 +3,40 @@
 ## Active Task
 None — all phases complete.
 
+## Completed (Inline Element Detail Panel, Discussion Notes, and Approval Redesign)
+
+### Phases
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Note model + backend CRUD API | `feat: add Note model and backend CRUD API for element/option discussions` | +10 |
+| 2 | Remove element locking | `feat: remove element locking — approvals no longer block new options` | +3 (replaced) |
+| 3 | Approval color constants + CSS | `feat: add approval color constants and CSS classes` | 0 |
+| 4 | Frontend API for notes | `feat: add frontend API methods for notes` | 0 |
+| 5 | DiscussionBox component | `feat: add DiscussionBox component for per-element notes` | +4 |
+| 6 | Colored Y/M/N approval buttons | `feat: redesign approval buttons with colored Y/M/N` | +5 (updated) |
+| 7 | OptionThumbnail component | `feat: add OptionThumbnail component with approval visual states` | +4 |
+| 8 | OptionLightbox component | `feat: add OptionLightbox component for full-size media preview` | +4 |
+| 9 | Inline ElementDetailPanel + integration | `feat: inline element detail panel in script viewer` | +6 |
+| 10 | Approval temperature indicators | `feat: approval temperature indicators on element list` | +4 |
+
+### Test Counts (Post Inline Detail Panel)
+- **Frontend**: 257 tests (was 254, +3 net from new components)
+- **Backend**: 291 tests (was 290, +1 new)
+- **Total**: 548 tests
+
+### Architecture
+
+- **Note model**: Per-element and per-option discussion notes with `NOTE_ADDED` notifications
+- **Element locking removed**: Approvals no longer block new option creation; multiple approvals allowed
+- **Approval colors**: Green (#00A651), Yellow (#FFD700), Red (#E63946) — documented exception to 1-bit design rule
+- **DiscussionBox**: Real-time note thread per element with user names and timestamps
+- **Approval buttons**: Colored Y/M/N buttons replacing text Approve/Reject/Maybe
+- **OptionThumbnail**: Clickable thumbnail with approval state borders (green/yellow/red) and grayscale
+- **OptionLightbox**: Full-size media preview modal with approval buttons, Escape/backdrop close
+- **ElementDetailPanel**: Inline panel in script viewer replacing page navigation; composes DiscussionBox, OptionThumbnail grid, OptionUploadForm, and OptionLightbox
+- **Temperature indicators**: Colored dots on element list rows based on latest approval decisions (green=approved, yellow=maybe, red=rejected)
+
 ## Completed (Enhanced Element Detection, Processing UX, and Colored Highlights)
 
 ### Phases
