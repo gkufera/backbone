@@ -441,7 +441,7 @@ authRouter.post('/api/auth/send-phone-code', requireAuth, async (req, res) => {
     }
 
     // Generate 6-digit code
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const code = String(crypto.randomInt(100000, 1000000));
     const expiresAt = new Date(
       Date.now() + VALIDATION.PHONE_VERIFICATION_CODE_EXPIRY_MINUTES * 60 * 1000,
     );

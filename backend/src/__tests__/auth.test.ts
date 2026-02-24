@@ -990,6 +990,42 @@ describe('POST /api/auth/send-phone-code', () => {
       expect.stringContaining('verification code'),
     );
   });
+
+  it('generates a 6-digit numeric code', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.phoneVerificationCode.create.mockResolvedValue({
+      id: 'pvc-1',
+      userId: 'user-1',
+      phone: '+15551234567',
+      code: '123456',
+      expiresAt: new Date(Date.now() + 600000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    await request(app)
+      .post('/api/auth/send-phone-code')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ phone: '+15551234567' });
+
+    const createCall = mockedPrisma.phoneVerificationCode.create.mock.calls[0][0];
+    const code = createCall.data.code;
+    expect(code).toMatch(/^\d{6}$/);
+    expect(Number(code)).toBeGreaterThanOrEqual(100000);
+    expect(Number(code)).toBeLessThanOrEqual(999999);
+  });
 });
 
 describe('POST /api/auth/verify-phone', () => {
