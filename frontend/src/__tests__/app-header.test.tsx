@@ -41,7 +41,9 @@ describe('AppHeader', () => {
     mockUsePathname.mockReturnValue('/');
   });
 
-  it('renders logo image linking to /', () => {
+  it('renders logo image linking to / on non-homepage routes', () => {
+    mockUsePathname.mockReturnValue('/settings');
+
     render(
       <AuthProvider>
         <AppHeader />
@@ -56,6 +58,8 @@ describe('AppHeader', () => {
   });
 
   it('logo has image-rendering: pixelated style', () => {
+    mockUsePathname.mockReturnValue('/settings');
+
     render(
       <AuthProvider>
         <AppHeader />
@@ -184,6 +188,32 @@ describe('AppHeader', () => {
     );
 
     expect(screen.queryByTestId('mobile-nav')).not.toBeInTheDocument();
+  });
+
+  it('hides logo image on homepage to prevent duplicate', () => {
+    mockUsePathname.mockReturnValue('/');
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    expect(screen.queryByAltText('Slug Max')).not.toBeInTheDocument();
+  });
+
+  it('shows logo image on non-homepage routes', () => {
+    mockUsePathname.mockReturnValue('/settings');
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    const logo = screen.getByAltText('Slug Max');
+    expect(logo).toBeInTheDocument();
+    expect(logo.closest('a')).toHaveAttribute('href', '/');
   });
 
   it('does not show breadcrumb or notification bell on home page', () => {
