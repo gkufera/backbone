@@ -6,6 +6,7 @@ import Link from 'next/link';
 import {
   productionsApi,
   departmentsApi,
+  feedApi,
   type ProductionDetailResponse,
   type DepartmentResponse,
 } from '../../../lib/api';
@@ -25,12 +26,14 @@ export default function ProductionDashboard() {
   const [memberError, setMemberError] = useState('');
   const [newDeptName, setNewDeptName] = useState('');
   const [deptError, setDeptError] = useState('');
+  const [feedPendingCount, setFeedPendingCount] = useState<number>(0);
 
   useEffect(() => {
-    Promise.all([productionsApi.get(id), departmentsApi.list(id)])
-      .then(([prodData, deptData]) => {
+    Promise.all([productionsApi.get(id), departmentsApi.list(id), feedApi.list(id)])
+      .then(([prodData, deptData, feedData]) => {
         setProduction(prodData.production);
         setDepartments(deptData.departments);
+        setFeedPendingCount(feedData.elements.length);
       })
       .catch(() => setError('Failed to load production'))
       .finally(() => setIsLoading(false));
@@ -119,6 +122,58 @@ export default function ProductionDashboard() {
         <NotificationBell productionId={id} />
       </div>
       {production.description && <p className="mb-6 font-mono text-black">{production.description}</p>}
+
+      {/* Scripts */}
+      <section className="mac-window mb-8">
+        <div className="mac-window-title">
+          <span>Scripts</span>
+        </div>
+        <div className="mac-window-body">
+          <div className="mb-3 flex items-center justify-end">
+            <Link
+              href={`/productions/${id}/scripts/upload`}
+              className="mac-btn-primary"
+            >
+              Upload Script
+            </Link>
+          </div>
+
+          {production.scripts.length === 0 ? (
+            <p className="text-black">No scripts uploaded yet.</p>
+          ) : (
+            <ul className="divide-y divide-black">
+              {production.scripts.map((s) => (
+                <li key={s.id}>
+                  <Link
+                    href={`/productions/${id}/scripts/${s.id}`}
+                    className="block py-3 hover:bg-black hover:text-white"
+                  >
+                    <span className="font-medium">{s.title}</span>
+                    <span className="ml-2 text-xs uppercase">{s.status}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      {/* Review Feed */}
+      <section className="mac-window mb-8">
+        <div className="mac-window-title">
+          <span>Review Feed</span>
+        </div>
+        <div className="mac-window-body">
+          <p className="mb-3 font-mono text-sm">
+            {feedPendingCount > 0
+              ? `${feedPendingCount} elements pending review`
+              : 'No elements pending review'}
+          </p>
+          <Link href={`/productions/${id}/feed`} className="mac-btn-primary">
+            Review Feed
+          </Link>
+        </div>
+      </section>
 
       {/* Team Members */}
       <section className="mac-window mb-8">
@@ -260,48 +315,6 @@ export default function ProductionDashboard() {
             <p role="alert" className="mt-2 text-sm text-black font-bold">
               {deptError}
             </p>
-          )}
-        </div>
-      </section>
-
-      {/* Review Feed */}
-      <section className="mb-8">
-        <Link href={`/productions/${id}/feed`} className="mac-btn-primary">
-          Review Feed
-        </Link>
-      </section>
-
-      {/* Scripts */}
-      <section className="mac-window">
-        <div className="mac-window-title">
-          <span>Scripts</span>
-        </div>
-        <div className="mac-window-body">
-          <div className="mb-3 flex items-center justify-end">
-            <Link
-              href={`/productions/${id}/scripts/upload`}
-              className="mac-btn-primary"
-            >
-              Upload Script
-            </Link>
-          </div>
-
-          {production.scripts.length === 0 ? (
-            <p className="text-black">No scripts uploaded yet.</p>
-          ) : (
-            <ul className="divide-y divide-black">
-              {production.scripts.map((s) => (
-                <li key={s.id}>
-                  <Link
-                    href={`/productions/${id}/scripts/${s.id}`}
-                    className="block py-3 hover:bg-black hover:text-white"
-                  >
-                    <span className="font-medium">{s.title}</span>
-                    <span className="ml-2 text-xs uppercase">{s.status}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       </section>

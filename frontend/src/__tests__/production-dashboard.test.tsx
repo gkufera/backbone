@@ -22,6 +22,7 @@ vi.mock('../lib/api', () => ({
     removeMember: vi.fn(),
     updateMemberRole: vi.fn(),
     updateMemberDepartment: vi.fn(),
+    update: vi.fn(),
   },
   departmentsApi: {
     list: vi.fn(),
@@ -33,12 +34,16 @@ vi.mock('../lib/api', () => ({
     markAsRead: vi.fn(),
     unreadCount: vi.fn(),
   },
+  feedApi: {
+    list: vi.fn(),
+  },
 }));
 
-import { productionsApi, departmentsApi, notificationsApi } from '../lib/api';
+import { productionsApi, departmentsApi, notificationsApi, feedApi } from '../lib/api';
 const mockedProductionsApi = vi.mocked(productionsApi);
 const mockedDepartmentsApi = vi.mocked(departmentsApi);
 const mockedNotificationsApi = vi.mocked(notificationsApi);
+const mockedFeedApi = vi.mocked(feedApi);
 
 // Import after mocks
 import ProductionDashboard from '../app/productions/[id]/page';
@@ -98,6 +103,7 @@ function setupMocks() {
   mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
   mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
   mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+  mockedFeedApi.list.mockResolvedValue({ elements: [] });
 }
 
 describe('Production dashboard', () => {
@@ -491,5 +497,53 @@ describe('Production dashboard', () => {
     const deleteBtn = costumeRow!.querySelector('button');
     expect(deleteBtn).toBeInTheDocument();
     expect(deleteBtn).toHaveTextContent(/delete/i);
+  });
+
+  it('Scripts section appears before Team Members section in DOM order', async () => {
+    setupMocks();
+    const { container } = render(<ProductionDashboard />);
+
+    await screen.findByText('Scripts');
+
+    const sections = container.querySelectorAll('.mac-window');
+    const sectionTitles = Array.from(sections).map(
+      (s) => s.querySelector('.mac-window-title span')?.textContent?.trim(),
+    );
+
+    const scriptsIdx = sectionTitles.indexOf('Scripts');
+    const teamIdx = sectionTitles.findIndex((t) => t?.startsWith('Team Members'));
+    expect(scriptsIdx).toBeLessThan(teamIdx);
+  });
+
+  it('review feed section shows pending count text', async () => {
+    setupMocks();
+    mockedFeedApi.list.mockResolvedValue({
+      elements: [
+        { id: 'e1', name: 'EL1', options: [], type: 'CHARACTER', status: 'ACTIVE', scriptId: 's1', createdAt: '', updatedAt: '', highlightPage: null, highlightText: null, departmentId: null, source: 'AUTO' },
+        { id: 'e2', name: 'EL2', options: [], type: 'CHARACTER', status: 'ACTIVE', scriptId: 's1', createdAt: '', updatedAt: '', highlightPage: null, highlightText: null, departmentId: null, source: 'AUTO' },
+      ],
+    });
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText(/2 elements pending review/i)).toBeInTheDocument();
+  });
+
+  it('review feed section links to feed page', async () => {
+    setupMocks();
+
+    render(<ProductionDashboard />);
+
+    const feedLink = await screen.findByRole('link', { name: /review feed/i });
+    expect(feedLink).toHaveAttribute('href', '/productions/prod-1/feed');
+  });
+
+  it('shows "No elements pending review" when count is 0', async () => {
+    setupMocks();
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText(/no elements pending review/i)).toBeInTheDocument();
   });
 });
