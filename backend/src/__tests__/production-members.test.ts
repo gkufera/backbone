@@ -55,7 +55,7 @@ describe('POST /api/productions/:id/members', () => {
       id: 'member-owner',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -98,7 +98,7 @@ describe('POST /api/productions/:id/members', () => {
       id: 'member-owner',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -118,7 +118,7 @@ describe('POST /api/productions/:id/members', () => {
       id: 'member-owner',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -141,7 +141,7 @@ describe('POST /api/productions/:id/members', () => {
       id: 'member-owner',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -181,7 +181,7 @@ describe('POST /api/productions/:id/members', () => {
       id: 'member-owner',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -225,7 +225,7 @@ describe('POST /api/productions/:id/members', () => {
       id: 'member-owner',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -246,7 +246,7 @@ describe('POST /api/productions/:id/members', () => {
       id: 'member-owner',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -290,7 +290,7 @@ describe('POST /api/productions/:id/members', () => {
   });
 
   it('returns 403 when requester is not OWNER or ADMIN', async () => {
-    // Member (not OWNER/ADMIN) membership check
+    // Member (not ADMIN/DECIDER) membership check
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-regular',
       productionId: 'prod-1',
@@ -320,7 +320,7 @@ describe('GET /api/productions/:id/members', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -337,7 +337,7 @@ describe('GET /api/productions/:id/members', () => {
         id: 'member-1',
         productionId: 'prod-1',
         userId: 'user-owner',
-        role: 'OWNER',
+        role: 'ADMIN',
         createdAt: new Date(),
         updatedAt: new Date(),
         user: { id: 'user-owner', name: 'Owner', email: 'owner@example.com' },
@@ -369,12 +369,12 @@ describe('DELETE /api/productions/:id/members/:memberId', () => {
   it('returns 200 when removing a member', async () => {
     // Requester membership check
     mockedPrisma.productionMember.findUnique
-      // First call: check requester is OWNER/ADMIN
+      // First call: check requester is ADMIN/DECIDER
       .mockResolvedValueOnce({
         id: 'member-owner',
         productionId: 'prod-1',
         userId: 'user-owner',
-        role: 'OWNER',
+        role: 'ADMIN',
         createdAt: new Date(),
         updatedAt: new Date(),
       } as any);
@@ -404,34 +404,68 @@ describe('DELETE /api/productions/:id/members/:memberId', () => {
     expect(res.status).toBe(200);
   });
 
-  it('returns 403 when trying to remove OWNER', async () => {
+  it('returns 403 when trying to remove an ADMIN', async () => {
     // Requester membership check
     mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
       id: 'member-admin',
       productionId: 'prod-1',
       userId: 'user-owner',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
 
-    // Find the member to remove (is OWNER)
+    // Find the member to remove (is ADMIN)
     mockedPrisma.productionMember.findMany.mockResolvedValue([
       {
-        id: 'member-owner-target',
+        id: 'member-admin-target',
         productionId: 'prod-1',
-        userId: 'user-other-owner',
-        role: 'OWNER',
+        userId: 'user-other-admin',
+        role: 'ADMIN',
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     ] as any);
 
     const res = await request(app)
-      .delete('/api/productions/prod-1/members/member-owner-target')
+      .delete('/api/productions/prod-1/members/member-admin-target')
       .set(authHeader());
 
     expect(res.status).toBe(403);
-    expect(res.body.error).toMatch(/owner/i);
+    expect(res.body.error).toMatch(/admin/i);
+  });
+
+  it('DECIDER can remove a MEMBER', async () => {
+    // Requester is DECIDER
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-decider',
+      productionId: 'prod-1',
+      userId: 'user-owner',
+      role: 'DECIDER',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    // Find the member to remove
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      {
+        id: 'member-to-remove',
+        productionId: 'prod-1',
+        userId: 'user-2',
+        role: 'MEMBER',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ] as any);
+
+    mockedPrisma.productionMember.delete.mockResolvedValue({
+      id: 'member-to-remove',
+    } as any);
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/members/member-to-remove')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
   });
 });

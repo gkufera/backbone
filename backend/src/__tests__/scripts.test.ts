@@ -118,7 +118,7 @@ describe('POST /api/productions/:id/scripts', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -152,7 +152,7 @@ describe('POST /api/productions/:id/scripts', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -189,7 +189,7 @@ describe('GET /api/productions/:id/scripts', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -227,7 +227,7 @@ describe('GET /api/productions/:id/scripts/:scriptId', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -269,7 +269,7 @@ describe('GET /api/productions/:id/scripts/:scriptId', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);

@@ -44,7 +44,7 @@ describe('POST /api/productions', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 201 with production, OWNER membership, and seeds default departments', async () => {
+  it('returns 201 with production, ADMIN membership, and seeds default departments', async () => {
     const mockProduction = {
       id: 'prod-1',
       title: 'My Film',
@@ -58,7 +58,7 @@ describe('POST /api/productions', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -86,7 +86,7 @@ describe('POST /api/productions', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.production.title).toBe('My Film');
-    expect(res.body.member.role).toBe('OWNER');
+    expect(res.body.member.role).toBe('ADMIN');
     // Verify default departments were seeded (8 default departments)
     expect(mockDepartmentCreate).toHaveBeenCalledTimes(8);
   });
@@ -105,7 +105,7 @@ describe('POST /api/productions', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -168,7 +168,7 @@ describe('GET /api/productions', () => {
         id: 'member-1',
         productionId: 'prod-1',
         userId: 'user-1',
-        role: 'OWNER',
+        role: 'ADMIN',
         createdAt: new Date(),
         updatedAt: new Date(),
         production: {
@@ -218,7 +218,7 @@ describe('GET /api/productions/:id', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -235,7 +235,7 @@ describe('GET /api/productions/:id', () => {
         {
           id: 'member-1',
           userId: 'user-1',
-          role: 'OWNER',
+          role: 'ADMIN',
           title: 'Director',
           user: { id: 'user-1', name: 'Test User', email: 'test@example.com' },
           departmentMembers: [

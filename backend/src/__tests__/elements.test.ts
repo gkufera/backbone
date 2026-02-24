@@ -82,7 +82,7 @@ function mockScriptWithMembership() {
     id: 'member-1',
     productionId: 'prod-1',
     userId: 'user-1',
-    role: 'OWNER',
+    role: 'ADMIN',
     createdAt: new Date(),
     updatedAt: new Date(),
   } as any);
@@ -174,7 +174,7 @@ describe('PATCH /api/elements/:id', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -315,7 +315,7 @@ describe('PATCH /api/elements/:id (archive/soft-delete)', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
     } as any);
 
     mockedPrisma.element.update.mockResolvedValue({

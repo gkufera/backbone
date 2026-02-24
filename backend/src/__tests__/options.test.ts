@@ -227,7 +227,7 @@ function mockElementWithMembership() {
     id: 'member-1',
     productionId: 'prod-1',
     userId: 'user-1',
-    role: 'OWNER',
+    role: 'ADMIN',
     createdAt: new Date(),
     updatedAt: new Date(),
   } as any);

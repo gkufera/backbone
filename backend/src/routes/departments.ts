@@ -74,9 +74,9 @@ departmentsRouter.post('/api/productions/:id/departments', requireAuth, async (r
 
     if (
       !membership ||
-      ![MemberRole.OWNER, MemberRole.ADMIN].includes(membership.role as MemberRole)
+      ![MemberRole.ADMIN, MemberRole.DECIDER].includes(membership.role as MemberRole)
     ) {
-      res.status(403).json({ error: 'Only OWNER or ADMIN can create departments' });
+      res.status(403).json({ error: 'Only ADMIN or DECIDER can create departments' });
       return;
     }
 
@@ -132,9 +132,9 @@ departmentsRouter.delete(
 
       if (
         !membership ||
-        ![MemberRole.OWNER, MemberRole.ADMIN].includes(membership.role as MemberRole)
+        ![MemberRole.ADMIN, MemberRole.DECIDER].includes(membership.role as MemberRole)
       ) {
-        res.status(403).json({ error: 'Only OWNER or ADMIN can delete departments' });
+        res.status(403).json({ error: 'Only ADMIN or DECIDER can delete departments' });
         return;
       }
 

@@ -43,7 +43,7 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
         data: {
           productionId: production.id,
           userId: authReq.user.userId,
-          role: MemberRole.OWNER,
+          role: MemberRole.ADMIN,
         },
       });
 
@@ -171,9 +171,9 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
 
     if (
       !requesterMembership ||
-      ![MemberRole.OWNER, MemberRole.ADMIN].includes(requesterMembership.role as MemberRole)
+      ![MemberRole.ADMIN, MemberRole.DECIDER].includes(requesterMembership.role as MemberRole)
     ) {
-      res.status(403).json({ error: 'Only OWNER or ADMIN can add members' });
+      res.status(403).json({ error: 'Only ADMIN or DECIDER can add members' });
       return;
     }
 
@@ -295,9 +295,9 @@ productionsRouter.delete(
 
       if (
         !requesterMembership ||
-        ![MemberRole.OWNER, MemberRole.ADMIN].includes(requesterMembership.role as MemberRole)
+        ![MemberRole.ADMIN, MemberRole.DECIDER].includes(requesterMembership.role as MemberRole)
       ) {
-        res.status(403).json({ error: 'Only OWNER or ADMIN can remove members' });
+        res.status(403).json({ error: 'Only ADMIN or DECIDER can remove members' });
         return;
       }
 
@@ -311,8 +311,8 @@ productionsRouter.delete(
         return;
       }
 
-      if (memberToRemove[0].role === MemberRole.OWNER) {
-        res.status(403).json({ error: 'Cannot remove the OWNER of a production' });
+      if (memberToRemove[0].role === MemberRole.ADMIN) {
+        res.status(403).json({ error: 'Cannot remove an ADMIN of a production' });
         return;
       }
 

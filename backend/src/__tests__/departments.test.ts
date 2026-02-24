@@ -51,6 +51,11 @@ const adminUser = {
   email: 'admin@example.com',
 };
 
+const deciderUser = {
+  userId: 'user-decider',
+  email: 'decider@example.com',
+};
+
 const nonMemberUser = {
   userId: 'user-nonmember',
   email: 'nonmember@example.com',
@@ -66,7 +71,7 @@ function mockOwnerMembership() {
     id: 'pm-owner',
     productionId: 'prod-1',
     userId: 'user-owner',
-    role: 'OWNER',
+    role: 'ADMIN',
     title: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -79,6 +84,18 @@ function mockAdminMembership() {
     productionId: 'prod-1',
     userId: 'user-admin',
     role: 'ADMIN',
+    title: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as any);
+}
+
+function mockDeciderMembership() {
+  mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+    id: 'pm-decider',
+    productionId: 'prod-1',
+    userId: 'user-decider',
+    role: 'DECIDER',
     title: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -226,7 +243,7 @@ describe('POST /api/productions/:id/departments', () => {
     expect(res.body.error).toMatch(/already exists/i);
   });
 
-  it('returns 403 for non-OWNER/ADMIN', async () => {
+  it('returns 403 for non-ADMIN/DECIDER', async () => {
     mockMemberMembership();
 
     const res = await request(app)
@@ -251,6 +268,26 @@ describe('POST /api/productions/:id/departments', () => {
     const res = await request(app)
       .post('/api/productions/prod-1/departments')
       .set(authHeader(adminUser))
+      .send({ name: 'Stunts' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.department.name).toBe('Stunts');
+  });
+
+  it('DECIDER can create a department', async () => {
+    mockDeciderMembership();
+
+    mockedPrisma.department.create.mockResolvedValue({
+      id: 'dept-new',
+      productionId: 'prod-1',
+      name: 'Stunts',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/departments')
+      .set(authHeader(deciderUser))
       .send({ name: 'Stunts' });
 
     expect(res.status).toBe(201);
@@ -344,7 +381,7 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
     expect(res.body.error).toMatch(/not found/i);
   });
 
-  it('returns 403 for non-OWNER/ADMIN', async () => {
+  it('returns 403 for non-ADMIN/DECIDER', async () => {
     mockMemberMembership();
 
     const res = await request(app)
@@ -382,6 +419,38 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
     const res = await request(app)
       .delete('/api/productions/prod-1/departments/dept-1')
       .set(authHeader(adminUser));
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/deleted/i);
+  });
+
+  it('DECIDER can delete a department', async () => {
+    mockDeciderMembership();
+
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        departmentMember: {
+          deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+        },
+        department: {
+          delete: vi.fn().mockResolvedValue({
+            id: 'dept-1',
+            productionId: 'prod-1',
+            name: 'Costume',
+          }),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(deciderUser));
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/deleted/i);

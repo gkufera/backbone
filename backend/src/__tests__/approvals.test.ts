@@ -58,7 +58,7 @@ function mockOptionWithMembership() {
     id: 'member-1',
     productionId: 'prod-1',
     userId: 'user-1',
-    role: 'OWNER',
+    role: 'DECIDER',
   } as any);
 }
 
@@ -216,7 +216,7 @@ describe('POST /api/options/:optionId/approvals', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     const res = await request(app)
@@ -242,7 +242,7 @@ describe('POST /api/options/:optionId/approvals', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     const res = await request(app)
@@ -321,7 +321,7 @@ describe('GET /api/productions/:productionId/feed', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.element.findMany.mockResolvedValue([
@@ -368,7 +368,7 @@ describe('GET /api/productions/:productionId/feed', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.element.findMany.mockResolvedValue([]);

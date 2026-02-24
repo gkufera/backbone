@@ -66,7 +66,7 @@ describe('Workflow state on approval', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.approval.create.mockResolvedValue({
@@ -112,7 +112,7 @@ describe('Workflow state on approval', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.approval.create.mockResolvedValue({
@@ -154,7 +154,7 @@ describe('Workflow state on approval', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.approval.create.mockResolvedValue({
@@ -293,7 +293,7 @@ describe('Notification triggers on approval', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.approval.create.mockResolvedValue({
@@ -345,7 +345,7 @@ describe('Notification triggers on approval', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.approval.create.mockResolvedValue({
@@ -396,7 +396,7 @@ describe('Notification triggers on approval', () => {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'DECIDER',
     } as any);
 
     mockedPrisma.approval.create.mockResolvedValue({
