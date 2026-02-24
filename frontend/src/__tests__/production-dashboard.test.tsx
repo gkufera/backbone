@@ -21,13 +21,12 @@ vi.mock('../lib/api', () => ({
     listMembers: vi.fn(),
     removeMember: vi.fn(),
     updateMemberRole: vi.fn(),
+    updateMemberDepartment: vi.fn(),
   },
   departmentsApi: {
     list: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
-    addMember: vi.fn(),
-    removeMember: vi.fn(),
   },
   notificationsApi: {
     list: vi.fn(),

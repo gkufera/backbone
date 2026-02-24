@@ -2,7 +2,6 @@ import type {
   Production,
   ProductionMember,
   Department,
-  DepartmentMember,
   Script,
   Element,
   Option,
@@ -61,22 +60,13 @@ export interface ProductionDetailResponse extends ProductionResponse {
 }
 
 export type MemberResponse = JsonSerialized<
-  Pick<ProductionMember, 'id' | 'productionId' | 'userId' | 'role' | 'title'>
+  Pick<ProductionMember, 'id' | 'productionId' | 'userId' | 'role' | 'title' | 'departmentId'>
 > & {
-  departmentMembers?: Array<{
-    department: { id: string; name: string };
-  }>;
+  department?: { id: string; name: string } | null;
 };
 
 export type DepartmentResponse = JsonSerialized<Department> & {
-  members?: Array<
-    JsonSerialized<DepartmentMember> & {
-      productionMember: {
-        id: string;
-        user: { id: string; name: string; email: string };
-      };
-    }
-  >;
+  _count?: { members: number };
 };
 
 export const productionsApi = {
@@ -131,6 +121,17 @@ export const productionsApi = {
       body: JSON.stringify({ role }),
     });
   },
+
+  updateMemberDepartment(
+    productionId: string,
+    memberId: string,
+    departmentId: string | null,
+  ): Promise<{ member: MemberResponse }> {
+    return request(`/api/productions/${productionId}/members/${memberId}/department`, {
+      method: 'PATCH',
+      body: JSON.stringify({ departmentId }),
+    });
+  },
 };
 
 export const departmentsApi = {
@@ -149,30 +150,6 @@ export const departmentsApi = {
     return request(`/api/productions/${productionId}/departments/${departmentId}`, {
       method: 'DELETE',
     });
-  },
-
-  addMember(
-    productionId: string,
-    departmentId: string,
-    productionMemberId: string,
-  ): Promise<{ departmentMember: JsonSerialized<DepartmentMember> }> {
-    return request(`/api/productions/${productionId}/departments/${departmentId}/members`, {
-      method: 'POST',
-      body: JSON.stringify({ productionMemberId }),
-    });
-  },
-
-  removeMember(
-    productionId: string,
-    departmentId: string,
-    memberId: string,
-  ): Promise<{ message: string }> {
-    return request(
-      `/api/productions/${productionId}/departments/${departmentId}/members/${memberId}`,
-      {
-        method: 'DELETE',
-      },
-    );
   },
 };
 
