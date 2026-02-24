@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { type Request, type Response, type NextFunction } from 'express';
+import helmet from 'helmet';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { productionsRouter } from './routes/productions.js';
@@ -15,6 +16,8 @@ import { directorNotesRouter } from './routes/director-notes.js';
 
 export function createApp() {
   const app = express();
+
+  app.use(helmet());
 
   const allowedOrigins = process.env.CORS_ORIGINS?.split(',') ?? [];
   app.use(cors(allowedOrigins.length > 0 ? { origin: allowedOrigins } : undefined));
