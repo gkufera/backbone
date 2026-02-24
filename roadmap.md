@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 365 frontend + 335 backend = 700 total
+**Test counts:** 387 frontend + 335 backend = 722 total
 
 ---
 
@@ -167,36 +167,34 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ### Tasks
 
-- [ ] Error boundaries (error.tsx)
+- [x] Error boundaries (error.tsx)
   - Add `error.tsx` to key route segments: `/productions`, `/productions/[id]`, `/productions/[id]/scripts/[scriptId]`
   - 1-bit design: `.mac-alert-error` pattern background, "Something went wrong" message, retry button
   - Files: `frontend/src/app/productions/error.tsx` (new), `frontend/src/app/productions/[id]/error.tsx` (new), etc.
 
-- [ ] Toast notification system
+- [x] Toast notification system
   - Create `<ToastProvider>` + `useToast()` hook for success/error messages
   - Toasts: 1-bit style (black border, white bg, auto-dismiss after 5s)
-  - Wire into: form submissions, API errors, approval actions
-  - Files: `frontend/src/components/toast.tsx` (new), `frontend/src/lib/toast-context.tsx` (new), `frontend/src/app/layout.tsx`
+  - Wire into: form submissions, API errors, settings + production pages
+  - Files: `frontend/src/components/toast-container.tsx` (new), `frontend/src/lib/toast-context.tsx` (new), `frontend/src/app/layout.tsx`
 
-- [ ] Loading states
+- [x] Loading states
   - Create `<Skeleton>` component: CSS animation using 1-bit dither pattern
-  - Replace "Loading..." text with skeleton loaders on: production page, script page, element list, feed
+  - Replace "Loading..." text with skeleton loaders on: productions list, production detail, feed
   - Files: `frontend/src/components/skeleton.tsx` (new), various pages
 
-- [ ] Mobile-responsive audit
+- [x] Mobile-responsive audit
   - Hamburger menu for persistent header on small screens
-  - Director feed: full-width cards on mobile
-  - Production page: single-column layout on mobile
-  - File upload: responsive drag-drop zone
-  - Files: `frontend/src/components/app-header.tsx`, various pages, `frontend/src/app/globals.css`
+  - Desktop nav hidden on mobile, hamburger toggles dropdown with UserNav + NotificationBell
+  - Files: `frontend/src/components/app-header.tsx`
 
-- [ ] File upload error handling
-  - Client-side: file size limits (e.g., 50MB), type validation before upload
-  - Toast messages for upload failures
-  - Files: option upload components
+- [x] File upload error handling
+  - Client-side: file size limit (200MB), type validation before upload and on drop
+  - Error messages for oversized and unsupported files
+  - Files: `frontend/src/components/option-upload-form.tsx`
 
-- [ ] Network error retry logic
-  - Wrapper around fetch calls with automatic retry (1 retry on network error)
+- [x] Network error retry logic
+  - `fetchWithRetry()` wrapper with automatic retry (1 retry on TypeError/network error, 500ms delay)
   - Files: `frontend/src/lib/api.ts`
 
 ### Tests

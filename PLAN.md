@@ -1,7 +1,25 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 11 check complete.
+None — Sprint 12 complete.
+
+## Completed (Sprint 12: Error Handling & Mobile)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Toast notification system (ToastProvider, useToast, ToastContainer) | `feat: add toast notification system with ToastProvider and useToast hook` | +5 |
+| 2 | Error boundaries (ErrorBoundaryUI + 3 error.tsx wrappers) | `feat: add error boundaries for production routes` | +2 |
+| 3 | Network error retry logic (fetchWithRetry in api.ts) | `feat: add network error retry logic to API client` | +3 |
+| 4 | File upload validation (size + type checks) | `feat: add client-side file size and type validation` | +2 |
+| 5 | Skeleton loading component (.mac-skeleton CSS + 3 pages) | `feat: add Skeleton component and replace key loading states` | +2 |
+| 6 | Mobile hamburger menu (responsive AppHeader) | `feat: add hamburger menu for mobile-responsive header` | +2 |
+| 7 | Wire toasts into settings + production pages | `feat: wire toast notifications into settings and production pages` | +2 |
+| 8 | Full test suite + docs | `docs: update test counts and PLAN.md after Sprint 12` | 0 |
+
+### Test Counts (Post Sprint 12)
+- **Frontend**: 387 tests (was 369, +18 new)
+- **Backend**: 335 tests (unchanged)
+- **Total**: 722 tests (was 704, +18 new)
 
 ## Completed (Sprint 11 Check)
 
