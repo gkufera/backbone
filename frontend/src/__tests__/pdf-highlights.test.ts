@@ -73,12 +73,15 @@ describe('pdf-highlights utilities', () => {
       expect(span.style.cursor).toBe('pointer');
     });
 
-    it('applies inactive highlight style (dashed border)', () => {
+    it('applies inactive highlight style (translucent fill, no dashed border)', () => {
       applyHighlightStyle(span, 'elem-2', false);
 
       expect(span.getAttribute('data-highlight-element-id')).toBe('elem-2');
-      expect(span.style.backgroundColor).toBe('transparent');
-      expect(span.style.border).toContain('2px dashed');
+      // Inactive highlights use a translucent background, not transparent
+      expect(span.style.backgroundColor).not.toBe('transparent');
+      expect(span.style.backgroundColor).toContain('rgba');
+      // No dashed border on inactive highlights
+      expect(span.style.border).not.toContain('dashed');
       expect(span.style.cursor).toBe('pointer');
     });
 
@@ -89,12 +92,12 @@ describe('pdf-highlights utilities', () => {
       expect(span.style.color).toBe('rgb(255, 255, 255)');
     });
 
-    it('uses department color for inactive border', () => {
+    it('uses department color as translucent fill for inactive highlight', () => {
       applyHighlightStyle(span, 'elem-1', false, '#2A9D8F');
 
-      // jsdom converts hex to rgb in border shorthand
-      expect(span.style.border).toContain('dashed');
-      expect(span.style.border).toContain('rgb(42, 157, 143)');
+      // Should use rgba version of the department color
+      expect(span.style.backgroundColor).toContain('rgba(42, 157, 143');
+      expect(span.style.border).not.toContain('dashed');
     });
 
     it('falls back to black when no color provided', () => {
@@ -107,7 +110,8 @@ describe('pdf-highlights utilities', () => {
       applyHighlightStyle(span, 'elem-1', true);
       applyHighlightStyle(span, 'elem-1', false);
 
-      expect(span.style.backgroundColor).toBe('transparent');
+      // After switching, should have translucent fill (not transparent)
+      expect(span.style.backgroundColor).toContain('rgba');
       expect(span.classList.contains('pdf-highlight-active')).toBe(false);
       expect(span.classList.contains('pdf-highlight-inactive')).toBe(true);
     });

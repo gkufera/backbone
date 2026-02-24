@@ -3,6 +3,21 @@
  * These work with the text layer DOM rendered by react-pdf.
  */
 
+function hexToRgba(hex: string, alpha: number): string {
+  // Handle both #RGB and #RRGGBB formats
+  let r: number, g: number, b: number;
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  }
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 const HIGHLIGHT_ATTR = 'data-highlight-element-id';
 const ACTIVE_CLASS = 'pdf-highlight-active';
 const INACTIVE_CLASS = 'pdf-highlight-inactive';
@@ -40,7 +55,7 @@ export function findTextInLayer(
 /**
  * Apply highlight styling to a span element.
  * Active highlights are inverted (bg-black text-white).
- * Inactive highlights have a dashed border.
+ * Inactive highlights have a translucent background fill.
  */
 export function applyHighlightStyle(
   span: HTMLElement,
@@ -48,7 +63,7 @@ export function applyHighlightStyle(
   isActive: boolean,
   departmentColor?: string | null,
 ): void {
-  const color = departmentColor || '#000';
+  const color = departmentColor || '#000000';
 
   span.setAttribute(HIGHLIGHT_ATTR, elementId);
   span.style.cursor = 'pointer';
@@ -62,9 +77,9 @@ export function applyHighlightStyle(
   } else {
     span.classList.remove(ACTIVE_CLASS);
     span.classList.add(INACTIVE_CLASS);
-    span.style.backgroundColor = 'transparent';
+    span.style.backgroundColor = hexToRgba(color, 0.3);
     span.style.color = '#000';
-    span.style.border = `2px dashed ${color}`;
+    span.style.border = 'none';
   }
 }
 
