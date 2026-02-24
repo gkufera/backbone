@@ -23,6 +23,7 @@ export function ElementList({
 }: ElementListProps) {
   const [viewMode, setViewMode] = useState<'type' | 'appearance'>('type');
   const [activeDepartmentFilter, setActiveDepartmentFilter] = useState<string | null>(null);
+  const [textFilter, setTextFilter] = useState('');
 
   // Collect unique departments from elements
   const departments = useMemo(() => {
@@ -35,11 +36,18 @@ export function ElementList({
     return Array.from(deptMap.values());
   }, [elements]);
 
-  // Filter elements by department
+  // Filter elements by department and text
   const filteredElements = useMemo(() => {
-    if (!activeDepartmentFilter) return elements;
-    return elements.filter((e) => e.department?.id === activeDepartmentFilter);
-  }, [elements, activeDepartmentFilter]);
+    let result = elements;
+    if (activeDepartmentFilter) {
+      result = result.filter((e) => e.department?.id === activeDepartmentFilter);
+    }
+    if (textFilter.trim()) {
+      const lower = textFilter.toLowerCase();
+      result = result.filter((e) => e.name.toLowerCase().includes(lower));
+    }
+    return result;
+  }, [elements, activeDepartmentFilter, textFilter]);
 
   // Sort by appearance
   const sortedByAppearance = useMemo(() => {
@@ -58,6 +66,15 @@ export function ElementList({
 
   return (
     <div className="space-y-4">
+      {/* Text filter */}
+      <input
+        type="text"
+        placeholder="Filter elements..."
+        value={textFilter}
+        onChange={(e) => setTextFilter(e.target.value)}
+        className="w-full border-2 border-black p-2 text-sm mb-3"
+      />
+
       {/* Department filter chips */}
       {departments.length > 0 && (
         <div className="flex flex-wrap gap-2">

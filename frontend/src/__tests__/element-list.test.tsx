@@ -389,6 +389,75 @@ describe('Element list', () => {
     expect(container.querySelector('.temp-red')).not.toBeInTheDocument();
   });
 
+  it('renders text filter input with placeholder', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    expect(screen.getByPlaceholderText('Filter elements...')).toBeInTheDocument();
+  });
+
+  it('typing in filter narrows displayed elements by name', async () => {
+    const user = userEvent.setup();
+
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    const input = screen.getByPlaceholderText('Filter elements...');
+    await user.type(input, 'john');
+
+    expect(screen.getByText('JOHN')).toBeInTheDocument();
+    expect(screen.queryByText('MARY')).not.toBeInTheDocument();
+    expect(screen.queryByText('INT. OFFICE - DAY')).not.toBeInTheDocument();
+    expect(screen.queryByText('MAGIC RING')).not.toBeInTheDocument();
+  });
+
+  it('text filter works alongside department filter chips', async () => {
+    const user = userEvent.setup();
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[1],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations', color: '#264653' },
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    // Filter by Cast department
+    await user.click(screen.getByRole('button', { name: /cast/i }));
+
+    // Both JOHN and MARY should be visible
+    expect(screen.getByText('JOHN')).toBeInTheDocument();
+    expect(screen.getByText('MARY')).toBeInTheDocument();
+
+    // Now also type text filter
+    const input = screen.getByPlaceholderText('Filter elements...');
+    await user.type(input, 'john');
+
+    // Only JOHN should be visible
+    expect(screen.getByText('JOHN')).toBeInTheDocument();
+    expect(screen.queryByText('MARY')).not.toBeInTheDocument();
+  });
+
+  it('clearing filter shows all elements again', async () => {
+    const user = userEvent.setup();
+
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    const input = screen.getByPlaceholderText('Filter elements...');
+    await user.type(input, 'john');
+    expect(screen.queryByText('MARY')).not.toBeInTheDocument();
+
+    await user.clear(input);
+    expect(screen.getByText('MARY')).toBeInTheDocument();
+    expect(screen.getByText('JOHN')).toBeInTheDocument();
+  });
+
   it('archive button stopPropagation', async () => {
     const user = userEvent.setup();
     const onElementClick = vi.fn();
