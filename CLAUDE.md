@@ -133,6 +133,23 @@ The app is deployed on **Railway** with **Cloudflare** handling DNS (DNS-only mo
    git checkout main
    ```
 6. Railway auto-detects the push and rebuilds both services
+7. After deploy, verify with `railway logs --service backend` and `railway logs --service frontend`
+
+### Deployment Failure Prevention
+
+**When a deployment fails, always add a test to prevent recurrence.**
+
+Every deployment failure reveals a gap in our local test suite. After diagnosing and fixing a deploy failure:
+
+1. **Identify the root cause** — What broke? Missing dependency, build config issue, runtime error, migration problem?
+2. **Write a test that would have caught it** — Add a Tier 1 test that validates the condition locally. Examples:
+   - If `prisma generate` wasn't running before build → test that `@prisma/client` is importable
+   - If a dependency was in `devDependencies` but needed at runtime → test that the import resolves
+   - If a build script failed → test that `npm run build` succeeds (in CI)
+   - If a migration failed → test that the schema is consistent
+3. **Commit the test alongside the fix** — The test stays in the suite forever to prevent regression.
+
+The goal: no deployment failure should ever happen twice for the same reason.
 
 ### Railway Services
 
@@ -313,6 +330,7 @@ await page.click("#delete-option");
 
 ## Workflow
 
+- **Check Railway logs at the start of every plan** — Before planning any work, run `railway logs --service backend` and `railway logs --service frontend` to check for deployment failures. If either service is down or showing errors, fixing the deployment becomes the top priority before any other work.
 - **Check for uncommitted changes before starting** — Run `git status` at the start of each task to understand the current state. Address any uncommitted changes before beginning new work.
 - **When resuming from a prior session, commit first** — If there are uncommitted changes from a previous session, commit them immediately before starting any new work.
 - **Commit after each logical step** — Always commit changes after completing each distinct task or fix. Do not batch multiple fixes into one commit. Plans should include explicit commit points after each phase.
