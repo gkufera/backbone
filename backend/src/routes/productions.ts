@@ -441,10 +441,13 @@ productionsRouter.patch(
           },
         });
         if (privilegedCount <= 1) {
-          res
-            .status(400)
-            .json({ error: 'Need at least 1 ADMIN or DECIDER in a production' });
-          return;
+          const newRoleIsPrivileged = [MemberRole.ADMIN, MemberRole.DECIDER].includes(role);
+          if (!newRoleIsPrivileged) {
+            res
+              .status(400)
+              .json({ error: 'Need at least 1 ADMIN or DECIDER in a production' });
+            return;
+          }
         }
       }
 

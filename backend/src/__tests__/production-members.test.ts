@@ -694,7 +694,7 @@ describe('PATCH /api/productions/:id/members/:memberId/role', () => {
     expect(res.body.error).toMatch(/cannot demote yourself/i);
   });
 
-  it('cannot self-change when only ADMIN/DECIDER', async () => {
+  it('solo ADMIN can switch to DECIDER (privileged count stays 1)', async () => {
     // Requester is ADMIN, target is same user
     mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
       id: 'member-admin',
@@ -713,13 +713,55 @@ describe('PATCH /api/productions/:id/members/:memberId/role', () => {
     // Only 1 ADMIN/DECIDER
     mockedPrisma.productionMember.count.mockResolvedValue(1);
 
+    mockedPrisma.productionMember.update.mockResolvedValue({
+      id: 'member-admin',
+      productionId: 'prod-1',
+      userId: 'user-owner',
+      role: 'DECIDER',
+    } as any);
+
     const res = await request(app)
       .patch('/api/productions/prod-1/members/member-admin/role')
       .set(authHeader())
       .send({ role: 'DECIDER' });
 
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/at least 1 ADMIN or DECIDER/i);
+    expect(res.status).toBe(200);
+    expect(res.body.member.role).toBe('DECIDER');
+  });
+
+  it('solo DECIDER can switch to ADMIN (privileged count stays 1)', async () => {
+    // Requester is DECIDER, target is same user
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-decider',
+      productionId: 'prod-1',
+      userId: 'user-decider',
+      role: 'DECIDER',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-decider',
+      productionId: 'prod-1',
+      userId: 'user-decider',
+      role: 'DECIDER',
+    } as any);
+
+    // Only 1 ADMIN/DECIDER
+    mockedPrisma.productionMember.count.mockResolvedValue(1);
+
+    mockedPrisma.productionMember.update.mockResolvedValue({
+      id: 'member-decider',
+      productionId: 'prod-1',
+      userId: 'user-decider',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/members/member-decider/role')
+      .set(authHeader(deciderUser))
+      .send({ role: 'ADMIN' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.member.role).toBe('ADMIN');
   });
 
   it('cannot demote last ADMIN or DECIDER to MEMBER', async () => {
