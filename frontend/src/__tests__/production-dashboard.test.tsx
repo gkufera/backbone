@@ -501,7 +501,7 @@ describe('Production dashboard', () => {
     const prodDesignRow = prodDesignElements
       .map((el) => el.closest('li'))
       .find((li) => li && li.querySelector('.btn-disabled-striped'));
-    expect(prodDesignRow).toBeTruthy();
+    expect(prodDesignRow).not.toBeNull();
     const disabledDelete = prodDesignRow!.querySelector('.btn-disabled-striped');
     expect(disabledDelete).toBeInTheDocument();
     expect(disabledDelete).toHaveAttribute('title', 'Cannot delete department with members');
@@ -511,7 +511,7 @@ describe('Production dashboard', () => {
     const costumeRow = costumeElements
       .map((el) => el.closest('li'))
       .find((li) => li && li.querySelector('.btn-text'));
-    expect(costumeRow).toBeTruthy();
+    expect(costumeRow).not.toBeNull();
     const deleteBtn = costumeRow!.querySelector('.btn-text');
     expect(deleteBtn).toBeInTheDocument();
     expect(deleteBtn).toHaveTextContent(/delete/i);
