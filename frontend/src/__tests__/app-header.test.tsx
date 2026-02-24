@@ -71,6 +71,8 @@ describe('AppHeader', () => {
   });
 
   it('renders with 1-bit design (black bottom border)', () => {
+    mockUsePathname.mockReturnValue('/settings');
+
     render(
       <AuthProvider>
         <AppHeader />
@@ -141,6 +143,8 @@ describe('AppHeader', () => {
   });
 
   it('hamburger menu button exists with aria-label "Menu"', () => {
+    mockUsePathname.mockReturnValue('/settings');
+
     render(
       <AuthProvider>
         <AppHeader />
@@ -151,6 +155,7 @@ describe('AppHeader', () => {
   });
 
   it('clicking hamburger opens mobile nav', async () => {
+    mockUsePathname.mockReturnValue('/settings');
     const { default: userEvent } = await import('@testing-library/user-event');
     const user = userEvent.setup();
 
@@ -167,7 +172,7 @@ describe('AppHeader', () => {
   it('mobile nav closes when pathname changes', () => {
     const { fireEvent } = require('@testing-library/react');
 
-    mockUsePathname.mockReturnValue('/');
+    mockUsePathname.mockReturnValue('/settings');
 
     const { rerender } = render(
       <AuthProvider>
@@ -190,16 +195,16 @@ describe('AppHeader', () => {
     expect(screen.queryByTestId('mobile-nav')).not.toBeInTheDocument();
   });
 
-  it('hides logo image on homepage to prevent duplicate', () => {
+  it('does not render header on homepage', () => {
     mockUsePathname.mockReturnValue('/');
 
-    render(
+    const { container } = render(
       <AuthProvider>
         <AppHeader />
       </AuthProvider>,
     );
 
-    expect(screen.queryByAltText('Slug Max')).not.toBeInTheDocument();
+    expect(container.querySelector('header')).toBeNull();
   });
 
   it('shows logo image on non-homepage routes', () => {
@@ -216,17 +221,16 @@ describe('AppHeader', () => {
     expect(logo.closest('a')).toHaveAttribute('href', '/');
   });
 
-  it('does not show breadcrumb or notification bell on home page', () => {
+  it('does not render anything on homepage (no breadcrumb, bell, or nav)', () => {
     mockUsePathname.mockReturnValue('/');
 
-    render(
+    const { container } = render(
       <AuthProvider>
         <AppHeader />
       </AuthProvider>,
     );
 
-    expect(screen.queryByLabelText('Notifications')).not.toBeInTheDocument();
-    // No breadcrumb separator
-    expect(screen.queryByText('/')).not.toBeInTheDocument();
+    // Entire component returns null on homepage
+    expect(container.innerHTML).toBe('');
   });
 });
