@@ -27,10 +27,10 @@ export default function Home() {
               priority
               style={{ imageRendering: 'pixelated' }}
             />
-            <p className="text-sm uppercase tracking-widest">For Film &amp; TV Creatives</p>
-            <h1 className="text-center text-2xl font-bold leading-tight">
+            <span className="text-sm uppercase tracking-widest">For Film &amp; TV Creatives</span>
+            <p className="text-center text-2xl font-bold font-mono leading-tight">
               One Place for EVERY Creative Decision
-            </h1>
+            </p>
             <p className="text-center text-lg font-mono">
               Stop searching email threads, start making the film.
             </p>

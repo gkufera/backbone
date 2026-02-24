@@ -68,7 +68,7 @@ export default function ReconcilePage() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-2 text-2xl font-bold">Reconcile Script Revision</h1>
+      <h1 className="mb-2 text-2xl">Reconcile Script Revision</h1>
 
       <div className="mb-6 flex gap-4 text-sm text-black">
         {fuzzyMatches.length > 0 && <span>{fuzzyMatches.length} fuzzy</span>}
@@ -77,7 +77,7 @@ export default function ReconcilePage() {
 
       {fuzzyMatches.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-3 text-lg font-semibold">Fuzzy Matches</h2>
+          <h2 className="mb-3 text-lg">Fuzzy Matches</h2>
           <p className="mb-4 text-sm text-black">
             These elements were detected but couldn&apos;t be exactly matched. Choose whether to map
             them to existing elements or create new ones.
@@ -97,7 +97,7 @@ export default function ReconcilePage() {
 
       {missingMatches.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-3 text-lg font-semibold">Missing Elements</h2>
+          <h2 className="mb-3 text-lg">Missing Elements</h2>
           <p className="mb-4 text-sm text-black">
             These elements exist in the previous script but were not found in the new draft. Choose
             whether to keep them or archive them.

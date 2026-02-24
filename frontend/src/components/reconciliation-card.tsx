@@ -26,7 +26,7 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
         <>
           <div className="mb-2 flex items-center justify-between">
             <div>
-              <span className="font-semibold">{match.detectedName}</span>
+              <span>{match.detectedName}</span>
               <span className="ml-2 text-sm font-mono text-black">
                 {Math.round((match.similarity ?? 0) * 100)}% match
               </span>
@@ -75,7 +75,7 @@ export function ReconciliationCard({ match, decision, onDecision }: Reconciliati
         <>
           <div className="mb-2 flex items-center justify-between">
             <div>
-              <span className="font-semibold">{match.detectedName}</span>
+              <span>{match.detectedName}</span>
             </div>
             <span className="badge badge-missing">
               MISSING

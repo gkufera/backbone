@@ -27,11 +27,11 @@ export default function NewProductionPage() {
 
   return (
     <div className="mx-auto max-w-lg p-6">
-      <h1 className="mb-6 text-2xl font-bold">New Production</h1>
+      <h1 className="mb-6 text-2xl">New Production</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-bold">
+          <label htmlFor="title" className="block text-sm">
             Title
           </label>
           <input

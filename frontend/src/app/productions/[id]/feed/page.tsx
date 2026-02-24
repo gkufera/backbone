@@ -31,7 +31,7 @@ export default function FeedPage() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-6 text-3xl font-bold">Review Feed</h1>
+      <h1 className="mb-6 text-3xl">Review Feed</h1>
 
       {elements.length === 0 ? (
         <p className="text-black">No elements pending review.</p>

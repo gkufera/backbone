@@ -75,7 +75,7 @@ export default function RevisionUploadPage() {
 
   return (
     <div className="mx-auto max-w-lg p-6">
-      <h1 className="mb-2 text-2xl font-bold">Upload New Draft</h1>
+      <h1 className="mb-2 text-2xl">Upload New Draft</h1>
       <p className="mb-6 text-black">
         Uploading revision of: <strong>{parentScript.title}</strong>{' '}
         <span className="text-sm">v{parentScript.version}</span>
@@ -83,7 +83,7 @@ export default function RevisionUploadPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="pdf-file" className="block text-sm font-bold">
+          <label htmlFor="pdf-file" className="block text-sm">
             PDF File
           </label>
           <input

@@ -32,7 +32,7 @@ export function VersionHistory({ versions, currentScriptId, productionId }: Vers
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold">v{version.version}</span>
+                <span>v{version.version}</span>
                 <span className="text-sm font-mono text-black">{version.title}</span>
                 {isCurrent && (
                   <span className="badge badge-approved">

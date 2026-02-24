@@ -37,7 +37,7 @@ export function FeedCard({ element, productionId, scriptId }: FeedCardProps) {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">{element.name}</h3>
+          <h3 className="text-lg">{element.name}</h3>
           <div className="mt-1 flex items-center gap-2">
             <span className="badge badge-default uppercase">{element.type}</span>
             <span className="text-xs font-mono">Pages: {element.pageNumbers.join(', ')}</span>

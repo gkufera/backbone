@@ -71,11 +71,11 @@ export default function ScriptUploadPage() {
 
   return (
     <div className="mx-auto max-w-lg p-6">
-      <h1 className="mb-6 text-2xl font-bold">Upload Script</h1>
+      <h1 className="mb-6 text-2xl">Upload Script</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="pdf-file" className="block text-sm font-bold">
+          <label htmlFor="pdf-file" className="block text-sm">
             PDF File
           </label>
           <input
@@ -89,7 +89,7 @@ export default function ScriptUploadPage() {
         </div>
 
         <div>
-          <label htmlFor="title" className="block text-sm font-bold">
+          <label htmlFor="title" className="block text-sm">
             Title
           </label>
           <input

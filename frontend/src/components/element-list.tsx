@@ -63,7 +63,7 @@ function ElementGroup({
 }) {
   return (
     <div>
-      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+      <h3 className="mb-2 text-lg">{title}</h3>
       <ul className="divide-y divide-black">
         {elements.map((elem) => (
           <li key={elem.id} className="flex items-center justify-between py-2">
@@ -87,7 +87,7 @@ function ElementGroup({
             </div>
             <button
               onClick={() => onArchive(elem.id)}
-              className="text-xs text-black underline hover:bg-black hover:text-white"
+              className="btn-text text-xs text-black hover:bg-black hover:text-white"
               aria-label={`Archive ${elem.name}`}
             >
               Archive

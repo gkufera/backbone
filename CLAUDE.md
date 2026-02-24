@@ -445,8 +445,8 @@ The design system is implemented in `frontend/src/app/globals.css`. That file is
 
 - **Pure black and white only** — `#000` and `#fff`. No grays (`zinc-*`, `gray-*`, `slate-*`), no colors (`blue-*`, `green-*`, `red-*`, `yellow-*`, `orange-*`), no gradients, no opacity for color variation. The ONLY use of opacity is `disabled:opacity-50` for disabled controls.
 - **Two-font system** — Two fonts, each with a distinct role:
-  - **VT323** (pixel font, `--font-vt323`) — For UI chrome: headings, labels, buttons, badges, nav items, window titles. Rendered uppercase with `letter-spacing: 0.05em`. Font smoothing disabled.
-  - **Courier Prime** (screenplay font, `--font-courier-prime`) — For body/content text: descriptions, names, emails, timestamps, file names, notes, form input values. Rendered in normal case. Font smoothing enabled (`-webkit-font-smoothing: auto`).
+  - **VT323** (pixel font, `--font-vt323`) — For UI chrome: headings, labels, buttons, badges, nav items, window titles. Rendered uppercase with `letter-spacing: 0.05em`. Always **normal weight** (never `font-bold` or `font-semibold`) — the pixel font is designed to be thin. Font smoothing disabled.
+  - **Courier Prime** (screenplay font, `--font-courier-prime`) — For body/content text: descriptions, names, emails, timestamps, file names, notes, form input values. Rendered in normal case. `font-bold` is appropriate on Courier Prime text where emphasis is needed. Font smoothing enabled (`-webkit-font-smoothing: auto`).
   - CSS rules in `globals.css` auto-assign VT323 to `h1`–`h6`, `label`, `button` and Courier Prime to `p`, `td`, `th`, `input`, `textarea`, `select`.
   - For `<span>`, `<div>`, `<a>` elements, apply `font-mono` (maps to Courier Prime) when the content is data/body text, or leave as default (VT323) when it's UI chrome.
 - **No rounded corners** — Never use `rounded`, `rounded-md`, `rounded-lg`, `rounded-full`, or any `border-radius`. All corners are sharp 90-degree angles.
@@ -526,7 +526,7 @@ The title bar renders with an inverted background. Always wrap title text in `<s
 
 **Links:**
 - Standard `<a>` or Next.js `<Link>` — globals.css handles underline + invert-on-hover automatically
-- For link-styled buttons (e.g., "Archive"), use `className="text-xs underline"` — the button base styles from globals.css add the border; if you want a text-only action link, override with `border-0` or use an `<a>` tag
+- Inline text-action buttons (e.g., "Delete", "Archive", "Mark Ready"): use `className="btn-text text-xs"` — the `.btn-text` class removes the border and adds underline, making it look like a text link
 
 **List items** (use `divide-y` on parent, padding on items):
 ```tsx
@@ -548,7 +548,7 @@ The title bar renders with an inverted background. Always wrap title text in `<s
 
 **Forms:**
 - Inputs, textareas, and selects are styled globally (2px black border, square corners, black outline on focus, Courier Prime font). No additional border or focus classes needed beyond sizing (`w-full`, `p-2`, etc.).
-- Labels: `className="block text-sm font-bold"` (use `font-bold`, not `font-medium` or colored text) — renders in VT323 uppercase automatically
+- Labels: `className="block text-sm"` — renders in VT323 uppercase automatically (never use `font-bold` on VT323 elements)
 - Error messages: `className="text-sm text-black font-bold"` (not red)
 
 **Alerts and status messages:**
@@ -594,7 +594,7 @@ If the existing classes in `globals.css` don't cover your need:
 1. Add the new class to `globals.css` — it is the single source of truth for design system CSS.
 2. Use ONLY `#000` and `#fff` as colors.
 3. Use CSS patterns (repeating-linear-gradient, repeating-conic-gradient) for visual differentiation — never color.
-4. Follow the naming convention: `.mac-*` for structural chrome, `.badge-*` for status indicators.
+4. Follow the naming convention: `.mac-*` for structural chrome, `.badge-*` for status indicators, `.btn-*` for button variants.
 5. Document the new class in this section of CLAUDE.md.
 
 ### Tailwind Classes: Allowed vs Prohibited

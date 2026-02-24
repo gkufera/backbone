@@ -48,7 +48,7 @@ export default function VersionHistoryPage() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Version History</h1>
+      <h1 className="mb-6 text-2xl">Version History</h1>
       <VersionHistory versions={versions} currentScriptId={scriptId} productionId={productionId} />
     </div>
   );

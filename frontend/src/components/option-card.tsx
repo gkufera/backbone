@@ -91,14 +91,14 @@ export function OptionCard({
       <div className="flex gap-2">
         <button
           onClick={() => onToggleReady(option.id)}
-          className="text-xs underline"
+          className="btn-text text-xs"
           aria-label={option.readyForReview ? 'Mark not ready' : 'Mark ready'}
         >
           {option.readyForReview ? 'Unmark Ready' : 'Mark Ready'}
         </button>
         <button
           onClick={() => onArchive(option.id)}
-          className="text-xs underline"
+          className="btn-text text-xs"
           aria-label={`Archive ${option.description || 'option'}`}
         >
           Archive

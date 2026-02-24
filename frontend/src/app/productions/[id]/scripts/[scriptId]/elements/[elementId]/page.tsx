@@ -160,7 +160,7 @@ export default function ElementDetailPage() {
   return (
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">{element.name}</h1>
+        <h1 className="text-3xl">{element.name}</h1>
         <div className="mt-2 flex items-center gap-3">
           <span className="badge badge-default uppercase">
             {element.type}
@@ -177,7 +177,7 @@ export default function ElementDetailPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Options ({optionLabel})</h2>
+          <h2 className="text-xl">Options ({optionLabel})</h2>
           {!isLocked && (
             <button
               onClick={() => setShowUploadForm(!showUploadForm)}

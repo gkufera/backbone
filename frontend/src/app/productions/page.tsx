@@ -28,7 +28,7 @@ export default function ProductionsPage() {
   return (
     <div className="mx-auto max-w-2xl p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Productions</h1>
+        <h1 className="text-2xl">Productions</h1>
         <Link href="/productions/new" className="mac-btn-primary">
           New Production
         </Link>
@@ -42,9 +42,9 @@ export default function ProductionsPage() {
             <li key={p.id}>
               <Link
                 href={`/productions/${p.id}`}
-                className="block py-4 hover:bg-black hover:text-white"
+                className="block px-3 py-4 hover:bg-black hover:text-white"
               >
-                <h2 className="font-semibold">{p.title}</h2>
+                <h2>{p.title}</h2>
                 {p.description && <p className="mt-1 text-sm font-mono">{p.description}</p>}
               </Link>
             </li>

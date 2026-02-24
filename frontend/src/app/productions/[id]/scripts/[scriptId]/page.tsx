@@ -83,7 +83,7 @@ export default function ScriptViewerPage() {
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold">{script.title}</h1>
+          <h1 className="text-3xl">{script.title}</h1>
           {script.version && (
             <span className="badge badge-default">
               v{script.version}
@@ -132,7 +132,7 @@ export default function ScriptViewerPage() {
       {script.status === 'READY' && (
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Elements ({script.elements.length})</h2>
+            <h2 className="text-xl">Elements ({script.elements.length})</h2>
             <div className="flex gap-2">
               <Link
                 href={`/productions/${productionId}/scripts/${scriptId}/revisions/upload`}

@@ -113,7 +113,7 @@ select:focus {
   background: #000;
   color: #fff;
   padding: 4px 8px;
-  font-weight: bold;
+  font-weight: normal;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -155,7 +155,7 @@ select:focus {
   background: #000;
   color: #fff;
   padding: 4px 8px;
-  font-weight: bold;
+  font-weight: normal;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -166,7 +166,7 @@ select:focus {
   display: inline-block;
   padding: 2px 8px;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: normal;
   border: 2px solid #000;
   font-family: var(--font-pixel);
   text-transform: uppercase;
@@ -264,6 +264,15 @@ select:focus {
 .mac-btn-secondary:hover {
   background: #000;
   color: #fff;
+}
+
+/* ── Inline Text-Action Buttons ───────────────────────────── */
+
+.btn-text {
+  border: none;
+  padding: 0;
+  background: transparent;
+  text-decoration: underline;
 }
 
 /* ── Alerts ────────────────────────────────────────────────── */
