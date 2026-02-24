@@ -28,6 +28,7 @@ vi.mock('../lib/api', () => ({
     list: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
+    update: vi.fn(),
   },
   notificationsApi: {
     list: vi.fn(),
@@ -84,6 +85,7 @@ const mockDepartments = [
     id: 'dept-1',
     productionId: 'prod-1',
     name: 'Production Design',
+    color: '#E63946',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     _count: { members: 1 },
@@ -92,6 +94,7 @@ const mockDepartments = [
     id: 'dept-2',
     productionId: 'prod-1',
     name: 'Costume',
+    color: '#2A9D8F',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     _count: { members: 0 },
@@ -648,6 +651,47 @@ describe('Production dashboard', () => {
     expect(screen.queryByDisplayValue(/changed/)).not.toBeInTheDocument();
     // API should NOT be called
     expect(mockedProductionsApi.update).not.toHaveBeenCalled();
+  });
+
+  it('shows color input for each department when ADMIN', async () => {
+    setupMocks();
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Departments');
+    const colorInputs = screen.getAllByLabelText(/color for/i);
+    expect(colorInputs).toHaveLength(2);
+  });
+
+  it('calls departmentsApi.update when color is changed', async () => {
+    setupMocks();
+    mockedDepartmentsApi.update.mockResolvedValue({
+      department: { ...mockDepartments[0], color: '#FF0000' },
+    });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Departments');
+    const colorInputs = screen.getAllByLabelText(/color for/i);
+    fireEvent.input(colorInputs[0], { target: { value: '#FF0000' } });
+
+    expect(mockedDepartmentsApi.update).toHaveBeenCalledWith('prod-1', 'dept-1', { color: '#ff0000' });
+  });
+
+  it('does not show color input for departments when MEMBER', async () => {
+    const memberProduction = {
+      ...mockProduction,
+      memberRole: 'MEMBER',
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: memberProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Departments');
+    expect(screen.queryAllByLabelText(/color for/i)).toHaveLength(0);
   });
 
   it('MEMBER cannot edit title (no cursor-pointer, click does not enter edit mode)', async () => {

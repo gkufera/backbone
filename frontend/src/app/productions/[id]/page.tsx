@@ -107,6 +107,17 @@ export default function ProductionDashboard() {
     }
   }
 
+  async function handleDepartmentColorChange(departmentId: string, color: string) {
+    try {
+      await departmentsApi.update(id, departmentId, { color });
+      setDepartments((prev) =>
+        prev.map((d) => (d.id === departmentId ? { ...d, color } : d)),
+      );
+    } catch (err) {
+      setDeptError(err instanceof Error ? err.message : 'Failed to update color');
+    }
+  }
+
   async function handleDeleteDepartment(departmentId: string) {
     if (!window.confirm('Delete this department?')) return;
     try {
@@ -320,7 +331,18 @@ export default function ProductionDashboard() {
                 const memberCount = dept._count?.members ?? 0;
                 return (
                   <li key={dept.id} className="flex items-center justify-between py-3">
-                    <div>
+                    <div className="flex items-center gap-2">
+                      {canManageRoles && (
+                        <input
+                          type="color"
+                          value={dept.color ?? '#000000'}
+                          onInput={(e) =>
+                            handleDepartmentColorChange(dept.id, (e.target as HTMLInputElement).value)
+                          }
+                          aria-label={`Color for ${dept.name}`}
+                          className="h-6 w-6 border-2 border-black cursor-pointer"
+                        />
+                      )}
                       <span className="font-medium font-mono">{dept.name}</span>
                       {memberCount > 0 && (
                         <span className="ml-2 text-sm font-mono text-black">
