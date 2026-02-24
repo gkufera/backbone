@@ -1,6 +1,6 @@
 export enum MemberRole {
-  OWNER = 'OWNER',
   ADMIN = 'ADMIN',
+  DECIDER = 'DECIDER',
   MEMBER = 'MEMBER',
 }
 

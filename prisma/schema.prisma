@@ -9,8 +9,8 @@ datasource db {
 }
 
 enum MemberRole {
-  OWNER
   ADMIN
+  DECIDER
   MEMBER
 }
 
@@ -70,6 +70,8 @@ enum NotificationType {
   OPTION_MAYBE
   MEMBER_INVITED
   SCRIPT_UPLOADED
+  TENTATIVE_APPROVAL
+  TENTATIVE_CONFIRMED
 }
 
 model User {
@@ -195,6 +197,7 @@ model Approval {
   userId    String           @map("user_id")
   decision  ApprovalDecision
   note      String?
+  tentative Boolean          @default(false)
   createdAt DateTime         @default(now()) @map("created_at")
   updatedAt DateTime         @updatedAt @map("updated_at")
 

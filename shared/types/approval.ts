@@ -10,6 +10,7 @@ export interface Approval {
   userId: string;
   decision: ApprovalDecision;
   note: string | null;
+  tentative: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
