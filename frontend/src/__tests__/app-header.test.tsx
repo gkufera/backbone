@@ -1,5 +1,7 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const mockUsePathname = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -7,6 +9,7 @@ vi.mock('next/navigation', () => ({
     replace: vi.fn(),
     prefetch: vi.fn(),
   }),
+  usePathname: () => mockUsePathname(),
 }));
 
 vi.mock('../lib/api', () => ({
@@ -15,12 +18,29 @@ vi.mock('../lib/api', () => ({
     login: vi.fn(),
     me: vi.fn().mockRejectedValue(new Error('No token')),
   },
+  productionsApi: {
+    get: vi.fn(),
+  },
+  notificationsApi: {
+    unreadCount: vi.fn(),
+    list: vi.fn(),
+    markAsRead: vi.fn(),
+  },
 }));
+
+import { productionsApi, notificationsApi } from '../lib/api';
+const mockedProductionsApi = vi.mocked(productionsApi);
+const mockedNotificationsApi = vi.mocked(notificationsApi);
 
 import { AppHeader } from '../components/app-header';
 import { AuthProvider } from '../lib/auth-context';
 
 describe('AppHeader', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePathname.mockReturnValue('/');
+  });
+
   it('renders logo image linking to /', () => {
     render(
       <AuthProvider>
@@ -56,5 +76,77 @@ describe('AppHeader', () => {
     const header = screen.getByRole('banner');
     expect(header).toHaveClass('border-b-2');
     expect(header).toHaveClass('border-black');
+  });
+
+  it('shows breadcrumb with production name on production pages', async () => {
+    mockUsePathname.mockReturnValue('/productions/prod-1/scripts/s1');
+    mockedProductionsApi.get.mockResolvedValue({
+      production: {
+        id: 'prod-1',
+        title: 'My Film',
+        description: null,
+        createdById: 'user-1',
+        memberRole: 'ADMIN',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        members: [],
+        scripts: [],
+      },
+    });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('My Film')).toBeInTheDocument();
+    });
+  });
+
+  it('shows notification bell on production pages', async () => {
+    mockUsePathname.mockReturnValue('/productions/prod-1');
+    mockedProductionsApi.get.mockResolvedValue({
+      production: {
+        id: 'prod-1',
+        title: 'My Film',
+        description: null,
+        createdById: 'user-1',
+        memberRole: 'ADMIN',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        members: [],
+        scripts: [],
+      },
+    });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 3 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Notifications')).toBeInTheDocument();
+    });
+  });
+
+  it('does not show breadcrumb or notification bell on home page', () => {
+    mockUsePathname.mockReturnValue('/');
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    expect(screen.queryByLabelText('Notifications')).not.toBeInTheDocument();
+    // No breadcrumb separator
+    expect(screen.queryByText('/')).not.toBeInTheDocument();
   });
 });

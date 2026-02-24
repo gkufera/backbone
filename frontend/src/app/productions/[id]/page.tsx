@@ -10,7 +10,6 @@ import {
   type ProductionDetailResponse,
   type DepartmentResponse,
 } from '../../../lib/api';
-import { NotificationBell } from '../../../components/notification-bell';
 import { PermissionsTooltip } from '../../../components/permissions-tooltip';
 
 export default function ProductionDashboard() {
@@ -156,7 +155,6 @@ export default function ProductionDashboard() {
             {production.title}
           </h1>
         )}
-        <NotificationBell productionId={id} />
       </div>
       {production.description && <p className="mb-6 font-mono text-black">{production.description}</p>}
 
