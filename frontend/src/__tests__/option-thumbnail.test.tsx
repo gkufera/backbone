@@ -143,4 +143,98 @@ describe('OptionThumbnail', () => {
     await user.click(screen.getByRole('button'));
     expect(onClick).toHaveBeenCalled();
   });
+
+  it('renders Y/M/N buttons when readyForReview and onApprove provided', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    render(
+      <OptionThumbnail
+        option={baseOption}
+        approvalState={null}
+        onClick={vi.fn()}
+        onApprove={vi.fn()}
+        readyForReview
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Y' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'M' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'N' })).toBeInTheDocument();
+  });
+
+  it('clicking Y calls onApprove with APPROVED', async () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const user = userEvent.setup();
+    const onApprove = vi.fn();
+    render(
+      <OptionThumbnail
+        option={baseOption}
+        approvalState={null}
+        onClick={vi.fn()}
+        onApprove={onApprove}
+        readyForReview
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Y' }));
+    expect(onApprove).toHaveBeenCalledWith('APPROVED');
+  });
+
+  it('clicking N calls onApprove with REJECTED', async () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const user = userEvent.setup();
+    const onApprove = vi.fn();
+    render(
+      <OptionThumbnail
+        option={baseOption}
+        approvalState={null}
+        onClick={vi.fn()}
+        onApprove={onApprove}
+        readyForReview
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'N' }));
+    expect(onApprove).toHaveBeenCalledWith('REJECTED');
+  });
+
+  it('does not render Y/M/N buttons when not readyForReview', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const notReadyOption = { ...baseOption, readyForReview: false };
+    render(
+      <OptionThumbnail
+        option={notReadyOption}
+        approvalState={null}
+        onClick={vi.fn()}
+        onApprove={vi.fn()}
+        readyForReview={false}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Y' })).not.toBeInTheDocument();
+  });
+
+  it('Y/M/N button clicks do not trigger main onClick', async () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    const onApprove = vi.fn();
+    render(
+      <OptionThumbnail
+        option={baseOption}
+        approvalState={null}
+        onClick={onClick}
+        onApprove={onApprove}
+        readyForReview
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Y' }));
+    expect(onApprove).toHaveBeenCalled();
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });

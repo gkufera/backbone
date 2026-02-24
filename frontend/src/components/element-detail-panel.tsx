@@ -112,6 +112,16 @@ export function ElementDetailPanel({
     }
   }
 
+  async function handleThumbnailApprove(optionId: string, decision: string) {
+    setError(null);
+    try {
+      await approvalsApi.create(optionId, { decision });
+      await refreshOptions();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit approval');
+    }
+  }
+
   async function handleDepartmentChange(departmentId: string | null) {
     setError(null);
     try {
@@ -220,6 +230,8 @@ export function ElementDetailPanel({
                 option={opt}
                 approvalState={getApprovalState(opt.id)}
                 onClick={() => setLightboxOption(opt)}
+                onApprove={(decision) => handleThumbnailApprove(opt.id, decision)}
+                readyForReview={opt.readyForReview ?? false}
               />
             ))}
           </div>
