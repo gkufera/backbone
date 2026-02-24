@@ -39,6 +39,13 @@ describe('Login page', () => {
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument();
   });
 
+  it('uses flex-1 instead of min-h-screen for proper layout', () => {
+    const { container } = render(<LoginPage />);
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toHaveClass('flex-1');
+    expect(wrapper).not.toHaveClass('min-h-screen');
+  });
+
   it('renders a link to the signup page', () => {
     render(<LoginPage />);
 
