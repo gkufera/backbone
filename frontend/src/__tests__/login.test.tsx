@@ -52,6 +52,12 @@ describe('Login page', () => {
     expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument();
   });
 
+  it('has a forgot password link', () => {
+    render(<LoginPage />);
+
+    expect(screen.getByRole('link', { name: /forgot password/i })).toBeInTheDocument();
+  });
+
   it('calls auth context login and redirects to /productions on submit', async () => {
     const user = userEvent.setup();
 
