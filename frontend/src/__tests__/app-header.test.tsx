@@ -160,6 +160,32 @@ describe('AppHeader', () => {
     expect(screen.getByTestId('mobile-nav')).toBeInTheDocument();
   });
 
+  it('mobile nav closes when pathname changes', () => {
+    const { fireEvent } = require('@testing-library/react');
+
+    mockUsePathname.mockReturnValue('/');
+
+    const { rerender } = render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    // Open the mobile nav
+    fireEvent.click(screen.getByLabelText('Menu'));
+    expect(screen.getByTestId('mobile-nav')).toBeInTheDocument();
+
+    // Simulate a route change
+    mockUsePathname.mockReturnValue('/productions/prod-1');
+    rerender(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    expect(screen.queryByTestId('mobile-nav')).not.toBeInTheDocument();
+  });
+
   it('does not show breadcrumb or notification bell on home page', () => {
     mockUsePathname.mockReturnValue('/');
 

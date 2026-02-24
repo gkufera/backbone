@@ -31,7 +31,12 @@ function useProductionFromPath() {
 
 export function AppHeader() {
   const { productionId, productionName } = useProductionFromPath();
+  const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   return (
     <header className="border-b-2 border-black bg-white">
