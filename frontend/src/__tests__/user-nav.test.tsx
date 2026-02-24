@@ -99,4 +99,26 @@ describe('UserNav', () => {
 
     expect(localStorage.getItem('token')).toBeNull();
   });
+
+  it('has a Settings link', async () => {
+    localStorage.setItem('token', 'valid-token');
+    mockedAuthApi.me.mockResolvedValue({
+      user: {
+        id: 'test-id',
+        name: 'Jane Director',
+        email: 'jane@example.com',
+        createdAt: new Date().toISOString(),
+      },
+    });
+
+    render(
+      <AuthProvider>
+        <UserNav />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /settings/i })).toBeInTheDocument();
+    });
+  });
 });
