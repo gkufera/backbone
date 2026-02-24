@@ -1,7 +1,25 @@
 # Current Plan
 
 ## Active Task
-None — all phases complete.
+None — Sprint 9 complete.
+
+## Completed (Sprint 9: Navigation, Layout & Quick Fixes)
+
+### Phases
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | AppHeader + AppFooter + root layout | `feat: add persistent AppHeader and AppFooter to root layout` | +5 |
+| 2 | Reorder production page + review feed | `feat: reorder production page sections, upgrade review feed display` | +4 |
+| 3 | Permission tooltip visibility + move to role dropdowns | `fix: permission tooltip visibility on dark bg, move next to role dropdowns` | +4 |
+| 4 | ADMIN/DECIDER rename production | `feat: ADMIN/DECIDER can rename production via inline edit` | +7 |
+| 5 | Element text filter | `feat: add text filter input for element list` | +4 |
+| 6 | Drag-and-drop upload zone | `feat: add drag-and-drop zone on option upload form` | +4 |
+
+### Test Counts (Post Sprint 9)
+- **Frontend**: 312 tests (was 289, +23 new)
+- **Backend**: 296 tests (was 291, +5 new)
+- **Total**: 608 tests (was 580, +28 new)
 
 ## Completed (QA Fix: Media Rendering, Approval States, Notes UI)
 

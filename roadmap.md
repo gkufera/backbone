@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 289 frontend + 291 backend = 580 total
+**Test counts:** 312 frontend + 296 backend = 608 total
 
 ---
 
@@ -22,55 +22,54 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ### Tasks
 
-- [ ] Persistent header component with logo linking home
+- [x] Persistent header component with logo linking home
   - Add `<AppHeader>` component: Slug Max logo (pixelated, links to `/`), production name as breadcrumb when inside a production, notification bell
   - Add to root layout (`frontend/src/app/layout.tsx`) so it appears on every page
   - 1-bit design: black bottom border, white bg, VT323 text
   - On home page, hide the duplicate logo/header already in `page.tsx`
   - Files: `frontend/src/components/app-header.tsx` (new), `frontend/src/app/layout.tsx`, `frontend/src/app/page.tsx`
 
-- [ ] Footer with copyright
+- [x] Footer with copyright
   - Add `<AppFooter>` component: "© 2026 Slug Max Corporation" centered, 1-bit style
   - Add to root layout below `{children}`
   - Files: `frontend/src/components/app-footer.tsx` (new), `frontend/src/app/layout.tsx`
 
-- [ ] Move scripts section to top of production page
-  - Reorder sections: Scripts → Team Members → Departments (currently: Team → Departments → Feed → Scripts)
-  - File: `frontend/src/app/productions/[id]/page.tsx` (move lines 275-307 above line 124)
+- [x] Move scripts section to top of production page
+  - Reorder sections: Scripts → Review Feed → Team Members → Departments
+  - File: `frontend/src/app/productions/[id]/page.tsx`
 
-- [ ] Fix permission tooltip visibility
+- [x] Fix permission tooltip visibility
   - Bug: "i" button inside `.mac-window-title` (black bg) uses `border-black text-black` → invisible
-  - Fix: use `border-white text-white hover:bg-white hover:text-black` when inside inverted container
+  - Fix: add `inverted` prop for white border/text when on dark backgrounds
   - File: `frontend/src/components/permissions-tooltip.tsx`
 
-- [ ] Move permission tooltip next to each member's role dropdown
-  - Currently: single tooltip in "Team Members" section header (line 129 of production page)
-  - Move: render `<PermissionsTooltip role={m.role} />` next to each member's role `<select>` (line 157-167)
+- [x] Move permission tooltip next to each member's role dropdown
+  - Moved from section header to inline next to each member's role dropdown
   - Include role name in tooltip text: "DECIDER — Your approvals are official and final."
   - Files: `frontend/src/app/productions/[id]/page.tsx`, `frontend/src/components/permissions-tooltip.tsx`
 
-- [ ] ADMIN/DECIDER can rename the production
+- [x] ADMIN/DECIDER can rename the production
   - Backend: add `PATCH /api/productions/:id` endpoint — accepts `{ title }`, requires ADMIN or DECIDER role
-  - Frontend: make production title editable (click to edit, inline text input, save on blur/enter)
+  - Frontend: click-to-edit title, save on Enter/blur, cancel on Escape
   - API client: add `productionsApi.update(id, { title })` method
   - Files: `backend/src/routes/productions.ts`, `frontend/src/lib/api.ts`, `frontend/src/app/productions/[id]/page.tsx`
 
-- [ ] Filter elements in list view via text input
+- [x] Filter elements in list view via text input
   - Add text input above element list: placeholder "Filter elements..."
   - Filter displayed elements by name (case-insensitive substring match)
   - Works alongside existing department filter chips
   - Files: `frontend/src/components/element-list.tsx`
 
-- [ ] Drag-and-drop zone on option upload form
-  - Wrap file input in a drop zone div with `onDragOver`, `onDragLeave`, `onDrop` handlers
+- [x] Drag-and-drop zone on option upload form
+  - Wrap file input in a styled drop zone with drag-and-drop support
   - Visual feedback: dashed border idle, inverted (`bg-black text-white`) on drag-over
-  - Clicking the zone still opens the native file picker
+  - Clicking the zone still opens the native file picker, displays file name when selected
   - File: `frontend/src/components/option-upload-form.tsx`
 
-- [ ] Prominent review feed section on production page
+- [x] Prominent review feed section on production page
   - Fetch pending-review count from feed endpoint
-  - Upgrade bare "Review Feed" button to a `.mac-window` section showing pending count
-  - If count > 0, display "N elements pending review" with link to feed
+  - Upgraded bare "Review Feed" button to a `.mac-window` section showing pending count
+  - Shows "N elements pending review" or "No elements pending review"
   - File: `frontend/src/app/productions/[id]/page.tsx`
 
 ### Tests
