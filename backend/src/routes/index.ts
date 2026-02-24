@@ -3,3 +3,4 @@ export { authRouter } from './auth.js';
 export { productionsRouter } from './productions.js';
 export { scriptsRouter } from './scripts.js';
 export { elementsRouter } from './elements.js';
+export { notesRouter } from './notes.js';

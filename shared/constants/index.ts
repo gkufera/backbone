@@ -16,3 +16,4 @@ export {
   ELEMENT_TYPE_DEPARTMENT_MAP,
 } from './departments.js';
 export { NOTIFICATION_MESSAGE_MAX_LENGTH } from './notification.js';
+export { NOTE_CONTENT_MAX_LENGTH } from './note.js';

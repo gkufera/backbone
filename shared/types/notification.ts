@@ -7,6 +7,7 @@ export enum NotificationType {
   SCRIPT_UPLOADED = 'SCRIPT_UPLOADED',
   TENTATIVE_APPROVAL = 'TENTATIVE_APPROVAL',
   TENTATIVE_CONFIRMED = 'TENTATIVE_CONFIRMED',
+  NOTE_ADDED = 'NOTE_ADDED',
 }
 
 export interface Notification {

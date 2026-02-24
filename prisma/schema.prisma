@@ -73,6 +73,7 @@ enum NotificationType {
   SCRIPT_UPLOADED
   TENTATIVE_APPROVAL
   TENTATIVE_CONFIRMED
+  NOTE_ADDED
 }
 
 model User {
@@ -89,6 +90,7 @@ model User {
   uploadedOptions     Option[]           @relation("UploadedOptions")
   approvals           Approval[]
   notifications       Notification[]
+  notes               Note[]
 
   @@map("users")
 }
@@ -171,6 +173,7 @@ model Element {
   script          Script          @relation(fields: [scriptId], references: [id])
   department      Department?     @relation(fields: [departmentId], references: [id])
   options         Option[]
+  notes           Note[]
   revisionMatches RevisionMatch[]
 
   @@map("elements")
@@ -194,6 +197,7 @@ model Option {
   element         Element      @relation(fields: [elementId], references: [id])
   uploadedBy      User         @relation("UploadedOptions", fields: [uploadedById], references: [id])
   approvals       Approval[]
+  notes           Note[]
 
   @@map("options")
 }
@@ -257,6 +261,22 @@ model RevisionMatch {
   oldElement    Element?            @relation(fields: [oldElementId], references: [id])
 
   @@map("revision_matches")
+}
+
+model Note {
+  id           String   @id @default(cuid())
+  content      String
+  userId       String   @map("user_id")
+  elementId    String?  @map("element_id")
+  optionId     String?  @map("option_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user         User     @relation(fields: [userId], references: [id])
+  element      Element? @relation(fields: [elementId], references: [id])
+  option       Option?  @relation(fields: [optionId], references: [id])
+
+  @@map("notes")
 }
 
 model Notification {

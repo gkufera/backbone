@@ -17,3 +17,5 @@ export type { Approval } from './approval.js';
 
 export { NotificationType } from './notification.js';
 export type { Notification } from './notification.js';
+
+export type { Note } from './note.js';
