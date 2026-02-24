@@ -275,6 +275,24 @@ select:focus {
   text-decoration: underline;
 }
 
+.btn-disabled-striped {
+  cursor: not-allowed;
+  border: none;
+  padding: 0;
+  background: transparent;
+  text-decoration: underline;
+}
+.btn-disabled-striped:hover {
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff,
+    #fff 3px,
+    #000 3px,
+    #000 6px
+  );
+  color: #fff;
+}
+
 /* ── Alerts ────────────────────────────────────────────────── */
 
 .mac-alert {

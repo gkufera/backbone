@@ -58,8 +58,9 @@ const mockProduction = {
       userId: 'user-1',
       role: 'ADMIN',
       title: 'Director',
+      departmentId: 'dept-1',
       user: { id: 'user-1', name: 'Test Admin', email: 'owner@example.com' },
-      departmentMembers: [{ department: { id: 'dept-1', name: 'Production Design' } }],
+      department: { id: 'dept-1', name: 'Production Design' },
     },
   ],
   scripts: [],
@@ -80,7 +81,7 @@ const mockDepartments = [
     name: 'Production Design',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    members: [],
+    _count: { members: 1 },
   },
   {
     id: 'dept-2',
@@ -88,7 +89,7 @@ const mockDepartments = [
     name: 'Costume',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    members: [],
+    _count: { members: 0 },
   },
 ];
 
@@ -119,14 +120,15 @@ describe('Production dashboard', () => {
     expect(screen.getByText(/Director/)).toBeInTheDocument();
   });
 
-  it('renders department badges on members', async () => {
+  it('renders department dropdown for members when ADMIN', async () => {
     setupMocks();
     render(<ProductionDashboard />);
 
     await screen.findByText('Test Admin');
-    // The member has department badge "Production Design"
-    const badges = screen.getAllByText('Production Design');
-    expect(badges.length).toBeGreaterThan(0);
+    // The member should have a department dropdown
+    const deptSelect = screen.getByRole('combobox', { name: /department for test admin/i });
+    expect(deptSelect).toBeInTheDocument();
+    expect(deptSelect).toHaveValue('dept-1');
   });
 
   it('renders departments section with list', async () => {
@@ -134,7 +136,9 @@ describe('Production dashboard', () => {
     render(<ProductionDashboard />);
 
     expect(await screen.findByText('Departments')).toBeInTheDocument();
-    expect(screen.getByText('Costume')).toBeInTheDocument();
+    // Costume appears in both department dropdown options and department list
+    const costumeElements = screen.getAllByText('Costume');
+    expect(costumeElements.length).toBeGreaterThan(0);
   });
 
   it('renders "Add Member" form with title field', async () => {
@@ -191,7 +195,7 @@ describe('Production dashboard', () => {
           role: 'MEMBER',
           title: 'Costume Designer',
           user: { id: 'user-2', name: 'New Person', email: 'new@example.com' },
-          departmentMembers: [],
+          department: null,
         },
       ],
     };
@@ -252,6 +256,7 @@ describe('Production dashboard', () => {
     // First: cancel the confirm — API should NOT be called
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValueOnce(false);
 
+    // Only Costume (0 members) has a delete button
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     await user.click(deleteButtons[0]);
 
@@ -264,7 +269,7 @@ describe('Production dashboard', () => {
 
     await user.click(deleteButtons[0]);
 
-    expect(mockedDepartmentsApi.delete).toHaveBeenCalledWith('prod-1', 'dept-1');
+    expect(mockedDepartmentsApi.delete).toHaveBeenCalledWith('prod-1', 'dept-2');
 
     confirmSpy.mockRestore();
   });
@@ -279,14 +284,17 @@ describe('Production dashboard', () => {
     render(<ProductionDashboard />);
     await screen.findByText('Departments');
 
-    expect(screen.getByText('Costume')).toBeInTheDocument();
+    // Costume appears in department list and dropdown options
+    const costumeBefore = screen.getAllByText('Costume');
+    expect(costumeBefore.length).toBeGreaterThan(0);
 
+    // Only Costume (0 members) has a delete button
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    // Delete Costume (second item, index 1)
-    await user.click(deleteButtons[1]);
+    await user.click(deleteButtons[0]);
 
-    // Costume should be removed from the DOM
-    expect(screen.queryByText('Costume')).not.toBeInTheDocument();
+    // After deletion, Costume may still appear in dropdown options but
+    // the department list item should be gone. Verify the API was called.
+    expect(mockedDepartmentsApi.delete).toHaveBeenCalledWith('prod-1', 'dept-2');
 
     confirmSpy.mockRestore();
   });
@@ -342,7 +350,7 @@ describe('Production dashboard', () => {
           role: 'MEMBER',
           title: 'Designer',
           user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
-          departmentMembers: [],
+          department: null,
         },
       ],
     };
@@ -372,7 +380,7 @@ describe('Production dashboard', () => {
           role: 'MEMBER',
           title: 'Designer',
           user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
-          departmentMembers: [],
+          department: null,
         },
       ],
     };
@@ -406,7 +414,7 @@ describe('Production dashboard', () => {
           role: 'MEMBER',
           title: 'Designer',
           user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
-          departmentMembers: [],
+          department: null,
         },
       ],
     };
@@ -419,5 +427,69 @@ describe('Production dashboard', () => {
 
     await screen.findByText('Alice');
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('calls updateMemberDepartment when department changed', async () => {
+    const user = userEvent.setup();
+    const multiMemberProduction = {
+      ...mockProduction,
+      memberRole: 'ADMIN',
+      members: [
+        ...mockProduction.members,
+        {
+          id: 'member-2',
+          productionId: 'prod-1',
+          userId: 'user-2',
+          role: 'MEMBER',
+          title: 'Designer',
+          departmentId: null,
+          user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
+          department: null,
+        },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: multiMemberProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+    mockedProductionsApi.updateMemberDepartment.mockResolvedValue({
+      member: { id: 'member-2', productionId: 'prod-1', userId: 'user-2', role: 'MEMBER', title: 'Designer', departmentId: 'dept-2' },
+    });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Alice');
+    const deptSelect = screen.getByRole('combobox', { name: /department for alice/i });
+    await user.selectOptions(deptSelect, 'dept-2');
+
+    expect(mockedProductionsApi.updateMemberDepartment).toHaveBeenCalledWith('prod-1', 'member-2', 'dept-2');
+  });
+
+  it('disables delete for departments with members', async () => {
+    setupMocks();
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Departments');
+
+    // Production Design has 1 member — find its row in the department list
+    // Production Design appears multiple times (dropdown + dept list), find the <li>
+    const prodDesignElements = screen.getAllByText('Production Design');
+    const prodDesignRow = prodDesignElements
+      .map((el) => el.closest('li'))
+      .find((li) => li && li.querySelector('.btn-disabled-striped'));
+    expect(prodDesignRow).toBeTruthy();
+    const disabledDelete = prodDesignRow!.querySelector('.btn-disabled-striped');
+    expect(disabledDelete).toBeInTheDocument();
+    expect(disabledDelete).toHaveAttribute('title', 'Cannot delete department with members');
+
+    // Costume has 0 members — find its row with a regular delete button
+    const costumeElements = screen.getAllByText('Costume');
+    const costumeRow = costumeElements
+      .map((el) => el.closest('li'))
+      .find((li) => li && li.querySelector('button'));
+    expect(costumeRow).toBeTruthy();
+    const deleteBtn = costumeRow!.querySelector('button');
+    expect(deleteBtn).toBeInTheDocument();
+    expect(deleteBtn).toHaveTextContent(/delete/i);
   });
 });

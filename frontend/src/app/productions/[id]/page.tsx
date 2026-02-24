@@ -79,8 +79,19 @@ export default function ProductionDashboard() {
     }
   }
 
+  async function handleDepartmentChange(memberId: string, departmentId: string | null) {
+    setMemberError('');
+    try {
+      await productionsApi.updateMemberDepartment(id, memberId, departmentId);
+      const data = await productionsApi.get(id);
+      setProduction(data.production);
+    } catch (err) {
+      setMemberError(err instanceof Error ? err.message : 'Failed to update department');
+    }
+  }
+
   async function handleDeleteDepartment(departmentId: string) {
-    if (!window.confirm('Delete this department? All member assignments will be removed.')) return;
+    if (!window.confirm('Delete this department?')) return;
     try {
       await departmentsApi.delete(id, departmentId);
       setDepartments((prev) => prev.filter((d) => d.id !== departmentId));
@@ -127,17 +138,20 @@ export default function ProductionDashboard() {
                   <span className="font-medium font-mono">{m.user.name}</span>
                   {m.title && <span className="ml-2 text-sm font-mono text-black">&middot; {m.title}</span>}
                   <span className="ml-2 text-sm font-mono text-black">{m.user.email}</span>
-                  {m.departmentMembers && m.departmentMembers.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {m.departmentMembers.map((dm) => (
-                        <span
-                          key={dm.department.id}
-                          className="badge badge-default"
-                        >
-                          {dm.department.name}
-                        </span>
-                      ))}
+                  {canManageRoles ? (
+                    <div className="mt-1">
+                      <select
+                        value={m.department?.id ?? ''}
+                        onChange={(e) => handleDepartmentChange(m.id, e.target.value || null)}
+                        className="border-2 border-black px-2 py-1 text-xs"
+                        aria-label={`Department for ${m.user.name}`}
+                      >
+                        <option value="">(NONE)</option>
+                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
                     </div>
+                  ) : (
+                    m.department && <div className="mt-1"><span className="text-xs font-mono">{m.department.name}</span></div>
                   )}
                 </div>
                 {canManageRoles ? (
@@ -196,24 +210,36 @@ export default function ProductionDashboard() {
             <p className="mb-4 text-black">No departments yet.</p>
           ) : (
             <ul className="mb-4 divide-y divide-black">
-              {departments.map((dept) => (
-                <li key={dept.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <span className="font-medium font-mono">{dept.name}</span>
-                    {dept.members && dept.members.length > 0 && (
-                      <span className="ml-2 text-sm font-mono text-black">
-                        ({dept.members.length} member{dept.members.length !== 1 ? 's' : ''})
+              {departments.map((dept) => {
+                const memberCount = dept._count?.members ?? 0;
+                return (
+                  <li key={dept.id} className="flex items-center justify-between py-3">
+                    <div>
+                      <span className="font-medium font-mono">{dept.name}</span>
+                      {memberCount > 0 && (
+                        <span className="ml-2 text-sm font-mono text-black">
+                          ({memberCount} member{memberCount !== 1 ? 's' : ''})
+                        </span>
+                      )}
+                    </div>
+                    {memberCount > 0 ? (
+                      <span
+                        className="btn-disabled-striped text-sm"
+                        title="Cannot delete department with members"
+                      >
+                        Delete
                       </span>
+                    ) : (
+                      <button
+                        onClick={() => handleDeleteDepartment(dept.id)}
+                        className="btn-text text-sm"
+                      >
+                        Delete
+                      </button>
                     )}
-                  </div>
-                  <button
-                    onClick={() => handleDeleteDepartment(dept.id)}
-                    className="btn-text text-sm hover:bg-black hover:text-white"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
 
