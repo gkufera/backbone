@@ -12,6 +12,7 @@ interface OptionCardProps {
   onApprove?: (optionId: string, decision: string, note?: string) => void;
   approvals?: ApprovalResponse[];
   disableApproval?: boolean;
+  onConfirmApproval?: (approvalId: string) => void;
 }
 
 const decisionColors: Record<string, string> = {
@@ -28,6 +29,7 @@ export function OptionCard({
   onApprove,
   approvals,
   disableApproval,
+  onConfirmApproval,
 }: OptionCardProps) {
   return (
     <div className="rounded border p-3">
@@ -75,6 +77,18 @@ export function OptionCard({
       )}
 
       {approvals && approvals.length > 0 && <ApprovalHistory approvals={approvals} />}
+
+      {onConfirmApproval &&
+        approvals?.filter((a) => a.tentative).map((a) => (
+          <button
+            key={a.id}
+            onClick={() => onConfirmApproval(a.id)}
+            className="mt-1 rounded bg-blue-600 px-2 py-0.5 text-xs text-white hover:bg-blue-700"
+            aria-label={`Confirm ${a.decision.toLowerCase()} by ${a.user?.name || 'member'}`}
+          >
+            Confirm {a.decision.toLowerCase()}
+          </button>
+        ))}
 
       <div className="flex gap-2">
         <button

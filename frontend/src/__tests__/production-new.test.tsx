@@ -51,7 +51,7 @@ describe('New Production page', () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-      member: { id: 'member-1', productionId: 'prod-1', userId: 'user-1', role: 'OWNER' },
+      member: { id: 'member-1', productionId: 'prod-1', userId: 'user-1', role: 'ADMIN' },
     });
 
     render(<NewProductionPage />);
@@ -74,7 +74,7 @@ describe('New Production page', () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-      member: { id: 'member-1', productionId: 'prod-1', userId: 'user-1', role: 'OWNER' },
+      member: { id: 'member-1', productionId: 'prod-1', userId: 'user-1', role: 'ADMIN' },
     });
 
     render(<NewProductionPage />);

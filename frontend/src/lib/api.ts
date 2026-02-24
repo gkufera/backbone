@@ -120,6 +120,17 @@ export const productionsApi = {
       method: 'DELETE',
     });
   },
+
+  updateMemberRole(
+    productionId: string,
+    memberId: string,
+    role: string,
+  ): Promise<{ member: MemberResponse }> {
+    return request(`/api/productions/${productionId}/members/${memberId}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
+  },
 };
 
 export const departmentsApi = {
@@ -361,6 +372,12 @@ export const approvalsApi = {
 
   list(optionId: string): Promise<{ approvals: ApprovalResponse[] }> {
     return request(`/api/options/${optionId}/approvals`);
+  },
+
+  confirm(approvalId: string): Promise<{ approval: ApprovalResponse }> {
+    return request(`/api/approvals/${approvalId}/confirm`, {
+      method: 'PATCH',
+    });
   },
 };
 

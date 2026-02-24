@@ -20,6 +20,7 @@ vi.mock('../lib/api', () => ({
     addMember: vi.fn(),
     listMembers: vi.fn(),
     removeMember: vi.fn(),
+    updateMemberRole: vi.fn(),
   },
   departmentsApi: {
     list: vi.fn(),
@@ -48,6 +49,7 @@ const mockProduction = {
   title: 'Film One',
   description: null,
   createdById: 'user-1',
+  memberRole: 'ADMIN',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   members: [
@@ -55,9 +57,9 @@ const mockProduction = {
       id: 'member-1',
       productionId: 'prod-1',
       userId: 'user-1',
-      role: 'OWNER',
+      role: 'ADMIN',
       title: 'Director',
-      user: { id: 'user-1', name: 'Test Owner', email: 'owner@example.com' },
+      user: { id: 'user-1', name: 'Test Admin', email: 'owner@example.com' },
       departmentMembers: [{ department: { id: 'dept-1', name: 'Production Design' } }],
     },
   ],
@@ -113,8 +115,8 @@ describe('Production dashboard', () => {
     setupMocks();
     render(<ProductionDashboard />);
 
-    expect(await screen.findByText('Test Owner')).toBeInTheDocument();
-    expect(screen.getByText('OWNER')).toBeInTheDocument();
+    expect(await screen.findByText('Test Admin')).toBeInTheDocument();
+    expect(screen.getByText('ADMIN')).toBeInTheDocument();
     expect(screen.getByText(/Director/)).toBeInTheDocument();
   });
 
@@ -122,7 +124,7 @@ describe('Production dashboard', () => {
     setupMocks();
     render(<ProductionDashboard />);
 
-    await screen.findByText('Test Owner');
+    await screen.findByText('Test Admin');
     // The member has department badge "Production Design"
     const badges = screen.getAllByText('Production Design');
     expect(badges.length).toBeGreaterThan(0);
@@ -326,5 +328,97 @@ describe('Production dashboard', () => {
     await user.click(screen.getByRole('button', { name: /add department/i }));
 
     expect(mockedDepartmentsApi.create).toHaveBeenCalledWith('prod-1', 'Stunts');
+  });
+
+  it('renders role dropdown for members when current user is ADMIN', async () => {
+    const multiMemberProduction = {
+      ...mockProduction,
+      memberRole: 'ADMIN',
+      members: [
+        ...mockProduction.members,
+        {
+          id: 'member-2',
+          productionId: 'prod-1',
+          userId: 'user-2',
+          role: 'MEMBER',
+          title: 'Designer',
+          user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
+          departmentMembers: [],
+        },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: multiMemberProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Alice');
+    const select = screen.getByRole('combobox', { name: /role for alice/i });
+    expect(select).toBeInTheDocument();
+  });
+
+  it('calls updateMemberRole when role dropdown is changed', async () => {
+    const user = userEvent.setup();
+    const multiMemberProduction = {
+      ...mockProduction,
+      memberRole: 'ADMIN',
+      members: [
+        ...mockProduction.members,
+        {
+          id: 'member-2',
+          productionId: 'prod-1',
+          userId: 'user-2',
+          role: 'MEMBER',
+          title: 'Designer',
+          user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
+          departmentMembers: [],
+        },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: multiMemberProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+    mockedProductionsApi.updateMemberRole.mockResolvedValue({
+      member: { id: 'member-2', productionId: 'prod-1', userId: 'user-2', role: 'DECIDER', title: 'Designer' },
+    });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Alice');
+    const select = screen.getByRole('combobox', { name: /role for alice/i });
+    await user.selectOptions(select, 'DECIDER');
+
+    expect(mockedProductionsApi.updateMemberRole).toHaveBeenCalledWith('prod-1', 'member-2', 'DECIDER');
+  });
+
+  it('does not render role dropdown when current user is MEMBER', async () => {
+    const memberProduction = {
+      ...mockProduction,
+      memberRole: 'MEMBER',
+      members: [
+        ...mockProduction.members,
+        {
+          id: 'member-2',
+          productionId: 'prod-1',
+          userId: 'user-2',
+          role: 'MEMBER',
+          title: 'Designer',
+          user: { id: 'user-2', name: 'Alice', email: 'alice@example.com' },
+          departmentMembers: [],
+        },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: memberProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Alice');
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });

@@ -145,7 +145,7 @@ productionsRouter.get('/api/productions/:id', requireAuth, async (req, res) => {
       },
     });
 
-    res.json({ production });
+    res.json({ production: { ...production, memberRole: membership.role } });
   } catch (error) {
     console.error('Get production error:', error);
     res.status(500).json({ error: 'Internal server error' });

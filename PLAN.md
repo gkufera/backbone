@@ -1,7 +1,38 @@
 # Current Plan
 
 ## Active Task
-**Sprint 8: Rebrand to Slug Max + Deployment Setup**
+**Three-Tier Permissions: ADMIN / DECIDER / MEMBER**
+
+## Completed (Three-Tier Permissions)
+
+### Phases
+
+| Phase | Focus | Commit | New Tests |
+|-------|-------|--------|-----------|
+| 1 | Schema & Type Updates | `refactor: update MemberRole enum, add tentative to Approval` | 0 |
+| 2 | Backend Role Reference Updates | `refactor: rename OWNER to ADMIN, add DECIDER to permission checks` | +4 |
+| 3 | Tentative Approval Logic | `feat: MEMBER and ADMIN approvals are tentative, only DECIDER official` | +5 |
+| 4 | Confirm Tentative Endpoint | `feat: add PATCH /api/approvals/:id/confirm endpoint for DECIDER` | +6 |
+| 5 | Notifications for Tentative Approvals | `feat: notify DECIDERs on tentative approvals, notify creator on confirmation` | +4 |
+| 6 | Change Member Role Endpoint | `feat: add endpoint to change member roles` | +7 |
+| 7 | Frontend Updates | `feat: update frontend for tentative approvals, role names, and permissions tooltip` | +10 |
+
+### Test Counts (Post Three-Tier Permissions)
+- **Frontend**: 174 tests (was 159, +15 new)
+- **Backend**: 245 tests (was 220, +25 new)
+- **Total**: 419 tests (was 379, +40 new)
+
+### Architecture
+
+Three-tier permission system replacing OWNER/ADMIN/MEMBER:
+- **ADMIN** (replaces OWNER): Team/billing management, tentative approvals
+- **DECIDER** (new): Official approve/maybe/reject, confirm tentative approvals
+- **MEMBER** (unchanged): Tentative approvals only
+- MEMBER and ADMIN approvals flagged as tentative; only DECIDER is official
+- DECIDERs notified of tentative approvals, can confirm them
+- Only non-tentative APPROVED locks elements
+- Role-change UI in production dashboard for ADMIN/DECIDER users
+- Permissions tooltip explains role-specific approval behavior
 
 ## Completed (Sprint 8 — Rebrand + Deploy)
 

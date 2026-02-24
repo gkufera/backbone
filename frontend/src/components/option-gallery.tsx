@@ -10,6 +10,7 @@ interface OptionGalleryProps {
   optionApprovals?: Record<string, { latestDecision?: string; approvals?: ApprovalResponse[] }>;
   onApprove?: (optionId: string, decision: string, note?: string) => void;
   disableApproval?: boolean;
+  onConfirmApproval?: (approvalId: string) => void;
 }
 
 export function OptionGallery({
@@ -19,6 +20,7 @@ export function OptionGallery({
   optionApprovals,
   onApprove,
   disableApproval,
+  onConfirmApproval,
 }: OptionGalleryProps) {
   if (options.length === 0) {
     return <p className="text-zinc-500">No options yet. Add an option to get started.</p>;
@@ -36,6 +38,7 @@ export function OptionGallery({
           onApprove={onApprove}
           approvals={optionApprovals?.[opt.id]?.approvals}
           disableApproval={disableApproval}
+          onConfirmApproval={onConfirmApproval}
         />
       ))}
     </div>

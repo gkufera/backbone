@@ -10,6 +10,7 @@ import {
   type DepartmentResponse,
 } from '../../../lib/api';
 import { NotificationBell } from '../../../components/notification-bell';
+import { PermissionsTooltip } from '../../../components/permissions-tooltip';
 
 export default function ProductionDashboard() {
   const params = useParams();
@@ -64,6 +65,20 @@ export default function ProductionDashboard() {
     }
   }
 
+  const canManageRoles =
+    production?.memberRole === 'ADMIN' || production?.memberRole === 'DECIDER';
+
+  async function handleRoleChange(memberId: string, newRole: string) {
+    setMemberError('');
+    try {
+      await productionsApi.updateMemberRole(id, memberId, newRole);
+      const data = await productionsApi.get(id);
+      setProduction(data.production);
+    } catch (err) {
+      setMemberError(err instanceof Error ? err.message : 'Failed to update role');
+    }
+  }
+
   async function handleDeleteDepartment(departmentId: string) {
     if (!window.confirm('Delete this department? All member assignments will be removed.')) return;
     try {
@@ -96,7 +111,12 @@ export default function ProductionDashboard() {
 
       {/* Team Members */}
       <section className="mb-8">
-        <h2 className="mb-3 text-xl font-semibold">Team Members</h2>
+        <h2 className="mb-3 text-xl font-semibold">
+          Team Members
+          {production.memberRole && (
+            <PermissionsTooltip role={production.memberRole} />
+          )}
+        </h2>
         <ul className="mb-4 space-y-2">
           {production.members.map((m) => (
             <li key={m.id} className="flex items-center justify-between rounded border p-3">
@@ -117,7 +137,20 @@ export default function ProductionDashboard() {
                   </div>
                 )}
               </div>
-              <span className="text-xs uppercase text-zinc-400">{m.role}</span>
+              {canManageRoles ? (
+                <select
+                  value={m.role}
+                  onChange={(e) => handleRoleChange(m.id, e.target.value)}
+                  className="rounded border px-2 py-1 text-xs uppercase text-zinc-600"
+                  aria-label={`Role for ${m.user.name}`}
+                >
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="DECIDER">DECIDER</option>
+                  <option value="MEMBER">MEMBER</option>
+                </select>
+              ) : (
+                <span className="text-xs uppercase text-zinc-400">{m.role}</span>
+              )}
             </li>
           ))}
         </ul>

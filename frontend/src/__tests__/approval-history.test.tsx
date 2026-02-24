@@ -9,6 +9,7 @@ const mockApprovals = [
     userId: 'user-1',
     decision: 'APPROVED',
     note: 'Perfect choice',
+    tentative: false,
     createdAt: '2026-02-23T12:00:00Z',
     updatedAt: '2026-02-23T12:00:00Z',
     user: { id: 'user-1', name: 'Jane Director' },
@@ -19,6 +20,7 @@ const mockApprovals = [
     userId: 'user-1',
     decision: 'REJECTED',
     note: null,
+    tentative: false,
     createdAt: '2026-02-22T12:00:00Z',
     updatedAt: '2026-02-22T12:00:00Z',
     user: { id: 'user-1', name: 'Jane Director' },
@@ -44,5 +46,24 @@ describe('ApprovalHistory', () => {
     render(<ApprovalHistory approvals={mockApprovals} />);
 
     expect(screen.getByText(/Perfect choice/)).toBeInTheDocument();
+  });
+
+  it('shows "Tentative" badge when approval is tentative', () => {
+    const tentativeApprovals = [
+      {
+        ...mockApprovals[0],
+        tentative: true,
+      },
+    ];
+
+    render(<ApprovalHistory approvals={tentativeApprovals} />);
+
+    expect(screen.getByText('Tentative')).toBeInTheDocument();
+  });
+
+  it('does not show "Tentative" badge when approval is not tentative', () => {
+    render(<ApprovalHistory approvals={mockApprovals} />);
+
+    expect(screen.queryByText('Tentative')).not.toBeInTheDocument();
   });
 });

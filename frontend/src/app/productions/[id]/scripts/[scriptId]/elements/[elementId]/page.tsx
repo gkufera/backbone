@@ -127,6 +127,16 @@ export default function ElementDetailPage() {
     await refreshOptions();
   }
 
+  async function handleConfirmApproval(approvalId: string) {
+    setError(null);
+    try {
+      await approvalsApi.confirm(approvalId);
+      await refreshOptions();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to confirm approval');
+    }
+  }
+
   if (isLoading) {
     return <div className="p-6">Loading...</div>;
   }
@@ -143,8 +153,8 @@ export default function ElementDetailPage() {
   const optionLabel = optionCount === 1 ? '1 option' : `${optionCount} options`;
 
   const isLocked = options.some((opt) => {
-    const approval = optionApprovals[opt.id];
-    return approval?.latestDecision === 'APPROVED';
+    const approvalData = optionApprovals[opt.id];
+    return approvalData?.approvals?.some((a) => a.decision === 'APPROVED' && !a.tentative);
   });
 
   return (
@@ -191,6 +201,7 @@ export default function ElementDetailPage() {
           optionApprovals={optionApprovals}
           onApprove={handleApprove}
           disableApproval={submittingApproval}
+          onConfirmApproval={handleConfirmApproval}
         />
       </section>
     </div>

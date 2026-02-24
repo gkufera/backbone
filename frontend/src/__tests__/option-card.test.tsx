@@ -156,6 +156,7 @@ describe('OptionCard', () => {
         userId: 'user-1',
         decision: 'APPROVED',
         note: 'Looks great',
+        tentative: false,
         createdAt: '2026-02-23T12:00:00Z',
         updatedAt: '2026-02-23T12:00:00Z',
         user: { id: 'user-1', name: 'Jane Director' },
@@ -173,5 +174,92 @@ describe('OptionCard', () => {
 
     expect(screen.getByText('Jane Director')).toBeInTheDocument();
     expect(screen.getByText(/Looks great/)).toBeInTheDocument();
+  });
+
+  it('renders confirm button for tentative approvals when onConfirm is provided', () => {
+    const mockOnConfirm = vi.fn();
+    const approvals: ApprovalResponse[] = [
+      {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-2',
+        decision: 'APPROVED',
+        note: null,
+        tentative: true,
+        createdAt: '2026-02-23T12:00:00Z',
+        updatedAt: '2026-02-23T12:00:00Z',
+        user: { id: 'user-2', name: 'Alice Member' },
+      },
+    ];
+
+    render(
+      <OptionCard
+        option={mockOption}
+        onToggleReady={mockOnToggleReady}
+        onArchive={mockOnArchive}
+        approvals={approvals}
+        onConfirmApproval={mockOnConfirm}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /confirm/i })).toBeInTheDocument();
+  });
+
+  it('does not render confirm button when onConfirm is not provided', () => {
+    const approvals: ApprovalResponse[] = [
+      {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-2',
+        decision: 'APPROVED',
+        note: null,
+        tentative: true,
+        createdAt: '2026-02-23T12:00:00Z',
+        updatedAt: '2026-02-23T12:00:00Z',
+        user: { id: 'user-2', name: 'Alice Member' },
+      },
+    ];
+
+    render(
+      <OptionCard
+        option={mockOption}
+        onToggleReady={mockOnToggleReady}
+        onArchive={mockOnArchive}
+        approvals={approvals}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: /confirm/i })).not.toBeInTheDocument();
+  });
+
+  it('calls onConfirmApproval when confirm button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockOnConfirm = vi.fn();
+    const approvals: ApprovalResponse[] = [
+      {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-2',
+        decision: 'APPROVED',
+        note: null,
+        tentative: true,
+        createdAt: '2026-02-23T12:00:00Z',
+        updatedAt: '2026-02-23T12:00:00Z',
+        user: { id: 'user-2', name: 'Alice Member' },
+      },
+    ];
+
+    render(
+      <OptionCard
+        option={mockOption}
+        onToggleReady={mockOnToggleReady}
+        onArchive={mockOnArchive}
+        approvals={approvals}
+        onConfirmApproval={mockOnConfirm}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /confirm/i }));
+    expect(mockOnConfirm).toHaveBeenCalledWith('appr-1');
   });
 });

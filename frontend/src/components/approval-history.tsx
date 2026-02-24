@@ -26,6 +26,11 @@ export function ApprovalHistory({ approvals }: ApprovalHistoryProps) {
           >
             {approval.decision}
           </span>
+          {approval.tentative && (
+            <span className="rounded bg-orange-100 px-1.5 py-0.5 font-medium text-orange-800">
+              Tentative
+            </span>
+          )}
           <span className="text-zinc-600">{approval.user?.name}</span>
           {approval.note && <span className="text-zinc-500">— {approval.note}</span>}
         </div>

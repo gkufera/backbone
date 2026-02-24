@@ -46,6 +46,7 @@ vi.mock('../lib/api', () => ({
   approvalsApi: {
     create: vi.fn(),
     list: vi.fn(),
+    confirm: vi.fn(),
   },
   feedApi: {
     list: vi.fn(),
@@ -306,7 +307,7 @@ describe('Element detail page', () => {
     });
   });
 
-  it('shows Locked banner when element has approved option', async () => {
+  it('shows Locked banner when element has non-tentative approved option', async () => {
     const approvedOptions = [
       {
         ...mockOptions[0],
@@ -318,6 +319,7 @@ describe('Element detail page', () => {
             userId: 'user-1',
             decision: 'APPROVED',
             note: null,
+            tentative: false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             user: { id: 'user-1', name: 'Jane Director' },
@@ -336,6 +338,38 @@ describe('Element detail page', () => {
     expect(await screen.findByText(/locked/i)).toBeInTheDocument();
   });
 
+  it('does NOT show Locked banner when approval is tentative', async () => {
+    const tentativeOptions = [
+      {
+        ...mockOptions[0],
+        readyForReview: true,
+        approvals: [
+          {
+            id: 'appr-1',
+            optionId: 'opt-1',
+            userId: 'user-1',
+            decision: 'APPROVED',
+            note: null,
+            tentative: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            user: { id: 'user-1', name: 'Jane Director' },
+          },
+        ],
+      },
+    ];
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: tentativeOptions });
+    mockedApprovalsApi.list.mockResolvedValue({
+      approvals: tentativeOptions[0].approvals,
+    });
+
+    render(<ElementDetailPage />);
+
+    await screen.findByText('Costume reference');
+    expect(screen.queryByText(/locked/i)).not.toBeInTheDocument();
+  });
+
   it('hides Add Option button when element is locked', async () => {
     const approvedOptions = [
       {
@@ -348,6 +382,7 @@ describe('Element detail page', () => {
             userId: 'user-1',
             decision: 'APPROVED',
             note: null,
+            tentative: false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             user: { id: 'user-1', name: 'Jane Director' },
@@ -365,5 +400,42 @@ describe('Element detail page', () => {
 
     await screen.findByText('Costume reference');
     expect(screen.queryByRole('button', { name: /add option/i })).not.toBeInTheDocument();
+  });
+
+  it('calls approvalsApi.confirm when confirm button is clicked', async () => {
+    const user = userEvent.setup();
+    const tentativeOptions = [
+      {
+        ...mockOptions[0],
+        readyForReview: true,
+      },
+    ];
+    const tentativeApprovals = [
+      {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-2',
+        decision: 'APPROVED',
+        note: null,
+        tentative: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        user: { id: 'user-2', name: 'Alice Member' },
+      },
+    ];
+    mockedElementsApi.list.mockResolvedValue({ elements: [mockElement] });
+    mockedOptionsApi.list.mockResolvedValue({ options: tentativeOptions });
+    mockedApprovalsApi.list.mockResolvedValue({ approvals: tentativeApprovals });
+    mockedApprovalsApi.confirm.mockResolvedValue({
+      approval: { ...tentativeApprovals[0], tentative: false },
+    });
+
+    render(<ElementDetailPage />);
+
+    await screen.findByText('Costume reference');
+    const confirmBtn = await screen.findByRole('button', { name: /confirm/i });
+    await user.click(confirmBtn);
+
+    expect(mockedApprovalsApi.confirm).toHaveBeenCalledWith('appr-1');
   });
 });

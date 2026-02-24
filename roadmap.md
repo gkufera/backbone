@@ -14,7 +14,7 @@ All bugs, features, and planned work are tracked here. Check this file before st
 | 5 | Script Revisions & Versioning | Complete |
 | 6 | Departments & Member Titles | Complete |
 | 7 | Notifications & Workflow Logic | Complete |
-| 8 | Polish, Mobile & Deploy | Not Started |
+| 8 | Polish, Mobile & Deploy | In Progress |
 
 ---
 
@@ -356,26 +356,34 @@ What remained:
   - CNAME: slugmax.com → s5oxtfbw.up.railway.app
   - CNAME: api.slugmax.com → 8nomu2c0.up.railway.app
   - TXT verification records for Railway domain ownership
-- [ ] Set Railway deploy branch to `production` (via Railway dashboard)
-- [ ] Add AWS S3 credentials to Railway backend service
+- [x] Set Railway deploy branch to `production` — both services deploy from production branch
+- [x] Add AWS S3 credentials to Railway backend service — credentials set via Railway CLI
+- [x] Add login and signup links to home page (commit `9210624`)
 
 ### Remaining
 - [ ] Mobile-responsive audit of all pages:
+  - Responsive grids exist (option-gallery uses `sm:grid-cols-2 lg:grid-cols-3`)
+  - Missing: hamburger menu, mobile-specific navigation
   - Director feed: card-based layout on mobile
-  - Split view: stacked panels on mobile
-  - Option gallery: responsive grid
-  - Navigation: hamburger menu on mobile
+  - Split view: stacked panels on mobile (deferred from Sprint 4)
 - [ ] Error handling audit:
-  - API error responses with proper HTTP codes and messages
-  - Frontend error boundaries and toast notifications
+  - Backend has global error handler in app.ts; frontend uses inline error states
+  - Missing: error.tsx boundaries, toast notification system
   - File upload error handling (size limits, type validation)
   - Network error retry logic
-- [ ] Loading states for all async operations (skeletons, spinners)
-- [ ] Rate limiting and security headers
+- [ ] Loading states for all async operations
+  - Manual "Loading..." text exists in pages
+  - Missing: skeleton loaders, spinner components
+- [ ] Rate limiting (no rate-limit packages or middleware)
+- [ ] Security headers (no helmet or security header middleware)
 - [ ] S3 bucket policy and CloudFront distribution for media
-- [ ] Seed data script for demo/testing
+  - S3 works with presigned URLs; no CloudFront CDN layer
+- [ ] Seed data script for demo/testing (no prisma/seed.ts)
 - [ ] Final QA pass: run all Tier 1 + Tier 2 tests
+  - Tier 1 passes (157 FE + 220 BE = 377 tests) but no full Tier 2 run
 - [ ] Performance audit (Lighthouse, API response times)
+- [ ] Account settings page (`/settings`) — deferred from Sprint 1
+- [ ] Element status dashboard (counts per workflow state) — deferred from Sprint 7
 
 ### Commit Points
 1. After mobile responsive pass
