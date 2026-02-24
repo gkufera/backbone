@@ -63,14 +63,14 @@ export default function ReconcilePage() {
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return <div className="p-6 text-black font-bold">{error}</div>;
   }
 
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="mb-2 text-2xl font-bold">Reconcile Script Revision</h1>
 
-      <div className="mb-6 flex gap-4 text-sm text-zinc-600">
+      <div className="mb-6 flex gap-4 text-sm text-black">
         {fuzzyMatches.length > 0 && <span>{fuzzyMatches.length} fuzzy</span>}
         {missingMatches.length > 0 && <span>{missingMatches.length} missing</span>}
       </div>
@@ -78,7 +78,7 @@ export default function ReconcilePage() {
       {fuzzyMatches.length > 0 && (
         <section className="mb-8">
           <h2 className="mb-3 text-lg font-semibold">Fuzzy Matches</h2>
-          <p className="mb-4 text-sm text-zinc-500">
+          <p className="mb-4 text-sm text-black">
             These elements were detected but couldn&apos;t be exactly matched. Choose whether to map
             them to existing elements or create new ones.
           </p>
@@ -98,7 +98,7 @@ export default function ReconcilePage() {
       {missingMatches.length > 0 && (
         <section className="mb-8">
           <h2 className="mb-3 text-lg font-semibold">Missing Elements</h2>
-          <p className="mb-4 text-sm text-zinc-500">
+          <p className="mb-4 text-sm text-black">
             These elements exist in the previous script but were not found in the new draft. Choose
             whether to keep them or archive them.
           </p>
@@ -115,11 +115,11 @@ export default function ReconcilePage() {
         </section>
       )}
 
-      <div className="sticky bottom-0 border-t bg-white pt-4">
+      <div className="sticky bottom-0 border-t-2 border-black bg-white pt-4">
         <button
           onClick={handleConfirm}
           disabled={!allDecided || isSubmitting}
-          className="rounded bg-black px-6 py-2 text-white disabled:opacity-50"
+          className="mac-btn-primary disabled:opacity-50"
         >
           {isSubmitting ? 'Submitting...' : 'Confirm All'}
         </button>

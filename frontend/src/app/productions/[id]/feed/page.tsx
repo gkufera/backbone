@@ -26,7 +26,7 @@ export default function FeedPage() {
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return <div className="p-6 text-black font-bold">{error}</div>;
   }
 
   return (
@@ -34,7 +34,7 @@ export default function FeedPage() {
       <h1 className="mb-6 text-3xl font-bold">Review Feed</h1>
 
       {elements.length === 0 ? (
-        <p className="text-zinc-500">No elements pending review.</p>
+        <p className="text-black">No elements pending review.</p>
       ) : (
         <div className="space-y-3">
           {elements.map((elem) => (

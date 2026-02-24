@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { UserNav } from '../components/user-nav';
 import { useAuth } from '../lib/auth-context';
@@ -8,36 +9,41 @@ export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 dark:bg-black">
+    <div className="flex min-h-screen flex-col bg-white">
       <header className="flex justify-end p-4">
         <UserNav />
       </header>
       <main className="flex flex-1 flex-col items-center justify-center gap-4">
-        <h1 className="text-4xl font-bold tracking-tight text-black dark:text-white">Slug Max</h1>
-        {!isLoading && isAuthenticated && (
-          <Link
-            href="/productions"
-            className="mt-4 rounded bg-black px-6 py-2 text-white dark:bg-white dark:text-black"
-          >
-            My Productions
-          </Link>
-        )}
-        {!isLoading && !isAuthenticated && (
-          <div className="mt-4 flex gap-3">
-            <Link
-              href="/login"
-              className="rounded bg-black px-6 py-2 text-white dark:bg-white dark:text-black"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded border border-zinc-300 px-6 py-2 text-black dark:border-zinc-700 dark:text-white"
-            >
-              Sign up
-            </Link>
+        <div className="mac-window w-full max-w-md">
+          <div className="mac-window-title">
+            <span>Slug Max</span>
           </div>
-        )}
+          <div className="mac-window-body flex flex-col items-center gap-4 py-8">
+            <Image
+              src="/logo.png"
+              alt="Slug Max"
+              width={280}
+              height={80}
+              priority
+              style={{ imageRendering: 'pixelated' }}
+            />
+            {!isLoading && isAuthenticated && (
+              <Link href="/productions" className="mac-btn-primary mt-4">
+                My Productions
+              </Link>
+            )}
+            {!isLoading && !isAuthenticated && (
+              <div className="mt-4 flex gap-3">
+                <Link href="/login" className="mac-btn-primary">
+                  Log in
+                </Link>
+                <Link href="/signup" className="mac-btn-secondary">
+                  Sign up
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
       </main>
     </div>
   );

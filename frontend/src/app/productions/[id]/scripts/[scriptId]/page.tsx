@@ -72,7 +72,7 @@ export default function ScriptViewerPage() {
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return <div className="p-6 text-black font-bold">{error}</div>;
   }
 
   if (!script) {
@@ -85,22 +85,22 @@ export default function ScriptViewerPage() {
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">{script.title}</h1>
           {script.version && (
-            <span className="rounded bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+            <span className="badge badge-default">
               v{script.version}
             </span>
           )}
         </div>
         <div className="mt-2 flex items-center gap-3">
-          <span className="rounded bg-zinc-200 px-2 py-1 text-xs font-medium uppercase">
+          <span className="badge badge-default uppercase">
             {script.status}
           </span>
           {script.pageCount && (
-            <span className="text-sm text-zinc-500">{script.pageCount} pages</span>
+            <span className="text-sm text-black">{script.pageCount} pages</span>
           )}
-          <span className="text-sm text-zinc-400">{script.fileName}</span>
+          <span className="text-sm text-black">{script.fileName}</span>
           <Link
             href={`/productions/${productionId}/scripts/${scriptId}/versions`}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm underline"
           >
             Version History
           </Link>
@@ -108,21 +108,21 @@ export default function ScriptViewerPage() {
       </div>
 
       {script.status === 'PROCESSING' && (
-        <div className="mb-6 rounded border border-yellow-300 bg-yellow-50 p-4">
-          <p className="text-yellow-800">
+        <div className="mac-alert mb-6">
+          <p className="text-black">
             Script is processing. Elements will appear once extraction is complete.
           </p>
         </div>
       )}
 
       {script.status === 'RECONCILING' && (
-        <div className="mb-6 rounded border border-orange-300 bg-orange-50 p-4">
-          <p className="text-orange-800">
+        <div className="mac-alert mb-6">
+          <p className="text-black">
             This script revision needs reconciliation. Some elements could not be auto-matched.
           </p>
           <Link
             href={`/productions/${productionId}/scripts/${scriptId}/reconcile`}
-            className="mt-2 inline-block text-sm font-medium text-orange-700 underline"
+            className="mt-2 inline-block text-sm font-bold underline"
           >
             Review and Reconcile
           </Link>
@@ -136,13 +136,13 @@ export default function ScriptViewerPage() {
             <div className="flex gap-2">
               <Link
                 href={`/productions/${productionId}/scripts/${scriptId}/revisions/upload`}
-                className="rounded border border-black px-3 py-1 text-sm"
+                className="mac-btn-secondary px-3 py-1 text-sm"
               >
                 Upload New Draft
               </Link>
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="rounded bg-black px-3 py-1 text-sm text-white"
+                className="mac-btn-primary px-3 py-1 text-sm"
               >
                 Add Element
               </button>
@@ -150,32 +150,32 @@ export default function ScriptViewerPage() {
           </div>
 
           {showAddForm && (
-            <form onSubmit={handleAddElement} className="mb-4 flex gap-2 rounded border p-3">
+            <form onSubmit={handleAddElement} className="mb-4 flex gap-2 border-2 border-black p-3">
               <input
                 type="text"
                 placeholder="Element name"
                 value={newElementName}
                 onChange={(e) => setNewElementName(e.target.value)}
-                className="flex-1 rounded border p-2 text-sm"
+                className="flex-1 border-2 border-black p-2 text-sm"
                 required
               />
               <select
                 value={newElementType}
                 onChange={(e) => setNewElementType(e.target.value)}
-                className="rounded border p-2 text-sm"
+                className="border-2 border-black p-2 text-sm"
               >
                 <option value="CHARACTER">Character</option>
                 <option value="LOCATION">Location</option>
                 <option value="OTHER">Other</option>
               </select>
-              <button type="submit" className="rounded bg-black px-3 py-1 text-sm text-white">
+              <button type="submit" className="mac-btn-primary px-3 py-1 text-sm">
                 Add
               </button>
             </form>
           )}
 
           {script.elements.length === 0 ? (
-            <p className="text-zinc-500">No elements detected.</p>
+            <p className="text-black">No elements detected.</p>
           ) : (
             <ElementList
               elements={script.elements}

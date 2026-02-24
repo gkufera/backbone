@@ -75,7 +75,7 @@ export default function ScriptUploadPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="pdf-file" className="block text-sm font-medium">
+          <label htmlFor="pdf-file" className="block text-sm font-bold">
             PDF File
           </label>
           <input
@@ -85,11 +85,11 @@ export default function ScriptUploadPage() {
             onChange={handleFileChange}
             className="mt-1 w-full"
           />
-          {file && <p className="mt-1 text-sm text-zinc-500">{file.name}</p>}
+          {file && <p className="mt-1 text-sm text-black">{file.name}</p>}
         </div>
 
         <div>
-          <label htmlFor="title" className="block text-sm font-medium">
+          <label htmlFor="title" className="block text-sm font-bold">
             Title
           </label>
           <input
@@ -97,12 +97,12 @@ export default function ScriptUploadPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded border p-2"
+            className="mt-1 w-full border-2 border-black p-2"
           />
         </div>
 
         {error && (
-          <div role="alert" className="text-sm text-red-600">
+          <div role="alert" className="text-sm text-black font-bold">
             {error}
           </div>
         )}
@@ -110,7 +110,7 @@ export default function ScriptUploadPage() {
         <button
           type="submit"
           disabled={!file || isUploading}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+          className="mac-btn-primary disabled:opacity-50"
         >
           {isUploading ? 'Uploading...' : 'Upload Script'}
         </button>

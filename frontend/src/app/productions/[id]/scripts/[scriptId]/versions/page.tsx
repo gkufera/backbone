@@ -43,7 +43,7 @@ export default function VersionHistoryPage() {
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return <div className="p-6 text-black font-bold">{error}</div>;
   }
 
   return (

@@ -38,7 +38,7 @@ export default function NotificationsPage() {
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return <div className="p-6 text-black font-bold">{error}</div>;
   }
 
   return (
@@ -46,21 +46,21 @@ export default function NotificationsPage() {
       <h1 className="mb-6 text-3xl font-bold">Notifications</h1>
 
       {notifications.length === 0 ? (
-        <p className="text-zinc-500">No notifications yet.</p>
+        <p className="text-black">No notifications yet.</p>
       ) : (
         <ul className="space-y-2">
           {notifications.map((notif) => (
             <li key={notif.id}>
               <button
                 onClick={() => handleClick(notif)}
-                className={`w-full rounded border px-4 py-3 text-left hover:bg-zinc-50 ${
+                className={`w-full border-2 border-black px-4 py-3 text-left hover:bg-black hover:text-white ${
                   notif.read
-                    ? 'border-zinc-200 text-zinc-500'
-                    : 'border-zinc-300 font-medium text-zinc-900'
+                    ? 'text-black'
+                    : 'font-bold text-black border-l-8'
                 }`}
               >
                 <p>{notif.message}</p>
-                <p className="mt-1 text-xs text-zinc-400">
+                <p className="mt-1 text-xs">
                   {new Date(notif.createdAt).toLocaleString()}
                 </p>
               </button>

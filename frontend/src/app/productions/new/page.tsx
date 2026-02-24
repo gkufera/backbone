@@ -31,7 +31,7 @@ export default function NewProductionPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium">
+          <label htmlFor="title" className="block text-sm font-bold">
             Title
           </label>
           <input
@@ -39,13 +39,13 @@ export default function NewProductionPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded border p-2"
+            className="mt-1 w-full border-2 border-black p-2"
             required
           />
         </div>
 
         {error && (
-          <div role="alert" className="text-sm text-red-600">
+          <div role="alert" className="text-sm text-black font-bold">
             {error}
           </div>
         )}
@@ -53,7 +53,7 @@ export default function NewProductionPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+          className="mac-btn-primary disabled:opacity-50"
         >
           {isSubmitting ? 'Creating...' : 'Create Production'}
         </button>

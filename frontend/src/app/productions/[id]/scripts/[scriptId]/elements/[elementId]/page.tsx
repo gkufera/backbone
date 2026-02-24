@@ -142,7 +142,7 @@ export default function ElementDetailPage() {
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return <div className="p-6 text-black font-bold">{error}</div>;
   }
 
   if (!element) {
@@ -162,15 +162,15 @@ export default function ElementDetailPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">{element.name}</h1>
         <div className="mt-2 flex items-center gap-3">
-          <span className="rounded bg-zinc-200 px-2 py-1 text-xs font-medium uppercase">
+          <span className="badge badge-default uppercase">
             {element.type}
           </span>
-          <span className="text-sm text-zinc-500">Pages: {element.pageNumbers.join(', ')}</span>
+          <span className="text-sm text-black">Pages: {element.pageNumbers.join(', ')}</span>
         </div>
       </div>
 
       {isLocked && (
-        <div className="mb-4 rounded bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+        <div className="mac-alert mb-4">
           Element is locked — an option has been approved.
         </div>
       )}
@@ -181,7 +181,7 @@ export default function ElementDetailPage() {
           {!isLocked && (
             <button
               onClick={() => setShowUploadForm(!showUploadForm)}
-              className="rounded bg-black px-3 py-1 text-sm text-white"
+              className="mac-btn-primary px-3 py-1 text-sm"
             >
               Add Option
             </button>

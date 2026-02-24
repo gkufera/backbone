@@ -22,30 +22,30 @@ export default function ProductionsPage() {
   }
 
   if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
+    return <div className="p-6 text-black font-bold">{error}</div>;
   }
 
   return (
     <div className="mx-auto max-w-2xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Productions</h1>
-        <Link href="/productions/new" className="rounded bg-black px-4 py-2 text-white">
+        <Link href="/productions/new" className="mac-btn-primary">
           New Production
         </Link>
       </div>
 
       {productions.length === 0 ? (
-        <p className="text-zinc-500">No productions yet. Create your first one.</p>
+        <p className="text-black">No productions yet. Create your first one.</p>
       ) : (
         <ul className="space-y-3">
           {productions.map((p) => (
             <li key={p.id}>
               <Link
                 href={`/productions/${p.id}`}
-                className="block rounded border p-4 hover:bg-zinc-50"
+                className="block border-2 border-black p-4 hover:bg-black hover:text-white"
               >
                 <h2 className="font-semibold">{p.title}</h2>
-                {p.description && <p className="mt-1 text-sm text-zinc-500">{p.description}</p>}
+                {p.description && <p className="mt-1 text-sm">{p.description}</p>}
               </Link>
             </li>
           ))}

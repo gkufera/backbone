@@ -76,14 +76,14 @@ export default function RevisionUploadPage() {
   return (
     <div className="mx-auto max-w-lg p-6">
       <h1 className="mb-2 text-2xl font-bold">Upload New Draft</h1>
-      <p className="mb-6 text-zinc-500">
+      <p className="mb-6 text-black">
         Uploading revision of: <strong>{parentScript.title}</strong>{' '}
         <span className="text-sm">v{parentScript.version}</span>
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="pdf-file" className="block text-sm font-medium">
+          <label htmlFor="pdf-file" className="block text-sm font-bold">
             PDF File
           </label>
           <input
@@ -93,11 +93,11 @@ export default function RevisionUploadPage() {
             onChange={handleFileChange}
             className="mt-1 w-full"
           />
-          {file && <p className="mt-1 text-sm text-zinc-500">{file.name}</p>}
+          {file && <p className="mt-1 text-sm text-black">{file.name}</p>}
         </div>
 
         {error && (
-          <div role="alert" className="text-sm text-red-600">
+          <div role="alert" className="text-sm text-black font-bold">
             {error}
           </div>
         )}
@@ -105,7 +105,7 @@ export default function RevisionUploadPage() {
         <button
           type="submit"
           disabled={!file || isUploading}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+          className="mac-btn-primary disabled:opacity-50"
         >
           {isUploading ? 'Uploading...' : 'Upload New Draft'}
         </button>

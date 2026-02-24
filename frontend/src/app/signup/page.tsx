@@ -30,93 +30,81 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow dark:bg-zinc-900">
-        <div>
-          <h1 className="text-center text-3xl font-bold tracking-tight text-black dark:text-white">
-            Sign Up
-          </h1>
-          <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="mac-window w-full max-w-md">
+        <div className="mac-window-title">
+          <span>Sign Up</span>
+        </div>
+        <div className="mac-window-body space-y-6">
+          <p className="text-center text-sm text-black">
             Create your Slug Max account
           </p>
+
+          {error && (
+            <div role="alert" className="mac-alert-error p-3 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="name" className="block text-sm font-bold text-black">
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 block w-full border-2 border-black px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-bold text-black">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 block w-full border-2 border-black px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-bold text-black">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 block w-full border-2 border-black px-3 py-2"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mac-btn-primary w-full disabled:opacity-50"
+            >
+              {loading ? 'Signing up...' : 'Sign Up'}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-black">
+            Already have an account?{' '}
+            <Link href="/login" className="font-bold underline">
+              Log in
+            </Link>
+          </p>
         </div>
-
-        {error && (
-          <div
-            role="alert"
-            className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400"
-          >
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-zinc-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {loading ? 'Signing up...' : 'Sign Up'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-          Already have an account?{' '}
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-            Log in
-          </Link>
-        </p>
       </div>
     </div>
   );
