@@ -75,6 +75,18 @@ vi.mock('../components/element-wizard', () => ({
   ),
 }));
 
+// Mock DirectorNotesPanel
+vi.mock('../components/director-notes-panel', () => ({
+  DirectorNotesPanel: ({
+    scriptId,
+  }: {
+    scriptId: string;
+    sceneData: unknown[];
+    userRole: string;
+    userId: string;
+  }) => <div data-testid="director-notes-panel">Notes: {scriptId}</div>,
+}));
+
 // Mock ElementDetailPanel
 vi.mock('../components/element-detail-panel', () => ({
   ElementDetailPanel: ({
@@ -615,5 +627,64 @@ describe('Script viewer', () => {
     expect(await screen.findByText('JOHN')).toBeInTheDocument();
     expect(screen.getByText('Test Script')).toBeInTheDocument();
     expect(screen.getByText('Elements (1)')).toBeInTheDocument();
+  });
+
+  it('renders Elements/Notes toggle when sceneData exists', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+        sceneData: [
+          { sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] },
+        ],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('Test Script');
+
+    expect(screen.getByRole('button', { name: /^elements$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /director.s notes/i })).toBeInTheDocument();
+  });
+
+  it('clicking Director\'s Notes toggle shows notes panel', async () => {
+    const user = userEvent.setup();
+
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+        sceneData: [
+          { sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] },
+        ],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('Test Script');
+
+    await user.click(screen.getByRole('button', { name: /director.s notes/i }));
+
+    expect(await screen.findByTestId('director-notes-panel')).toBeInTheDocument();
   });
 });
