@@ -4,8 +4,10 @@ import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { generateUploadUrl, generateDownloadUrl } from '../lib/s3.js';
 import { processScript } from '../services/script-processor.js';
 import { processRevision } from '../services/revision-processor.js';
+import { getProgress } from '../services/processing-progress.js';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
-import { ScriptStatus, ElementStatus } from '@backbone/shared/types';
+import { ScriptStatus, ElementStatus, ElementType } from '@backbone/shared/types';
+import type { SceneInfo } from '@backbone/shared/types';
 
 const scriptsRouter = Router();
 
@@ -354,6 +356,209 @@ scriptsRouter.get('/api/scripts/:scriptId/download-url', requireAuth, async (req
     res.json({ downloadUrl });
   } catch (error) {
     console.error('Generate download URL error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get processing status for a script
+scriptsRouter.get('/api/scripts/:scriptId/processing-status', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { scriptId } = req.params;
+
+    const script = await prisma.script.findUnique({
+      where: { id: scriptId },
+    });
+
+    if (!script) {
+      res.status(404).json({ error: 'Script not found' });
+      return;
+    }
+
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    const progress = getProgress(scriptId);
+    res.json({ status: script.status, progress });
+  } catch (error) {
+    console.error('Get processing status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Accept elements and transition REVIEWING → READY
+scriptsRouter.post('/api/scripts/:scriptId/accept-elements', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { scriptId } = req.params;
+
+    const script = await prisma.script.findUnique({
+      where: { id: scriptId },
+    });
+
+    if (!script) {
+      res.status(404).json({ error: 'Script not found' });
+      return;
+    }
+
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    if (script.status !== ScriptStatus.REVIEWING) {
+      res.status(400).json({ error: 'Script must be in REVIEWING status' });
+      return;
+    }
+
+    await prisma.script.update({
+      where: { id: scriptId },
+      data: { status: 'READY' },
+    });
+
+    res.json({ message: 'Elements accepted, script is now READY' });
+  } catch (error) {
+    console.error('Accept elements error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Generate implied wardrobe/H&M elements from sceneData
+scriptsRouter.post('/api/scripts/:scriptId/generate-implied', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { scriptId } = req.params;
+    const { mode } = req.body;
+
+    const script = await prisma.script.findUnique({
+      where: { id: scriptId },
+    });
+
+    if (!script) {
+      res.status(404).json({ error: 'Script not found' });
+      return;
+    }
+
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    if (script.status !== ScriptStatus.REVIEWING) {
+      res.status(400).json({ error: 'Script must be in REVIEWING status' });
+      return;
+    }
+
+    const sceneData = script.sceneData as SceneInfo[] | null;
+    if (!sceneData || sceneData.length === 0) {
+      res.status(400).json({ error: 'No scene data available' });
+      return;
+    }
+
+    // Look up Costume and Hair & Makeup departments
+    const departments = await prisma.department.findMany({
+      where: { productionId: script.productionId },
+      select: { id: true, name: true },
+    });
+    const deptMap = new Map(departments.map((d) => [d.name, d.id]));
+    const costumeId = deptMap.get('Costume') ?? null;
+    const hmId = deptMap.get('Hair & Makeup') ?? null;
+
+    // Collect all unique characters from sceneData
+    const elementsToCreate: Array<{
+      scriptId: string;
+      name: string;
+      type: string;
+      departmentId: string | null;
+      status: string;
+      source: string;
+    }> = [];
+
+    if (mode === 'per-scene') {
+      for (const scene of sceneData) {
+        for (const character of scene.characters) {
+          elementsToCreate.push({
+            scriptId,
+            name: `${character} - Wardrobe (Scene ${scene.sceneNumber})`,
+            type: ElementType.OTHER,
+            departmentId: costumeId,
+            status: 'ACTIVE',
+            source: 'AUTO',
+          });
+          elementsToCreate.push({
+            scriptId,
+            name: `${character} - Hair & Makeup (Scene ${scene.sceneNumber})`,
+            type: ElementType.OTHER,
+            departmentId: hmId,
+            status: 'ACTIVE',
+            source: 'AUTO',
+          });
+        }
+      }
+    } else {
+      // per-character: one wardrobe + one H&M per unique character
+      const allCharacters = new Set<string>();
+      for (const scene of sceneData) {
+        for (const character of scene.characters) {
+          allCharacters.add(character);
+        }
+      }
+      for (const character of allCharacters) {
+        elementsToCreate.push({
+          scriptId,
+          name: `${character} - Wardrobe`,
+          type: ElementType.OTHER,
+          departmentId: costumeId,
+          status: 'ACTIVE',
+          source: 'AUTO',
+        });
+        elementsToCreate.push({
+          scriptId,
+          name: `${character} - Hair & Makeup`,
+          type: ElementType.OTHER,
+          departmentId: hmId,
+          status: 'ACTIVE',
+          source: 'AUTO',
+        });
+      }
+    }
+
+    if (elementsToCreate.length > 0) {
+      await prisma.element.createMany({ data: elementsToCreate });
+    }
+
+    res.json({ message: `Created ${elementsToCreate.length} implied elements`, count: elementsToCreate.length });
+  } catch (error) {
+    console.error('Generate implied elements error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

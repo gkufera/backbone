@@ -67,6 +67,7 @@ export type MemberResponse = JsonSerialized<
 
 export type DepartmentResponse = JsonSerialized<Department> & {
   _count?: { members: number };
+  color?: string | null;
 };
 
 export const productionsApi = {
@@ -151,9 +152,22 @@ export const departmentsApi = {
       method: 'DELETE',
     });
   },
+
+  update(
+    productionId: string,
+    departmentId: string,
+    data: { name?: string; color?: string | null },
+  ): Promise<{ department: DepartmentResponse }> {
+    return request(`/api/productions/${productionId}/departments/${departmentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
-export type ScriptResponse = JsonSerialized<Script>;
+export type ScriptResponse = JsonSerialized<Script> & {
+  sceneData?: Array<{ sceneNumber: number; location: string; characters: string[] }> | null;
+};
 
 export const scriptsApi = {
   getUploadUrl(
@@ -214,12 +228,33 @@ export const scriptsApi = {
   }> {
     return request(`/api/productions/${productionId}/scripts/${scriptId}/versions`);
   },
+
+  getProcessingStatus(
+    scriptId: string,
+  ): Promise<{ status: string; progress: { percent: number; step: string } | null }> {
+    return request(`/api/scripts/${scriptId}/processing-status`);
+  },
+
+  acceptElements(scriptId: string): Promise<{ message: string }> {
+    return request(`/api/scripts/${scriptId}/accept-elements`, { method: 'POST' });
+  },
+
+  generateImplied(
+    scriptId: string,
+    mode: 'per-scene' | 'per-character',
+  ): Promise<{ message: string; count: number }> {
+    return request(`/api/scripts/${scriptId}/generate-implied`, {
+      method: 'POST',
+      body: JSON.stringify({ mode }),
+    });
+  },
 };
 
 export type ElementResponse = JsonSerialized<Element>;
 
 export type ElementWithCountResponse = ElementResponse & {
   _count?: { options: number };
+  department?: { id: string; name: string; color: string | null } | null;
 };
 
 export const elementsApi = {
@@ -259,6 +294,10 @@ export const elementsApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+  },
+
+  hardDelete(elementId: string): Promise<{ message: string }> {
+    return request(`/api/elements/${elementId}`, { method: 'DELETE' });
   },
 };
 

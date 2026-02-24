@@ -176,4 +176,48 @@ elementsRouter.patch('/api/elements/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Hard-delete an element (only when script is REVIEWING)
+elementsRouter.delete('/api/elements/:id', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { id } = req.params;
+
+    const element = await prisma.element.findUnique({
+      where: { id },
+      include: { script: { select: { productionId: true, status: true } } },
+    });
+
+    if (!element) {
+      res.status(404).json({ error: 'Element not found' });
+      return;
+    }
+
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: element.script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    if (element.script.status !== 'REVIEWING') {
+      res.status(403).json({ error: 'Elements can only be deleted when script is in REVIEWING status' });
+      return;
+    }
+
+    await prisma.element.delete({ where: { id } });
+
+    res.json({ message: 'Element deleted' });
+  } catch (error) {
+    console.error('Delete element error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export { elementsRouter };

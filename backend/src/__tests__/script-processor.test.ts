@@ -24,10 +24,16 @@ vi.mock('../services/pdf-parser.js', () => ({
   parsePdf: vi.fn(),
 }));
 
+vi.mock('../services/processing-progress.js', () => ({
+  setProgress: vi.fn(),
+  clearProgress: vi.fn(),
+}));
+
 import { prisma } from '../lib/prisma.js';
 import { getFileBuffer } from '../lib/s3.js';
 import { parsePdf } from '../services/pdf-parser.js';
 import { processScript } from '../services/script-processor.js';
+import { setProgress, clearProgress } from '../services/processing-progress.js';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGetFileBuffer = vi.mocked(getFileBuffer);
@@ -36,10 +42,11 @@ const mockedParsePdf = vi.mocked(parsePdf);
 describe('Script Processor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default: script lookup returns a script
+    // Default: script lookup returns a new script (no parent)
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-1',
       productionId: 'prod-1',
+      parentScriptId: null,
     } as any);
     // Default: no departments
     mockedPrisma.department.findMany.mockResolvedValue([]);
@@ -78,34 +85,57 @@ describe('Script Processor', () => {
     const john = createCall.data.find((d: any) => d.name === 'JOHN');
     expect(john.highlightPage).toBe(1);
     expect(john.highlightText).toBe('JOHN');
+  });
 
-    // Should have updated script status to READY
+  it('sets script status to REVIEWING after processing new script', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('fake pdf'));
+    mockedParsePdf.mockResolvedValue({
+      text: 'INT. OFFICE - DAY\n\nJOHN\nHello.',
+      pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' }],
+    });
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 2 });
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    // New script - no parentScriptId
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      parentScriptId: null,
+    } as any);
+
+    await processScript('script-1', 'scripts/uuid/test.pdf');
+
     expect(mockedPrisma.script.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: 'script-1' },
-        data: expect.objectContaining({
-          status: 'READY',
-          pageCount: 1,
-        }),
+        data: expect.objectContaining({ status: 'REVIEWING' }),
       }),
     );
   });
 
-  it('updates script status to READY on success', async () => {
+  it('stores sceneData on script after processing', async () => {
     mockedGetFileBuffer.mockResolvedValue(Buffer.from('fake pdf'));
     mockedParsePdf.mockResolvedValue({
-      text: 'Some text',
-      pageCount: 5,
-      pages: [{ pageNumber: 1, text: 'Some text' }],
+      text: 'INT. OFFICE - DAY\n\nJOHN\nHello.',
+      pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' }],
     });
-    mockedPrisma.element.createMany.mockResolvedValue({ count: 0 });
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 2 });
     mockedPrisma.script.update.mockResolvedValue({} as any);
 
     await processScript('script-1', 'scripts/uuid/test.pdf');
 
     expect(mockedPrisma.script.update).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ status: 'READY' }),
+        data: expect.objectContaining({
+          sceneData: expect.arrayContaining([
+            expect.objectContaining({
+              sceneNumber: 1,
+              location: 'INT. OFFICE - DAY',
+              characters: ['JOHN'],
+            }),
+          ]),
+        }),
       }),
     );
   });
@@ -166,5 +196,24 @@ describe('Script Processor', () => {
 
     expect(john.departmentId).toBe('dept-cast');
     expect(office.departmentId).toBe('dept-loc');
+  });
+
+  it('calls setProgress at each step and clearProgress at end', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('fake pdf'));
+    mockedParsePdf.mockResolvedValue({
+      text: 'Some text',
+      pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'Some text' }],
+    });
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.pdf');
+
+    expect(setProgress).toHaveBeenCalledWith('script-1', 10, 'Fetching PDF');
+    expect(setProgress).toHaveBeenCalledWith('script-1', 30, 'Parsing PDF');
+    expect(setProgress).toHaveBeenCalledWith('script-1', 60, 'Detecting elements');
+    expect(setProgress).toHaveBeenCalledWith('script-1', 80, 'Saving elements');
+    expect(setProgress).toHaveBeenCalledWith('script-1', 100, 'Complete');
+    expect(clearProgress).toHaveBeenCalledWith('script-1');
   });
 });

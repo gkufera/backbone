@@ -28,11 +28,23 @@ vi.mock('../lib/prisma.js', () => ({
       update: vi.fn(),
     },
     element: {
+      create: vi.fn(),
       createMany: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      delete: vi.fn(),
+    },
+    department: {
       findMany: vi.fn(),
     },
     $transaction: vi.fn(),
   },
+}));
+
+vi.mock('../services/processing-progress.js', () => ({
+  getProgress: vi.fn(),
+  setProgress: vi.fn(),
+  clearProgress: vi.fn(),
 }));
 
 // Mock S3
@@ -44,10 +56,12 @@ vi.mock('../lib/s3.js', () => ({
 
 import { prisma } from '../lib/prisma.js';
 import { generateUploadUrl, generateDownloadUrl } from '../lib/s3.js';
+import { getProgress } from '../services/processing-progress.js';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGenerateUploadUrl = vi.mocked(generateUploadUrl);
 const mockedGenerateDownloadUrl = vi.mocked(generateDownloadUrl);
+const mockedGetProgress = vi.mocked(getProgress);
 
 const testUser = {
   userId: 'user-1',
@@ -340,6 +354,234 @@ describe('GET /api/scripts/:scriptId/download-url', () => {
 
     const res = await request(app)
       .get('/api/scripts/script-1/download-url')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('GET /api/scripts/:scriptId/processing-status', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns progress when script is PROCESSING', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'PROCESSING',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedGetProgress.mockReturnValue({ percent: 60, step: 'Detecting elements' });
+
+    const res = await request(app)
+      .get('/api/scripts/script-1/processing-status')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('PROCESSING');
+    expect(res.body.progress).toEqual({ percent: 60, step: 'Detecting elements' });
+  });
+});
+
+describe('POST /api/scripts/:scriptId/accept-elements', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('transitions REVIEWING to READY', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'REVIEWING',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.update.mockResolvedValue({
+      id: 'script-1',
+      status: 'READY',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/accept-elements')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'script-1' },
+        data: { status: 'READY' },
+      }),
+    );
+  });
+
+  it('returns 400 if not REVIEWING', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'READY',
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/accept-elements')
+      .set(authHeader());
+
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /api/scripts/:scriptId/generate-implied', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('creates per-character wardrobe/H&M elements', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'REVIEWING',
+      sceneData: [
+        { sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN', 'MARY'] },
+      ],
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.department.findMany.mockResolvedValue([
+      { id: 'dept-costume', name: 'Costume' },
+      { id: 'dept-hm', name: 'Hair & Makeup' },
+    ] as any);
+
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 4 });
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/generate-implied')
+      .set(authHeader())
+      .send({ mode: 'per-character' });
+
+    expect(res.status).toBe(200);
+    expect(mockedPrisma.element.createMany).toHaveBeenCalled();
+    const createCall = mockedPrisma.element.createMany.mock.calls[0][0] as any;
+    const names = createCall.data.map((d: any) => d.name);
+    expect(names).toContain('JOHN - Wardrobe');
+    expect(names).toContain('JOHN - Hair & Makeup');
+    expect(names).toContain('MARY - Wardrobe');
+    expect(names).toContain('MARY - Hair & Makeup');
+  });
+
+  it('creates per-scene wardrobe/H&M elements', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      status: 'REVIEWING',
+      sceneData: [
+        { sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] },
+        { sceneNumber: 2, location: 'EXT. PARK - NIGHT', characters: ['JOHN'] },
+      ],
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.department.findMany.mockResolvedValue([
+      { id: 'dept-costume', name: 'Costume' },
+      { id: 'dept-hm', name: 'Hair & Makeup' },
+    ] as any);
+
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 4 });
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/generate-implied')
+      .set(authHeader())
+      .send({ mode: 'per-scene' });
+
+    expect(res.status).toBe(200);
+    expect(mockedPrisma.element.createMany).toHaveBeenCalled();
+    const createCall = mockedPrisma.element.createMany.mock.calls[0][0] as any;
+    const names = createCall.data.map((d: any) => d.name);
+    expect(names).toContain('JOHN - Wardrobe (Scene 1)');
+    expect(names).toContain('JOHN - Hair & Makeup (Scene 1)');
+    expect(names).toContain('JOHN - Wardrobe (Scene 2)');
+    expect(names).toContain('JOHN - Hair & Makeup (Scene 2)');
+  });
+});
+
+describe('DELETE /api/elements/:id (hard-delete)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('hard-deletes when script is REVIEWING', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      script: { productionId: 'prod-1', status: 'REVIEWING' },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.element.delete.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .delete('/api/elements/elem-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(mockedPrisma.element.delete).toHaveBeenCalledWith({ where: { id: 'elem-1' } });
+  });
+
+  it('returns 403 when script is READY', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      script: { productionId: 'prod-1', status: 'READY' },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .delete('/api/elements/elem-1')
       .set(authHeader());
 
     expect(res.status).toBe(403);
