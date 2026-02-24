@@ -209,13 +209,22 @@ export function ElementWizard({
           <p className="mb-4 font-mono">
             You&apos;re all set! You can always add more elements from the script viewer.
           </p>
-          <button
-            onClick={handleAccept}
-            disabled={isProcessing}
-            className="mac-btn-primary px-4 py-2 disabled:opacity-50"
-          >
-            Accept & View Script
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStep(1)}
+              disabled={isProcessing}
+              className="mac-btn-secondary px-4 py-2 disabled:opacity-50"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleAccept}
+              disabled={isProcessing}
+              className="mac-btn-primary px-4 py-2 disabled:opacity-50"
+            >
+              Accept & View Script
+            </button>
+          </div>
         </div>
       )}
     </div>

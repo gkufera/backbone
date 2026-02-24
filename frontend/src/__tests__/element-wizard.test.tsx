@@ -352,6 +352,33 @@ describe('ElementWizard', () => {
     expect(screen.getByText('Detected Elements (0)')).toBeInTheDocument();
   });
 
+  it('Step 2: Back button returns to Step 1', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={null}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    // Step 1 → Step 2
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Step 2: Accept')).toBeInTheDocument();
+    });
+
+    // Click Back
+    await user.click(screen.getByRole('button', { name: /back/i }));
+
+    // Should be back on Step 1
+    expect(screen.getByText('Step 1: Review Elements')).toBeInTheDocument();
+    expect(screen.queryByText('Step 2: Accept')).not.toBeInTheDocument();
+  });
+
   it('Step 2: Accept calls acceptElements and onComplete', async () => {
     const user = userEvent.setup();
     const onComplete = vi.fn();
