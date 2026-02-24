@@ -21,7 +21,7 @@ export function ElementList({
   activeElementId,
   onElementClick,
 }: ElementListProps) {
-  const [viewMode, setViewMode] = useState<'type' | 'appearance'>('type');
+  const [viewMode, setViewMode] = useState<'department' | 'appearance'>('appearance');
   const [activeDepartmentFilter, setActiveDepartmentFilter] = useState<string | null>(null);
   const [textFilter, setTextFilter] = useState('');
 
@@ -59,10 +59,18 @@ export function ElementList({
     });
   }, [filteredElements]);
 
-  // Group by type
-  const characters = filteredElements.filter((e) => e.type === 'CHARACTER');
-  const locations = filteredElements.filter((e) => e.type === 'LOCATION');
-  const other = filteredElements.filter((e) => e.type !== 'CHARACTER' && e.type !== 'LOCATION');
+  // Group by department
+  const departmentGroups = useMemo(() => {
+    const groups = new Map<string, ElementWithCountResponse[]>();
+    for (const elem of filteredElements) {
+      const deptName = elem.department?.name ?? 'Unassigned';
+      if (!groups.has(deptName)) {
+        groups.set(deptName, []);
+      }
+      groups.get(deptName)!.push(elem);
+    }
+    return groups;
+  }, [filteredElements]);
 
   return (
     <div className="space-y-4">
@@ -77,49 +85,45 @@ export function ElementList({
 
       {/* Department filter chips */}
       {departments.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveDepartmentFilter(null)}
-            className={`flex items-center gap-1 border-2 border-black px-2 py-0.5 text-xs ${
-              !activeDepartmentFilter ? 'bg-black text-white' : 'bg-white text-black'
-            }`}
-          >
-            All
-          </button>
-          {departments.map((dept) => (
+        <div>
+          <span className="text-xs">Filter elements by department:</span>
+          <div className="flex flex-wrap gap-2 mt-1">
             <button
-              key={dept.id}
-              onClick={() =>
-                setActiveDepartmentFilter(
-                  activeDepartmentFilter === dept.id ? null : dept.id,
-                )
-              }
+              onClick={() => setActiveDepartmentFilter(null)}
               className={`flex items-center gap-1 border-2 border-black px-2 py-0.5 text-xs ${
-                activeDepartmentFilter === dept.id ? 'bg-black text-white' : 'bg-white text-black'
+                !activeDepartmentFilter ? 'bg-black text-white' : 'bg-white text-black'
               }`}
             >
-              {dept.color && (
-                <span
-                  className="inline-block h-3 w-3 border border-black"
-                  style={{ backgroundColor: dept.color }}
-                />
-              )}
-              {dept.name}
+              All
             </button>
-          ))}
+            {departments.map((dept) => (
+              <button
+                key={dept.id}
+                onClick={() =>
+                  setActiveDepartmentFilter(
+                    activeDepartmentFilter === dept.id ? null : dept.id,
+                  )
+                }
+                className={`flex items-center gap-1 border-2 border-black px-2 py-0.5 text-xs ${
+                  activeDepartmentFilter === dept.id ? 'bg-black text-white' : 'bg-white text-black'
+                }`}
+              >
+                {dept.color && (
+                  <span
+                    className="inline-block h-3 w-3 border border-black"
+                    style={{ backgroundColor: dept.color }}
+                  />
+                )}
+                {dept.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* View mode toggle */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setViewMode('type')}
-          className={`px-3 py-1 text-sm ${
-            viewMode === 'type' ? 'bg-black text-white' : 'bg-white text-black border-2 border-black'
-          }`}
-        >
-          By Type
-        </button>
+      <div className="flex items-center gap-2">
+        <span className="text-xs">Sort by:</span>
         <button
           onClick={() => setViewMode('appearance')}
           className={`px-3 py-1 text-sm ${
@@ -128,43 +132,30 @@ export function ElementList({
         >
           By Appearance
         </button>
+        <button
+          onClick={() => setViewMode('department')}
+          className={`px-3 py-1 text-sm ${
+            viewMode === 'department' ? 'bg-black text-white' : 'bg-white text-black border-2 border-black'
+          }`}
+        >
+          By Department
+        </button>
       </div>
 
-      {viewMode === 'type' ? (
+      {viewMode === 'department' ? (
         <div className="space-y-6">
-          {characters.length > 0 && (
+          {Array.from(departmentGroups.entries()).map(([deptName, groupElements]) => (
             <ElementGroup
-              title="Characters"
-              elements={characters}
+              key={deptName}
+              title={deptName}
+              elements={groupElements}
               onArchive={onArchive}
               productionId={productionId}
               scriptId={scriptId}
               activeElementId={activeElementId}
               onElementClick={onElementClick}
             />
-          )}
-          {locations.length > 0 && (
-            <ElementGroup
-              title="Locations"
-              elements={locations}
-              onArchive={onArchive}
-              productionId={productionId}
-              scriptId={scriptId}
-              activeElementId={activeElementId}
-              onElementClick={onElementClick}
-            />
-          )}
-          {other.length > 0 && (
-            <ElementGroup
-              title="Other"
-              elements={other}
-              onArchive={onArchive}
-              productionId={productionId}
-              scriptId={scriptId}
-              activeElementId={activeElementId}
-              onElementClick={onElementClick}
-            />
-          )}
+          ))}
         </div>
       ) : (
         <div>

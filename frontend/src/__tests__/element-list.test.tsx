@@ -53,22 +53,78 @@ describe('Element list', () => {
     vi.clearAllMocks();
   });
 
-  it('groups elements by type (Characters, Locations, Other)', () => {
+  it('defaults to By Appearance view mode', () => {
     render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
 
-    expect(screen.getByText('Characters')).toBeInTheDocument();
-    expect(screen.getByText('Locations')).toBeInTheDocument();
-    expect(screen.getByText('Other')).toBeInTheDocument();
+    // By Appearance button should be active (bg-black)
+    const appearanceBtn = screen.getByRole('button', { name: /by appearance/i });
+    expect(appearanceBtn.className).toContain('bg-black');
+
+    // Should show sorted list, not grouped
+    const list = screen.getByRole('list', { name: 'Elements sorted by appearance' });
+    expect(list).toBeInTheDocument();
+  });
+
+  it('shows "By Department" button instead of "By Type"', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    expect(screen.getByRole('button', { name: /by department/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /by type/i })).not.toBeInTheDocument();
+  });
+
+  it('groups elements by department name in By Department mode', async () => {
+    const user = userEvent.setup();
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations Dept', color: '#264653' },
+      },
+      {
+        ...mockElements[3],
+        // No department
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    await user.click(screen.getByRole('button', { name: /by department/i }));
+
+    // Should show department names as group headers (h3 elements)
+    const headings = screen.getAllByRole('heading', { level: 3 });
+    const headingTexts = headings.map((h) => h.textContent);
+    expect(headingTexts).toContain('Cast');
+    expect(headingTexts).toContain('Locations Dept');
+    expect(headingTexts).toContain('Unassigned');
+  });
+
+  it('shows "Sort by:" label before toggle buttons', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    expect(screen.getByText('Sort by:')).toBeInTheDocument();
+  });
+
+  it('shows "Filter elements by department:" label above department chips', () => {
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    expect(screen.getByText('Filter elements by department:')).toBeInTheDocument();
   });
 
   it('shows highlight page for each element', () => {
     render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
 
-    // JOHN and INT. OFFICE both on page 1
     expect(screen.getAllByText('p. 1')).toHaveLength(2);
-    // MARY on page 3
     expect(screen.getByText('p. 3')).toBeInTheDocument();
-    // MAGIC RING on page 7
     expect(screen.getByText('p. 7')).toBeInTheDocument();
   });
 
@@ -87,7 +143,7 @@ describe('Element list', () => {
     const archiveButtons = screen.getAllByRole('button', { name: /archive/i });
     await user.click(archiveButtons[0]);
 
-    expect(mockOnArchive).toHaveBeenCalledWith('elem-1');
+    expect(mockOnArchive).toHaveBeenCalledWith('elem-3');
   });
 
   it('renders element names', () => {
@@ -125,7 +181,7 @@ describe('Element list', () => {
     expect(links.length).toBe(4);
     expect(links[0]).toHaveAttribute(
       'href',
-      '/productions/prod-1/scripts/script-1/elements/elem-1',
+      '/productions/prod-1/scripts/script-1/elements/elem-3',
     );
   });
 
@@ -146,9 +202,7 @@ describe('Element list', () => {
     );
 
     expect(screen.getByText('Cast')).toBeInTheDocument();
-    // "Locations" appears both as chip text and as type group header
     expect(screen.getAllByText('Locations').length).toBeGreaterThanOrEqual(1);
-    // Filter buttons: All + Cast + Locations
     expect(screen.getByText('All')).toBeInTheDocument();
   });
 
@@ -164,7 +218,6 @@ describe('Element list', () => {
       <ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />,
     );
 
-    // The element row should have a border-left style
     const row = screen.getByText('JOHN').closest('li');
     expect(row).toHaveStyle({ borderLeftColor: '#E63946' });
   });
@@ -181,32 +234,16 @@ describe('Element list', () => {
       />,
     );
 
-    // Click on the row (li element) for JOHN
     const row = screen.getByText('JOHN').closest('li');
     await user.click(row!);
 
     expect(onElementClick).toHaveBeenCalledWith('elem-1');
   });
 
-  it('renders view mode toggle buttons', () => {
+  it('sorts by first appearance in default By Appearance mode', () => {
     render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
 
-    expect(screen.getByRole('button', { name: /by type/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /by appearance/i })).toBeInTheDocument();
-  });
-
-  it('sorts by first appearance in By Appearance mode', async () => {
-    const user = userEvent.setup();
-
-    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
-
-    // Switch to By Appearance view
-    await user.click(screen.getByRole('button', { name: /by appearance/i }));
-
-    // In appearance mode, elements should be sorted by highlightPage ASC
-    // Page 1: JOHN (elem-1), INT. OFFICE - DAY (elem-3) — alphabetical within page
-    // Page 3: MARY (elem-2)
-    // Page 7: MAGIC RING (elem-4)
+    // Default is By Appearance, elements sorted by highlightPage ASC
     const items = screen.getAllByRole('listitem');
     expect(items[0]).toHaveTextContent('INT. OFFICE - DAY');
     expect(items[1]).toHaveTextContent('JOHN');
@@ -245,10 +282,8 @@ describe('Element list', () => {
       <ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />,
     );
 
-    // Click Cast chip
     await user.click(screen.getByRole('button', { name: /cast/i }));
 
-    // JOHN should be visible, INT. OFFICE should not
     expect(screen.getByText('JOHN')).toBeInTheDocument();
     expect(screen.queryByText('INT. OFFICE - DAY')).not.toBeInTheDocument();
   });
@@ -270,18 +305,15 @@ describe('Element list', () => {
       <ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />,
     );
 
-    // Click Cast chip to filter
     await user.click(screen.getByRole('button', { name: /cast/i }));
     expect(screen.queryByText('INT. OFFICE - DAY')).not.toBeInTheDocument();
 
-    // Click Cast chip again to show all (or click "All")
     await user.click(screen.getByRole('button', { name: /all/i }));
     expect(screen.getByText('JOHN')).toBeInTheDocument();
     expect(screen.getByText('INT. OFFICE - DAY')).toBeInTheDocument();
   });
 
-  it('null highlightPage sorts last in By Appearance view', async () => {
-    const user = userEvent.setup();
+  it('null highlightPage sorts last in By Appearance view', () => {
     const elementsWithNull = [
       ...mockElements,
       {
@@ -298,11 +330,7 @@ describe('Element list', () => {
 
     render(<ElementList elements={elementsWithNull} onArchive={mockOnArchive} />);
 
-    // Switch to By Appearance view
-    await user.click(screen.getByRole('button', { name: /by appearance/i }));
-
     const items = screen.getAllByRole('listitem');
-    // MYSTERY PROP should be last (null highlightPage)
     expect(items[items.length - 1]).toHaveTextContent('MYSTERY PROP');
   });
 
@@ -319,24 +347,11 @@ describe('Element list', () => {
     );
 
     const row = screen.getByText('JOHN').closest('li') as HTMLElement;
-    // No border-left inline style when color is null
     expect(row.style.borderLeft).toBe('');
   });
 
-  it('type group lists have aria-label', () => {
+  it('appearance view list has aria-label', () => {
     render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
-
-    // Characters group should have an aria-labeled list
-    const charactersList = screen.getByRole('list', { name: 'Characters' });
-    expect(charactersList).toBeInTheDocument();
-  });
-
-  it('appearance view list has aria-label', async () => {
-    const user = userEvent.setup();
-
-    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
-
-    await user.click(screen.getByRole('button', { name: /by appearance/i }));
 
     const sortedList = screen.getByRole('list', { name: 'Elements sorted by appearance' });
     expect(sortedList).toBeInTheDocument();
@@ -428,18 +443,14 @@ describe('Element list', () => {
 
     render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
 
-    // Filter by Cast department
     await user.click(screen.getByRole('button', { name: /cast/i }));
 
-    // Both JOHN and MARY should be visible
     expect(screen.getByText('JOHN')).toBeInTheDocument();
     expect(screen.getByText('MARY')).toBeInTheDocument();
 
-    // Now also type text filter
     const input = screen.getByPlaceholderText('Filter elements...');
     await user.type(input, 'john');
 
-    // Only JOHN should be visible
     expect(screen.getByText('JOHN')).toBeInTheDocument();
     expect(screen.queryByText('MARY')).not.toBeInTheDocument();
   });
@@ -473,8 +484,7 @@ describe('Element list', () => {
     const archiveButtons = screen.getAllByRole('button', { name: /archive/i });
     await user.click(archiveButtons[0]);
 
-    // Archive should be called, but NOT onElementClick
-    expect(mockOnArchive).toHaveBeenCalledWith('elem-1');
+    expect(mockOnArchive).toHaveBeenCalledWith('elem-3');
     expect(onElementClick).not.toHaveBeenCalled();
   });
 });
