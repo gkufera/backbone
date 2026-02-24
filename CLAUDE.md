@@ -409,6 +409,8 @@ All bugs, features, and planned work are tracked in [`roadmap.md`](./roadmap.md)
 - When deprioritizing work, add it to the roadmap with appropriate priority level
 - Explicitly tell the user when items are added to the roadmap instead of being done immediately
 - Check the roadmap before starting work to understand current priorities
+- Every sub-bullet in a roadmap task is a hard requirement, not aspirational. If it says "breadcrumb when inside a production", that feature must be implemented. Checking off a roadmap item means ALL sub-bullets are done.
+- If a task cannot be fully completed, do NOT check it off. Instead, update the roadmap with a note of what remains unfinished so it is tracked and completed later.
 
 ## No Backwards Compatibility Code
 
