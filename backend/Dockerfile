@@ -36,8 +36,9 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts
 
 # Copy backend package files and install production deps only
+# Use --ignore-scripts to skip postinstall (prisma generate) since Prisma client is copied from builder
 COPY backend/package.json backend/package-lock.json ./backend/
-RUN cd backend && npm ci --omit=dev
+RUN cd backend && npm ci --omit=dev --ignore-scripts
 
 # Copy prisma schema, migrations, and CLI from builder
 COPY prisma/ ./prisma/

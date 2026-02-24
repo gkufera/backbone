@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { authApi } from '../../lib/api';
 
-export default function VerifyEmailSentPage() {
+function VerifyEmailSentContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') ?? '';
   const [resendMessage, setResendMessage] = useState('');
@@ -64,5 +64,13 @@ export default function VerifyEmailSentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailSentPage() {
+  return (
+    <Suspense fallback={<div className="p-6">Loading...</div>}>
+      <VerifyEmailSentContent />
+    </Suspense>
   );
 }
