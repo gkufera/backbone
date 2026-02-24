@@ -2,6 +2,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { OptionLightbox } from '../components/option-lightbox';
 
+// Mock useMediaUrl hook
+vi.mock('../lib/use-media-url', () => ({
+  useMediaUrl: vi.fn(),
+}));
+
+import { useMediaUrl } from '../lib/use-media-url';
+
 const baseOption = {
   id: 'opt-1',
   elementId: 'elem-1',
@@ -20,6 +27,8 @@ const baseOption = {
 
 describe('OptionLightbox', () => {
   it('renders option media description', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
     render(
       <OptionLightbox
         option={baseOption}
@@ -32,6 +41,8 @@ describe('OptionLightbox', () => {
   });
 
   it('Escape key closes lightbox', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
     const onClose = vi.fn();
     render(
       <OptionLightbox
@@ -46,6 +57,8 @@ describe('OptionLightbox', () => {
   });
 
   it('clicking backdrop closes lightbox', async () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
     const onClose = vi.fn();
     render(
       <OptionLightbox
@@ -61,6 +74,8 @@ describe('OptionLightbox', () => {
   });
 
   it('renders approval buttons', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
     render(
       <OptionLightbox
         option={baseOption}
@@ -72,5 +87,122 @@ describe('OptionLightbox', () => {
     expect(screen.getByRole('button', { name: 'Y' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'M' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'N' })).toBeInTheDocument();
+  });
+
+  it('renders img tag when mediaType is IMAGE and URL resolves', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/photo.jpg');
+
+    render(
+      <OptionLightbox
+        option={baseOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const img = screen.getByRole('img');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', 'https://s3.example.com/photo.jpg');
+  });
+
+  it('renders video tag when mediaType is VIDEO and URL resolves', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/clip.mp4');
+
+    const videoOption = { ...baseOption, mediaType: 'VIDEO', s3Key: 'options/uuid/clip.mp4', fileName: 'clip.mp4' };
+    const { container } = render(
+      <OptionLightbox
+        option={videoOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const video = container.querySelector('video');
+    expect(video).toBeInTheDocument();
+    expect(video).toHaveAttribute('controls');
+  });
+
+  it('renders audio tag when mediaType is AUDIO and URL resolves', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/track.mp3');
+
+    const audioOption = { ...baseOption, mediaType: 'AUDIO', s3Key: 'options/uuid/track.mp3', fileName: 'track.mp3' };
+    const { container } = render(
+      <OptionLightbox
+        option={audioOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const audio = container.querySelector('audio');
+    expect(audio).toBeInTheDocument();
+    expect(audio).toHaveAttribute('controls');
+  });
+
+  it('renders external URL link when option has externalUrl', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const linkOption = {
+      ...baseOption,
+      mediaType: 'LINK',
+      s3Key: null,
+      externalUrl: 'https://example.com/ref',
+    };
+    render(
+      <OptionLightbox
+        option={linkOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', 'https://example.com/ref');
+  });
+
+  it('media area has no grayscale filter', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/photo.jpg');
+
+    render(
+      <OptionLightbox
+        option={baseOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const img = screen.getByRole('img');
+    expect(img.style.filter).toBeFalsy();
+  });
+
+  it('renders approval history when approvals are provided', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const approvals = [
+      {
+        id: 'appr-1',
+        optionId: 'opt-1',
+        userId: 'user-1',
+        decision: 'APPROVED',
+        note: 'Great choice',
+        tentative: false,
+        confirmedAt: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        user: { id: 'user-1', name: 'Jane Director' },
+      },
+    ];
+
+    render(
+      <OptionLightbox
+        option={baseOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+        approvals={approvals}
+      />,
+    );
+
+    expect(screen.getByText('Jane Director')).toBeInTheDocument();
+    expect(screen.getByText(/Great choice/)).toBeInTheDocument();
   });
 });
