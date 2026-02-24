@@ -59,7 +59,7 @@ export function ElementList({
     });
   }, [filteredElements]);
 
-  // Group by department
+  // Group by department, sorted within each group by appearance then name
   const departmentGroups = useMemo(() => {
     const groups = new Map<string, ElementWithCountResponse[]>();
     for (const elem of filteredElements) {
@@ -68,6 +68,14 @@ export function ElementList({
         groups.set(deptName, []);
       }
       groups.get(deptName)!.push(elem);
+    }
+    for (const [, elems] of groups) {
+      elems.sort((a, b) => {
+        const pageA = a.highlightPage ?? Infinity;
+        const pageB = b.highlightPage ?? Infinity;
+        if (pageA !== pageB) return pageA - pageB;
+        return a.name.localeCompare(b.name);
+      });
     }
     return groups;
   }, [filteredElements]);

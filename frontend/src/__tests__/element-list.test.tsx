@@ -469,6 +469,88 @@ describe('Element list', () => {
     expect(screen.getByText('JOHN')).toBeInTheDocument();
   });
 
+  it('By Department groups sort elements by appearance within each group', async () => {
+    const user = userEvent.setup();
+    // Note: MARY (page 3) comes BEFORE JOHN (page 1) in input array
+    // to prove sorting happens within the group
+    const elementsWithDepts = [
+      {
+        ...mockElements[3], // MAGIC RING, page 7
+        department: { id: 'dept-props', name: 'Props', color: '#264653' },
+      },
+      {
+        ...mockElements[1], // MARY, page 3
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[0], // JOHN, page 1
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    await user.click(screen.getByRole('button', { name: /by department/i }));
+
+    // Find the Cast group list
+    const castList = screen.getByRole('list', { name: 'Cast' });
+    const castItems = castList.querySelectorAll('li');
+    // JOHN (page 1) should come before MARY (page 3) within the Cast group
+    expect(castItems[0]).toHaveTextContent('JOHN');
+    expect(castItems[1]).toHaveTextContent('MARY');
+  });
+
+  it('switching from By Department back to By Appearance works', async () => {
+    const user = userEvent.setup();
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations', color: '#264653' },
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    // Switch to By Department
+    await user.click(screen.getByRole('button', { name: /by department/i }));
+    expect(screen.getByRole('heading', { level: 3, name: 'Cast' })).toBeInTheDocument();
+
+    // Switch back to By Appearance
+    await user.click(screen.getByRole('button', { name: /by appearance/i }));
+    expect(screen.queryByRole('heading', { level: 3, name: 'Cast' })).not.toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Elements sorted by appearance' })).toBeInTheDocument();
+  });
+
+  it('department group lists have aria-labels matching department name', async () => {
+    const user = userEvent.setup();
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations', color: '#264653' },
+      },
+      {
+        ...mockElements[3],
+        // No department → Unassigned
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    await user.click(screen.getByRole('button', { name: /by department/i }));
+
+    expect(screen.getByRole('list', { name: 'Cast' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Locations' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Unassigned' })).toBeInTheDocument();
+  });
+
   it('archive button stopPropagation', async () => {
     const user = userEvent.setup();
     const onElementClick = vi.fn();
