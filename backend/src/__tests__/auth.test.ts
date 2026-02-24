@@ -881,4 +881,33 @@ describe('PATCH /api/auth/me', () => {
 
     expect(res.status).toBe(401);
   });
+
+  it('updates emailNotificationsEnabled preference', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      emailNotificationsEnabled: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.user.update.mockResolvedValue({
+      ...mockUser,
+      emailNotificationsEnabled: false,
+    });
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ emailNotificationsEnabled: false });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.emailNotificationsEnabled).toBe(false);
+  });
 });

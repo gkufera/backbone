@@ -126,6 +126,7 @@ authRouter.post('/api/auth/login', async (req, res) => {
         name: user.name,
         email: user.email,
         emailVerified: user.emailVerified,
+        emailNotificationsEnabled: user.emailNotificationsEnabled,
         createdAt: user.createdAt,
       },
     });
@@ -154,6 +155,7 @@ authRouter.get('/api/auth/me', requireAuth, async (req, res) => {
         name: user.name,
         email: user.email,
         emailVerified: user.emailVerified,
+        emailNotificationsEnabled: user.emailNotificationsEnabled,
         createdAt: user.createdAt,
       },
     });
@@ -166,7 +168,7 @@ authRouter.get('/api/auth/me', requireAuth, async (req, res) => {
 authRouter.patch('/api/auth/me', requireAuth, async (req, res) => {
   try {
     const authReq = req as AuthenticatedRequest;
-    const { name, currentPassword, newPassword } = req.body;
+    const { name, currentPassword, newPassword, emailNotificationsEnabled } = req.body;
 
     const user = await prisma.user.findUnique({
       where: { id: authReq.user.userId },
@@ -177,7 +179,11 @@ authRouter.patch('/api/auth/me', requireAuth, async (req, res) => {
       return;
     }
 
-    const updateData: { name?: string; passwordHash?: string } = {};
+    const updateData: { name?: string; passwordHash?: string; emailNotificationsEnabled?: boolean } = {};
+
+    if (emailNotificationsEnabled !== undefined) {
+      updateData.emailNotificationsEnabled = Boolean(emailNotificationsEnabled);
+    }
 
     if (name !== undefined) {
       const trimmedName = String(name).trim();
@@ -221,6 +227,7 @@ authRouter.patch('/api/auth/me', requireAuth, async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         emailVerified: updatedUser.emailVerified,
+        emailNotificationsEnabled: updatedUser.emailNotificationsEnabled,
         createdAt: updatedUser.createdAt,
       },
     });

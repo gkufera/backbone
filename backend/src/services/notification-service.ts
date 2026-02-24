@@ -23,9 +23,9 @@ export async function createNotification(
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { email: true },
+      select: { email: true, emailNotificationsEnabled: true },
     });
-    if (user?.email) {
+    if (user?.email && user.emailNotificationsEnabled !== false) {
       await sendNotificationEmail(user.email, { type, message });
     }
   } catch (error) {

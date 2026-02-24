@@ -61,7 +61,7 @@ describe('createNotification', () => {
     expect(mockedPrisma.notification.create).toHaveBeenCalled();
     expect(mockedPrisma.user.findUnique).toHaveBeenCalledWith({
       where: { id: 'user-1' },
-      select: { email: true },
+      select: { email: true, emailNotificationsEnabled: true },
     });
     expect(mockedSendNotificationEmail).toHaveBeenCalledWith('user@example.com', {
       type: 'OPTION_APPROVED',
@@ -102,6 +102,33 @@ describe('createNotification', () => {
     expect(result).toBeDefined();
     expect(result.id).toBe('notif-1');
     consoleSpy.mockRestore();
+  });
+
+  it('skips email when user has emailNotificationsEnabled=false', async () => {
+    mockedPrisma.notification.create.mockResolvedValue({
+      id: 'notif-1',
+      userId: 'user-1',
+      productionId: 'prod-1',
+      type: 'OPTION_APPROVED',
+      message: 'Your option was approved',
+      link: null,
+      read: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      email: 'user@example.com',
+      emailNotificationsEnabled: false,
+    } as any);
+
+    await createNotification('user-1', 'prod-1', 'OPTION_APPROVED', 'Your option was approved');
+
+    // In-app notification should be created
+    expect(mockedPrisma.notification.create).toHaveBeenCalled();
+    // Email should NOT be sent
+    expect(mockedSendNotificationEmail).not.toHaveBeenCalled();
   });
 
   it('skips email if user has no email address', async () => {
