@@ -1,7 +1,22 @@
 # Current Plan
 
 ## Active Task
-None — Post-deploy fixes complete.
+None — Edge case audit complete.
+
+## Completed (Edge Case Audit)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | Strengthen weak test assertions | `fix: strengthen weak test assertions in production-dashboard tests` | 0 |
+| 2 | Fix batch notification failure | `fix: use Promise.allSettled for batch notifications` | +1 |
+| 3 | Type-safe approval notification map | `fix: use ApprovalDecision enum as notification type map key` | 0 |
+| 4 | Remove unsafe as-any casts | `fix: remove unsafe as-any casts in scripts.ts` | 0 |
+| 5 | Full test suite + docs | `docs: update test counts after edge case audit` | 0 |
+
+### Test Counts (Post Edge Case Audit)
+- **Frontend**: 400 tests (unchanged)
+- **Backend**: 357 tests (was 356, +1 new)
+- **Total**: 757 tests (was 756, +1 new)
 
 ## Completed (Sprint 13 Post-Deploy Fixes)
 
