@@ -682,6 +682,29 @@ describe('POST /api/auth/resend-verification', () => {
     expect(res.body.message).toMatch(/check your email/i);
     expect(mockedSendEmail).not.toHaveBeenCalled();
   });
+
+  it('returns 200 but does not send email for already-verified user', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Verified User',
+      email: 'verified@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const res = await request(app).post('/api/auth/resend-verification').send({
+      email: 'verified@example.com',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/check your email/i);
+    expect(mockedPrisma.emailVerificationToken.create).not.toHaveBeenCalled();
+    expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
 });
 
 describe('GET /api/auth/me includes emailVerified', () => {
