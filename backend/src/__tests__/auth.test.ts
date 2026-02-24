@@ -3,19 +3,39 @@ import request from 'supertest';
 import { app } from '../app.js';
 import { signToken } from '../lib/jwt.js';
 
+// Mock email service
+vi.mock('../services/email-service.js', () => ({
+  sendEmail: vi.fn(),
+  sendNotificationEmail: vi.fn(),
+}));
+
 // Mock Prisma client
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
     },
+    passwordResetToken: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    emailVerificationToken: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    $transaction: vi.fn(),
   },
 }));
 
 import { prisma } from '../lib/prisma.js';
+import { sendEmail } from '../services/email-service.js';
 
 const mockedPrisma = vi.mocked(prisma);
+const mockedSendEmail = vi.mocked(sendEmail);
 
 describe('POST /api/auth/signup', () => {
   beforeEach(() => {
@@ -331,5 +351,147 @@ describe('Error handling', () => {
 
     expect(res.status).toBe(500);
     expect(res.body).toEqual({ error: 'Internal server error' });
+  });
+});
+
+describe('POST /api/auth/forgot-password', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 200 and creates token for existing email', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.passwordResetToken.create.mockResolvedValue({
+      id: 'token-1',
+      userId: 'user-1',
+      token: 'reset-token-abc',
+      expiresAt: new Date(Date.now() + 3600000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/auth/forgot-password').send({
+      email: 'test@example.com',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/check your email/i);
+    expect(mockedPrisma.passwordResetToken.create).toHaveBeenCalled();
+    expect(mockedSendEmail).toHaveBeenCalled();
+  });
+
+  it('returns 200 for unknown email without leaking info', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).post('/api/auth/forgot-password').send({
+      email: 'unknown@example.com',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/check your email/i);
+    expect(mockedPrisma.passwordResetToken.create).not.toHaveBeenCalled();
+    expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when email is missing', async () => {
+    const res = await request(app).post('/api/auth/forgot-password').send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+});
+
+describe('POST /api/auth/reset-password', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('resets password with valid token', async () => {
+    const mockToken = {
+      id: 'token-1',
+      userId: 'user-1',
+      token: 'valid-reset-token',
+      expiresAt: new Date(Date.now() + 3600000),
+      usedAt: null,
+      createdAt: new Date(),
+      user: {
+        id: 'user-1',
+        name: 'Test User',
+        email: 'test@example.com',
+      },
+    };
+
+    mockedPrisma.passwordResetToken.findFirst.mockResolvedValue(mockToken as any);
+    mockedPrisma.$transaction.mockResolvedValue([{}, {}]);
+
+    const res = await request(app).post('/api/auth/reset-password').send({
+      token: 'valid-reset-token',
+      newPassword: 'newpassword123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/password.*reset/i);
+  });
+
+  it('returns 400 for expired token', async () => {
+    const mockToken = {
+      id: 'token-1',
+      userId: 'user-1',
+      token: 'expired-token',
+      expiresAt: new Date(Date.now() - 1000),
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.passwordResetToken.findFirst.mockResolvedValue(mockToken as any);
+
+    const res = await request(app).post('/api/auth/reset-password').send({
+      token: 'expired-token',
+      newPassword: 'newpassword123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/expired/i);
+  });
+
+  it('returns 400 for already-used token', async () => {
+    const mockToken = {
+      id: 'token-1',
+      userId: 'user-1',
+      token: 'used-token',
+      expiresAt: new Date(Date.now() + 3600000),
+      usedAt: new Date(),
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.passwordResetToken.findFirst.mockResolvedValue(mockToken as any);
+
+    const res = await request(app).post('/api/auth/reset-password').send({
+      token: 'used-token',
+      newPassword: 'newpassword123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/invalid|used|expired/i);
+  });
+
+  it('returns 400 for short password', async () => {
+    const res = await request(app).post('/api/auth/reset-password').send({
+      token: 'some-token',
+      newPassword: 'short',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/password/i);
   });
 });

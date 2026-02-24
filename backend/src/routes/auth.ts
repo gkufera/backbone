@@ -1,13 +1,16 @@
 import { Router } from 'express';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { signToken } from '../lib/jwt.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { VALIDATION } from '@backbone/shared/constants';
+import { sendEmail } from '../services/email-service.js';
 
 const authRouter = Router();
 
 const SALT_ROUNDS = 10;
+const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:3000';
 
 authRouter.post('/api/auth/signup', async (req, res) => {
   try {
@@ -141,6 +144,98 @@ authRouter.get('/api/auth/me', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Get current user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+authRouter.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ error: 'Email is required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(
+        Date.now() + VALIDATION.PASSWORD_RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
+      );
+
+      await prisma.passwordResetToken.create({
+        data: { userId: user.id, token, expiresAt },
+      });
+
+      const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
+      await sendEmail(
+        user.email,
+        'Reset your Slug Max password',
+        `<p>Click the link below to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link expires in ${VALIDATION.PASSWORD_RESET_TOKEN_EXPIRY_HOURS} hour(s).</p>`,
+      );
+    }
+
+    // Always return 200 to not leak whether email exists
+    res.status(200).json({ message: 'If that email exists, check your email for a reset link' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+authRouter.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      res.status(400).json({ error: 'Token and new password are required' });
+      return;
+    }
+
+    if (String(newPassword).length < VALIDATION.PASSWORD_MIN_LENGTH) {
+      res.status(400).json({
+        error: `Password must be at least ${VALIDATION.PASSWORD_MIN_LENGTH} characters`,
+      });
+      return;
+    }
+
+    const resetToken = await prisma.passwordResetToken.findFirst({
+      where: { token },
+    });
+
+    if (!resetToken) {
+      res.status(400).json({ error: 'Invalid or expired reset token' });
+      return;
+    }
+
+    if (resetToken.usedAt) {
+      res.status(400).json({ error: 'This reset token has already been used' });
+      return;
+    }
+
+    if (resetToken.expiresAt < new Date()) {
+      res.status(400).json({ error: 'This reset token has expired' });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    await prisma.$transaction([
+      prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      }),
+      prisma.user.update({
+        where: { id: resetToken.userId },
+        data: { passwordHash },
+      }),
+    ]);
+
+    res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
