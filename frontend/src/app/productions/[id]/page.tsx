@@ -336,8 +336,8 @@ export default function ProductionDashboard() {
                         <input
                           type="color"
                           value={dept.color ?? '#000000'}
-                          onInput={(e) =>
-                            handleDepartmentColorChange(dept.id, (e.target as HTMLInputElement).value)
+                          onChange={(e) =>
+                            handleDepartmentColorChange(dept.id, e.target.value)
                           }
                           aria-label={`Color for ${dept.name}`}
                           className="h-6 w-6 border-2 border-black cursor-pointer"

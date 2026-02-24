@@ -672,9 +672,32 @@ describe('Production dashboard', () => {
 
     await screen.findByText('Departments');
     const colorInputs = screen.getAllByLabelText(/color for/i);
-    fireEvent.input(colorInputs[0], { target: { value: '#FF0000' } });
+    fireEvent.change(colorInputs[0], { target: { value: '#FF0000' } });
 
     expect(mockedDepartmentsApi.update).toHaveBeenCalledWith('prod-1', 'dept-1', { color: '#ff0000' });
+  });
+
+  it('color input initial value matches department color', async () => {
+    setupMocks();
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Departments');
+    const colorInputs = screen.getAllByLabelText(/color for/i) as HTMLInputElement[];
+    expect(colorInputs[0]).toHaveValue('#e63946');
+    expect(colorInputs[1]).toHaveValue('#2a9d8f');
+  });
+
+  it('shows error when color update fails', async () => {
+    setupMocks();
+    mockedDepartmentsApi.update.mockRejectedValue(new Error('Color update failed'));
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Departments');
+    const colorInputs = screen.getAllByLabelText(/color for/i);
+    fireEvent.change(colorInputs[0], { target: { value: '#FF0000' } });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/color update failed/i);
   });
 
   it('does not show color input for departments when MEMBER', async () => {
