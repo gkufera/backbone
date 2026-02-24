@@ -343,5 +343,6 @@ model DirectorNote {
   script      Script    @relation(fields: [scriptId], references: [id])
   createdBy   User      @relation(fields: [createdById], references: [id])
 
+  @@index([scriptId, deletedAt])
   @@map("director_notes")
 }
