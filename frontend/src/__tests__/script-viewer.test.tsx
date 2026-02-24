@@ -370,6 +370,47 @@ describe('Script viewer', () => {
     expect(mockedScriptsApi.getDownloadUrl).toHaveBeenCalledWith('script-1');
   });
 
+  it('mobile layout: elements panel has order-1, PDF panel has order-2', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [
+          {
+            id: 'elem-1',
+            name: 'JOHN',
+            type: 'CHARACTER',
+            highlightPage: 1,
+            highlightText: 'JOHN',
+            departmentId: null,
+            status: 'ACTIVE',
+            source: 'AUTO',
+          },
+        ],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('JOHN');
+
+    // Elements panel (right on desktop, top on mobile) has order-1
+    const elementsPanel = screen.getByText('JOHN').closest('.order-1');
+    expect(elementsPanel).toBeInTheDocument();
+
+    // PDF panel (left on desktop, bottom on mobile) has order-2
+    const pdfPanel = screen.getByTestId('pdf-viewer-mock').closest('.order-2');
+    expect(pdfPanel).toBeInTheDocument();
+  });
+
   it('uses split layout with PDF panel and elements panel when READY', async () => {
     mockedScriptsApi.get.mockResolvedValue({
       script: {

@@ -188,6 +188,46 @@ describe('Element list', () => {
     expect(onElementClick).toHaveBeenCalledWith('elem-1');
   });
 
+  it('renders view mode toggle buttons', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    expect(screen.getByRole('button', { name: /by type/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /by appearance/i })).toBeInTheDocument();
+  });
+
+  it('sorts by first appearance in By Appearance mode', async () => {
+    const user = userEvent.setup();
+
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    // Switch to By Appearance view
+    await user.click(screen.getByRole('button', { name: /by appearance/i }));
+
+    // In appearance mode, elements should be sorted by highlightPage ASC
+    // Page 1: JOHN (elem-1), INT. OFFICE - DAY (elem-3) — alphabetical within page
+    // Page 3: MARY (elem-2)
+    // Page 7: MAGIC RING (elem-4)
+    const items = screen.getAllByRole('listitem');
+    expect(items[0]).toHaveTextContent('INT. OFFICE - DAY');
+    expect(items[1]).toHaveTextContent('JOHN');
+    expect(items[2]).toHaveTextContent('MARY');
+    expect(items[3]).toHaveTextContent('MAGIC RING');
+  });
+
+  it('active row has inverted text on all children', () => {
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        activeElementId="elem-1"
+      />,
+    );
+
+    const row = screen.getByText('JOHN').closest('li');
+    expect(row).toHaveClass('bg-black');
+    expect(row).toHaveClass('text-white');
+  });
+
   it('archive button stopPropagation', async () => {
     const user = userEvent.setup();
     const onElementClick = vi.fn();
