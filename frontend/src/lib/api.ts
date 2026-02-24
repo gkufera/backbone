@@ -37,6 +37,8 @@ interface AuthResponse {
     email: string;
     emailVerified: boolean;
     emailNotificationsEnabled: boolean;
+    phone: string | null;
+    phoneVerified: boolean;
     createdAt: string;
   };
 }
@@ -469,6 +471,20 @@ export const authApi = {
     return request<{ user: AuthResponse['user'] }>('/api/auth/me', {
       method: 'PATCH',
       body: JSON.stringify(data),
+    });
+  },
+
+  sendPhoneCode(phone: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/send-phone-code', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  },
+
+  verifyPhone(code: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/verify-phone', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
     });
   },
 };

@@ -6,6 +6,8 @@ import { authApi } from '../../lib/api';
 import { useToast } from '../../lib/toast-context';
 import { SkeletonCard } from '../../components/skeleton';
 
+const PHONE_REGEX = /^\+[1-9]\d{1,14}$/;
+
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
   const toast = useToast();
@@ -24,6 +26,12 @@ export default function SettingsPage() {
     user?.emailNotificationsEnabled ?? true,
   );
   const [notifLoading, setNotifLoading] = useState(false);
+
+  const [phone, setPhone] = useState('');
+  const [phoneCode, setPhoneCode] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneCodeSent, setPhoneCodeSent] = useState(false);
 
   async function handleProfileSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,6 +86,42 @@ export default function SettingsPage() {
       setEmailNotifications(!newValue); // revert
     } finally {
       setNotifLoading(false);
+    }
+  }
+
+  async function handleSendPhoneCode(e: React.FormEvent) {
+    e.preventDefault();
+    setPhoneError('');
+
+    if (!PHONE_REGEX.test(phone)) {
+      setPhoneError('Invalid phone number. Must be E.164 format (e.g., +15551234567)');
+      return;
+    }
+
+    setPhoneLoading(true);
+    try {
+      await authApi.sendPhoneCode(phone);
+      setPhoneCodeSent(true);
+    } catch (err) {
+      setPhoneError(err instanceof Error ? err.message : 'Failed to send verification code');
+    } finally {
+      setPhoneLoading(false);
+    }
+  }
+
+  async function handleVerifyPhone(e: React.FormEvent) {
+    e.preventDefault();
+    setPhoneError('');
+    setPhoneLoading(true);
+
+    try {
+      await authApi.verifyPhone(phoneCode);
+      updateUser({ ...user!, phone, phoneVerified: true });
+      toast.show('Phone number verified successfully');
+    } catch (err) {
+      setPhoneError(err instanceof Error ? err.message : 'Failed to verify phone');
+    } finally {
+      setPhoneLoading(false);
     }
   }
 
@@ -156,6 +200,79 @@ export default function SettingsPage() {
           <p className="font-mono text-xs">
             When enabled, you will receive email notifications for approvals, script uploads, and team invites.
           </p>
+        </div>
+      </div>
+
+      <div className="mac-window mb-6">
+        <div className="mac-window-title">
+          <span>Phone Verification</span>
+        </div>
+        <div className="mac-window-body space-y-4">
+          {user.phoneVerified && user.phone ? (
+            <div className="space-y-2">
+              <p className="font-mono text-sm">{user.phone}</p>
+              <span className="badge badge-approved">VERIFIED</span>
+            </div>
+          ) : phoneCodeSent ? (
+            <form onSubmit={handleVerifyPhone} className="space-y-4">
+              {phoneError && (
+                <div role="alert" className="mac-alert-error p-3 text-sm">
+                  {phoneError}
+                </div>
+              )}
+              <div>
+                <label htmlFor="phoneCode" className="block text-sm text-black">
+                  Verification Code
+                </label>
+                <input
+                  id="phoneCode"
+                  type="text"
+                  required
+                  maxLength={6}
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value)}
+                  className="mt-1 block w-full border-2 border-black px-3 py-2"
+                  placeholder="123456"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={phoneLoading}
+                className="mac-btn-primary disabled:opacity-50"
+              >
+                {phoneLoading ? 'Verifying...' : 'Verify Phone'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSendPhoneCode} className="space-y-4">
+              {phoneError && (
+                <div role="alert" className="mac-alert-error p-3 text-sm">
+                  {phoneError}
+                </div>
+              )}
+              <div>
+                <label htmlFor="phone" className="block text-sm text-black">
+                  Phone Number
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="mt-1 block w-full border-2 border-black px-3 py-2"
+                  placeholder="+15551234567"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={phoneLoading}
+                className="mac-btn-primary disabled:opacity-50"
+              >
+                {phoneLoading ? 'Sending...' : 'Send Code'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
 
