@@ -22,6 +22,7 @@ vi.mock('../lib/prisma.js', () => ({
       findMany: vi.fn(),
       findUnique: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
       delete: vi.fn(),
     },
   },
@@ -447,6 +448,48 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
     const res = await request(app).delete('/api/productions/prod-1/departments/dept-1');
 
     expect(res.status).toBe(401);
+  });
+});
+
+describe('PATCH /api/productions/:id/departments/:departmentId', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('updates department color', async () => {
+    mockAdminMembership();
+
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    mockedPrisma.department.update.mockResolvedValue({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+      color: '#FF0000',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(adminUser))
+      .send({ color: '#FF0000' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.department.color).toBe('#FF0000');
+  });
+
+  it('returns 403 for MEMBER', async () => {
+    mockMemberMembership();
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader(memberUser))
+      .send({ color: '#FF0000' });
+
+    expect(res.status).toBe(403);
   });
 });
 

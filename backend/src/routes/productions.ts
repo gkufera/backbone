@@ -5,6 +5,7 @@ import {
   PRODUCTION_TITLE_MAX_LENGTH,
   MEMBER_TITLE_MAX_LENGTH,
   DEFAULT_DEPARTMENTS,
+  DEFAULT_DEPARTMENT_COLORS,
 } from '@backbone/shared/constants';
 import { MemberRole } from '@backbone/shared/types';
 
@@ -47,12 +48,13 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
         },
       });
 
-      // Seed default departments
+      // Seed default departments with colors
       for (const deptName of DEFAULT_DEPARTMENTS) {
         await tx.department.create({
           data: {
             productionId: production.id,
             name: deptName,
+            color: DEFAULT_DEPARTMENT_COLORS[deptName] ?? null,
           },
         });
       }

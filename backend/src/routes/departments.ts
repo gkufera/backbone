@@ -160,4 +160,75 @@ departmentsRouter.delete(
   },
 );
 
+// Update a department (name, color) — ADMIN/DECIDER only
+departmentsRouter.patch(
+  '/api/productions/:id/departments/:departmentId',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { id, departmentId } = req.params;
+      const { name, color } = req.body;
+
+      const membership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: id,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (
+        !membership ||
+        ![MemberRole.ADMIN, MemberRole.DECIDER].includes(membership.role as MemberRole)
+      ) {
+        res.status(403).json({ error: 'Only ADMIN or DECIDER can update departments' });
+        return;
+      }
+
+      const department = await prisma.department.findUnique({
+        where: { id: departmentId, productionId: id },
+      });
+      if (!department) {
+        res.status(404).json({ error: 'Department not found in this production' });
+        return;
+      }
+
+      const updateData: { name?: string; color?: string | null } = {};
+      if (name !== undefined) {
+        const trimmedName = String(name).trim();
+        if (!trimmedName) {
+          res.status(400).json({ error: 'Department name cannot be empty' });
+          return;
+        }
+        if (trimmedName.length > DEPARTMENT_NAME_MAX_LENGTH) {
+          res.status(400).json({
+            error: `Department name must be ${DEPARTMENT_NAME_MAX_LENGTH} characters or fewer`,
+          });
+          return;
+        }
+        updateData.name = trimmedName;
+      }
+      if (color !== undefined) {
+        updateData.color = color;
+      }
+
+      const updated = await prisma.department.update({
+        where: { id: departmentId },
+        data: updateData,
+      });
+
+      res.json({ department: updated });
+    } catch (error: any) {
+      if (error?.code === 'P2002') {
+        res.status(409).json({ error: 'A department with this name already exists' });
+        return;
+      }
+      console.error('Update department error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
+
 export { departmentsRouter };
