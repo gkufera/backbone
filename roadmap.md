@@ -2,7 +2,17 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 220 frontend + 267 backend = 487 total
+**Test counts:** 289 frontend + 291 backend = 580 total
+
+---
+
+## Sprint 8.5: Element/Approval Polish (Deferred)
+
+Items identified during QA but requiring schema migrations or cross-cutting backend changes.
+
+- [ ] Multi-asset options (slideshow of multiple files per option) — requires `OptionAsset` schema migration
+- [ ] Slideshow left/right arrow navigation in lightbox — depends on multi-asset model
+- [ ] Discussion box auto-display of user name and department when composing notes
 
 ---
 

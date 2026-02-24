@@ -3,6 +3,28 @@
 ## Active Task
 None — all phases complete.
 
+## Completed (QA Fix: Media Rendering, Approval States, Notes UI)
+
+### Phases
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 1 | useMediaUrl hook for S3 presigned URLs | `feat: add useMediaUrl hook for S3 presigned URL loading` | +3 |
+| 2 | Render actual images in thumbnails | `feat: render actual S3 images in option thumbnails` | +4 |
+| 3 | Fix approval visual states (MAYBE/REJECTED) | `fix: approval visual states — remove MAYBE border, add REJECTED X overlay` | +4 |
+| 4 | Inline Y/M/N approval buttons on thumbnails | `feat: add inline Y/M/N approval buttons on option thumbnails` | +5 |
+| 5 | Render actual media in lightbox (img/video/audio) | `feat: render actual media in option lightbox` | +5 |
+| 6 | Fix state reset on element switch | `fix: reset detail panel state when switching elements` | +3 |
+| 7 | Approval history + confirm in lightbox | `feat: display approval history and confirm button in lightbox` | 0 (wired existing) |
+| 8 | Option notes UI + folded-page icon | `feat: add option-level notes in lightbox and folded-page icon on thumbnails` | +6 |
+| 9 | Escape key handler + department dropdown disable | `fix: Escape key handler and disable department dropdown during save` | +3 |
+| 10 | Roadmap update + deploy | `chore: add deferred element/approval items to roadmap` | 0 |
+
+### Test Counts (Post QA Fix)
+- **Frontend**: 289 tests (was 257, +32 new)
+- **Backend**: 291 tests (unchanged)
+- **Total**: 580 tests
+
 ## Completed (Inline Element Detail Panel, Discussion Notes, and Approval Redesign)
 
 ### Phases
