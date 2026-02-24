@@ -18,7 +18,7 @@ export default function Home() {
           <div className="mac-window-title">
             <span>Slug Max</span>
           </div>
-          <div className="mac-window-body flex flex-col items-center gap-4 py-8">
+          <div className="mac-window-body flex flex-col items-center gap-6 py-8">
             <Image
               src="/logo.png"
               alt="Slug Max"
@@ -27,13 +27,20 @@ export default function Home() {
               priority
               style={{ imageRendering: 'pixelated' }}
             />
+            <p className="text-sm uppercase tracking-widest">For Film &amp; TV Creatives</p>
+            <h1 className="text-center text-2xl font-bold leading-tight">
+              One Place for EVERY Creative Decision
+            </h1>
+            <p className="text-center text-lg">
+              Stop searching email threads, start making the film.
+            </p>
             {!isLoading && isAuthenticated && (
-              <Link href="/productions" className="mac-btn-primary mt-4">
+              <Link href="/productions" className="mac-btn-primary mt-2">
                 My Productions
               </Link>
             )}
             {!isLoading && !isAuthenticated && (
-              <div className="mt-4 flex gap-3">
+              <div className="mt-2 flex gap-3">
                 <Link href="/login" className="mac-btn-primary">
                   Log in
                 </Link>

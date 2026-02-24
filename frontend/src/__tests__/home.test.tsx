@@ -36,13 +36,15 @@ describe('Home page', () => {
     expect(screen.getByAltText('Slug Max')).toBeInTheDocument();
   });
 
-  it('does not render tagline', () => {
+  it('renders marketing copy', () => {
     render(
       <AuthProvider>
         <Home />
       </AuthProvider>,
     );
-    expect(screen.queryByText(/production collaboration platform/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/for film & tv creatives/i)).toBeInTheDocument();
+    expect(screen.getByText(/one place for every creative decision/i)).toBeInTheDocument();
+    expect(screen.getByText(/stop searching email threads, start making the film/i)).toBeInTheDocument();
   });
 
   it('shows login and signup links when not authenticated', async () => {
