@@ -34,17 +34,7 @@ departmentsRouter.get('/api/productions/:id/departments', requireAuth, async (re
     const departments = await prisma.department.findMany({
       where: { productionId: id },
       include: {
-        members: {
-          include: {
-            productionMember: {
-              include: {
-                user: {
-                  select: { id: true, name: true, email: true },
-                },
-              },
-            },
-          },
-        },
+        _count: { select: { members: true } },
       },
       orderBy: { name: 'asc' },
     });
@@ -112,7 +102,7 @@ departmentsRouter.post('/api/productions/:id/departments', requireAuth, async (r
   }
 });
 
-// Delete a department and its member assignments (OWNER/ADMIN only)
+// Delete a department (OWNER/ADMIN only) — blocked if department has members
 departmentsRouter.delete(
   '/api/productions/:id/departments/:departmentId',
   requireAuth,
@@ -147,10 +137,16 @@ departmentsRouter.delete(
         return;
       }
 
-      await prisma.$transaction(async (tx) => {
-        await tx.departmentMember.deleteMany({ where: { departmentId } });
-        await tx.department.delete({ where: { id: departmentId } });
+      // Check if department has members
+      const memberCount = await prisma.productionMember.count({
+        where: { departmentId },
       });
+      if (memberCount > 0) {
+        res.status(409).json({ error: 'Cannot delete department with members' });
+        return;
+      }
+
+      await prisma.department.delete({ where: { id: departmentId } });
 
       res.json({ message: 'Department deleted' });
     } catch (error: any) {
@@ -159,133 +155,6 @@ departmentsRouter.delete(
         return;
       }
       console.error('Delete department error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-);
-
-// Add a production member to a department (any member can do this)
-departmentsRouter.post(
-  '/api/productions/:id/departments/:departmentId/members',
-  requireAuth,
-  async (req, res) => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const { id, departmentId } = req.params;
-      const { productionMemberId } = req.body;
-
-      const membership = await prisma.productionMember.findUnique({
-        where: {
-          productionId_userId: {
-            productionId: id,
-            userId: authReq.user.userId,
-          },
-        },
-      });
-
-      if (!membership) {
-        const production = await prisma.production.findUnique({ where: { id } });
-        if (!production) {
-          res.status(404).json({ error: 'Production not found' });
-          return;
-        }
-        res.status(403).json({ error: 'You are not a member of this production' });
-        return;
-      }
-
-      if (!productionMemberId) {
-        res.status(400).json({ error: 'productionMemberId is required' });
-        return;
-      }
-
-      // Verify department belongs to this production
-      const department = await prisma.department.findUnique({
-        where: { id: departmentId, productionId: id },
-      });
-      if (!department) {
-        res.status(404).json({ error: 'Department not found in this production' });
-        return;
-      }
-
-      // Verify production member belongs to this production
-      const targetMember = await prisma.productionMember.findFirst({
-        where: { id: productionMemberId, productionId: id },
-      });
-      if (!targetMember) {
-        res.status(404).json({ error: 'Production member not found in this production' });
-        return;
-      }
-
-      const departmentMember = await prisma.departmentMember.create({
-        data: {
-          departmentId,
-          productionMemberId,
-        },
-      });
-
-      res.status(201).json({ departmentMember });
-    } catch (error: any) {
-      if (error?.code === 'P2002') {
-        res.status(409).json({ error: 'Member is already in this department' });
-        return;
-      }
-      if (error?.code === 'P2025') {
-        res.status(404).json({ error: 'Department or member not found' });
-        return;
-      }
-      console.error('Add department member error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-);
-
-// Remove a member from a department (any member can do this)
-departmentsRouter.delete(
-  '/api/productions/:id/departments/:departmentId/members/:memberId',
-  requireAuth,
-  async (req, res) => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const { id, memberId } = req.params;
-
-      const membership = await prisma.productionMember.findUnique({
-        where: {
-          productionId_userId: {
-            productionId: id,
-            userId: authReq.user.userId,
-          },
-        },
-      });
-
-      if (!membership) {
-        const production = await prisma.production.findUnique({ where: { id } });
-        if (!production) {
-          res.status(404).json({ error: 'Production not found' });
-          return;
-        }
-        res.status(403).json({ error: 'You are not a member of this production' });
-        return;
-      }
-
-      // Verify department member belongs to this production
-      const departmentMember = await prisma.departmentMember.findUnique({
-        where: { id: memberId },
-        include: { department: true },
-      });
-      if (!departmentMember || departmentMember.department.productionId !== id) {
-        res.status(404).json({ error: 'Department member not found in this production' });
-        return;
-      }
-
-      await prisma.departmentMember.delete({ where: { id: memberId } });
-
-      res.json({ message: 'Member removed from department' });
-    } catch (error: any) {
-      if (error?.code === 'P2025') {
-        res.status(404).json({ error: 'Department member not found' });
-        return;
-      }
-      console.error('Remove department member error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },

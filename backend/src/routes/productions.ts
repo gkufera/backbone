@@ -127,12 +127,8 @@ productionsRouter.get('/api/productions/:id', requireAuth, async (req, res) => {
             user: {
               select: { id: true, name: true, email: true },
             },
-            departmentMembers: {
-              include: {
-                department: {
-                  select: { id: true, name: true },
-                },
-              },
+            department: {
+              select: { id: true, name: true },
             },
           },
         },
@@ -257,12 +253,8 @@ productionsRouter.get('/api/productions/:id/members', requireAuth, async (req, r
         user: {
           select: { id: true, name: true, email: true },
         },
-        departmentMembers: {
-          include: {
-            department: {
-              select: { id: true, name: true },
-            },
-          },
+        department: {
+          select: { id: true, name: true },
         },
       },
     });
@@ -401,6 +393,68 @@ productionsRouter.patch(
       res.json({ member: updated });
     } catch (error) {
       console.error('Change member role error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+);
+
+// Set a member's department
+productionsRouter.patch(
+  '/api/productions/:id/members/:memberId/department',
+  requireAuth,
+  async (req, res) => {
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { id, memberId } = req.params;
+      const { departmentId } = req.body;
+
+      // Check requester is ADMIN or DECIDER
+      const requesterMembership = await prisma.productionMember.findUnique({
+        where: {
+          productionId_userId: {
+            productionId: id,
+            userId: authReq.user.userId,
+          },
+        },
+      });
+
+      if (
+        !requesterMembership ||
+        ![MemberRole.ADMIN, MemberRole.DECIDER].includes(requesterMembership.role as MemberRole)
+      ) {
+        res.status(403).json({ error: 'Only ADMIN or DECIDER can set member departments' });
+        return;
+      }
+
+      // Find the target member
+      const targetMember = await prisma.productionMember.findUnique({
+        where: { id: memberId },
+      });
+
+      if (!targetMember || targetMember.productionId !== id) {
+        res.status(404).json({ error: 'Member not found' });
+        return;
+      }
+
+      // If setting a department, validate it belongs to this production
+      if (departmentId !== null && departmentId !== undefined) {
+        const department = await prisma.department.findUnique({
+          where: { id: departmentId, productionId: id },
+        });
+        if (!department) {
+          res.status(404).json({ error: 'Department not found in this production' });
+          return;
+        }
+      }
+
+      const updated = await prisma.productionMember.update({
+        where: { id: memberId },
+        data: { departmentId: departmentId ?? null },
+      });
+
+      res.json({ member: updated });
+    } catch (error) {
+      console.error('Set member department error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },

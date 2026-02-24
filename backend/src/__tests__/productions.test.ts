@@ -238,11 +238,7 @@ describe('GET /api/productions/:id', () => {
           role: 'ADMIN',
           title: 'Director',
           user: { id: 'user-1', name: 'Test User', email: 'test@example.com' },
-          departmentMembers: [
-            {
-              department: { id: 'dept-1', name: 'Production Design' },
-            },
-          ],
+          department: { id: 'dept-1', name: 'Production Design' },
         },
       ],
       scripts: [],

@@ -18,10 +18,14 @@ vi.mock('../lib/prisma.js', () => ({
     productionMember: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       delete: vi.fn(),
       update: vi.fn(),
       count: vi.fn(),
+    },
+    department: {
+      findUnique: vi.fn(),
     },
     $transaction: vi.fn(),
   },
@@ -664,5 +668,134 @@ describe('PATCH /api/productions/:id/members/:memberId/role', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/role/i);
+  });
+});
+
+// ── PATCH /api/productions/:id/members/:memberId/department ──
+
+describe('PATCH /api/productions/:id/members/:memberId/department', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('ADMIN can set a member department', async () => {
+    // Requester is ADMIN
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-admin',
+      productionId: 'prod-1',
+      userId: 'user-owner',
+      role: 'ADMIN',
+    } as any);
+
+    // Target member
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-target',
+      productionId: 'prod-1',
+      userId: 'user-2',
+      role: 'MEMBER',
+    } as any);
+
+    // Department belongs to production
+    mockedPrisma.department.findUnique.mockResolvedValueOnce({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Costume',
+    } as any);
+
+    mockedPrisma.productionMember.update.mockResolvedValue({
+      id: 'member-target',
+      productionId: 'prod-1',
+      userId: 'user-2',
+      role: 'MEMBER',
+      departmentId: 'dept-1',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/members/member-target/department')
+      .set(authHeader())
+      .send({ departmentId: 'dept-1' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.member.departmentId).toBe('dept-1');
+  });
+
+  it('MEMBER cannot set a member department', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-member',
+      role: 'MEMBER',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/members/member-target/department')
+      .set(authHeader(memberUser))
+      .send({ departmentId: 'dept-1' });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('setting departmentId to null clears department', async () => {
+    // Requester is ADMIN
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-admin',
+      productionId: 'prod-1',
+      userId: 'user-owner',
+      role: 'ADMIN',
+    } as any);
+
+    // Target member
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-target',
+      productionId: 'prod-1',
+      userId: 'user-2',
+      role: 'MEMBER',
+      departmentId: 'dept-1',
+    } as any);
+
+    mockedPrisma.productionMember.update.mockResolvedValue({
+      id: 'member-target',
+      productionId: 'prod-1',
+      userId: 'user-2',
+      role: 'MEMBER',
+      departmentId: null,
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/members/member-target/department')
+      .set(authHeader())
+      .send({ departmentId: null });
+
+    expect(res.status).toBe(200);
+    expect(res.body.member.departmentId).toBeNull();
+  });
+
+  it('returns 404 for department in wrong production', async () => {
+    // Requester is ADMIN
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-admin',
+      productionId: 'prod-1',
+      userId: 'user-owner',
+      role: 'ADMIN',
+    } as any);
+
+    // Target member
+    mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
+      id: 'member-target',
+      productionId: 'prod-1',
+      userId: 'user-2',
+      role: 'MEMBER',
+    } as any);
+
+    // Department NOT found in this production
+    mockedPrisma.department.findUnique.mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1/members/member-target/department')
+      .set(authHeader())
+      .send({ departmentId: 'dept-other-prod' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/department/i);
   });
 });
