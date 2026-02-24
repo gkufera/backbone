@@ -22,7 +22,7 @@ scriptsRouter.post('/api/scripts/upload-url', requireAuth, async (req, res) => {
       return;
     }
 
-    if (!contentType || !SCRIPT_ALLOWED_MIME_TYPES.includes(contentType as any)) {
+    if (!contentType || !(SCRIPT_ALLOWED_MIME_TYPES as readonly string[]).includes(contentType)) {
       res.status(400).json({ error: 'Only PDF files are allowed' });
       return;
     }
@@ -189,9 +189,9 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
 
     // Compute approvalTemperature per element
     const elementsWithTemp = script.elements.map((elem) => {
-      const decisions = (elem as any).options
-        ?.flatMap((opt: any) => opt.approvals?.map((a: any) => a.decision) ?? [])
-        ?? [];
+      const decisions = elem.options.flatMap((opt) =>
+        opt.approvals.map((a) => a.decision),
+      );
 
       let approvalTemperature: string | null = null;
       if (decisions.length > 0) {
@@ -205,7 +205,7 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
       }
 
       // Remove the raw options approval data (only keep _count)
-      const { options: _opts, ...rest } = elem as any;
+      const { options: _opts, ...rest } = elem;
       return { ...rest, approvalTemperature };
     });
 

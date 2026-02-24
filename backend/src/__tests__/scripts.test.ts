@@ -278,6 +278,7 @@ describe('GET /api/productions/:id/scripts/:scriptId', () => {
           departmentId: null,
           status: 'ACTIVE',
           source: 'AUTO',
+          options: [],
         },
       ],
     } as any);
