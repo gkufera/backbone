@@ -11,6 +11,18 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'prod-1', scriptId: 'script-1' }),
 }));
 
+vi.mock('../lib/auth-context', () => ({
+  useAuth: () => ({
+    user: { id: 'user-1', name: 'Test', email: 'test@example.com', emailVerified: true, emailNotificationsEnabled: true, createdAt: '' },
+    isAuthenticated: true,
+    isLoading: false,
+    login: vi.fn(),
+    signup: vi.fn(),
+    logout: vi.fn(),
+    updateUser: vi.fn(),
+  }),
+}));
+
 vi.mock('../lib/api', () => ({
   authApi: { signup: vi.fn(), login: vi.fn(), me: vi.fn() },
   productionsApi: {

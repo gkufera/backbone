@@ -8,12 +8,15 @@ import {
   scriptsApi,
   elementsApi,
   departmentsApi,
+  productionsApi,
   type ScriptResponse,
   type ElementWithCountResponse,
   type DepartmentResponse,
 } from '../../../../../lib/api';
+import { useAuth } from '../../../../../lib/auth-context';
 import { ElementList } from '../../../../../components/element-list';
 import { ElementDetailPanel } from '../../../../../components/element-detail-panel';
+import { DirectorNotesPanel } from '../../../../../components/director-notes-panel';
 import { ProcessingProgress } from '../../../../../components/processing-progress';
 import { ElementWizard } from '../../../../../components/element-wizard';
 import type { HighlightInfo } from '../../../../../lib/pdf-highlights';
@@ -33,6 +36,7 @@ export default function ScriptViewerPage() {
   const params = useParams();
   const productionId = params.id as string;
   const scriptId = params.scriptId as string;
+  const { user } = useAuth();
 
   const [script, setScript] = useState<ScriptDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +52,8 @@ export default function ScriptViewerPage() {
     text: string;
   } | null>(null);
   const [departments, setDepartments] = useState<DepartmentResponse[]>([]);
+  const [rightPanel, setRightPanel] = useState<'elements' | 'notes'>('elements');
+  const [userRole, setUserRole] = useState<string>('MEMBER');
 
   const elementListRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +65,14 @@ export default function ScriptViewerPage() {
     try {
       const { script: data } = await scriptsApi.get(productionId, scriptId);
       setScript(data);
+
+      // Fetch production to get user role
+      try {
+        const { production } = await productionsApi.get(productionId);
+        if (production.memberRole) setUserRole(production.memberRole);
+      } catch {
+        // Optional
+      }
 
       // Fetch departments for wizard and filters
       if (data.status === 'REVIEWING' || data.status === 'READY') {
@@ -254,6 +268,36 @@ export default function ScriptViewerPage() {
           <div className="p-4">
             <ScriptHeader script={script} productionId={productionId} scriptId={scriptId} />
 
+            {/* Panel toggle */}
+            {script.sceneData && script.sceneData.length > 0 && (
+              <div className="mb-4 flex gap-2">
+                <button
+                  className={`px-3 py-1 text-sm ${
+                    rightPanel === 'elements' ? 'bg-black text-white' : 'bg-white text-black border-2 border-black'
+                  }`}
+                  onClick={() => setRightPanel('elements')}
+                >
+                  Elements
+                </button>
+                <button
+                  className={`px-3 py-1 text-sm ${
+                    rightPanel === 'notes' ? 'bg-black text-white' : 'bg-white text-black border-2 border-black'
+                  }`}
+                  onClick={() => setRightPanel('notes')}
+                >
+                  Director&apos;s Notes
+                </button>
+              </div>
+            )}
+
+            {rightPanel === 'notes' && script.sceneData ? (
+              <DirectorNotesPanel
+                scriptId={scriptId}
+                sceneData={script.sceneData}
+                userRole={userRole}
+                userId={user?.id ?? ''}
+              />
+            ) : (
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl">Elements ({script.elements.length})</h2>
@@ -311,6 +355,7 @@ export default function ScriptViewerPage() {
                 />
               )}
             </section>
+            )}
           </div>
         )}
       </div>
