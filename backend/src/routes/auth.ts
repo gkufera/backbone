@@ -162,6 +162,73 @@ authRouter.get('/api/auth/me', requireAuth, async (req, res) => {
   }
 });
 
+authRouter.patch('/api/auth/me', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { name, currentPassword, newPassword } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id: authReq.user.userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const updateData: { name?: string; passwordHash?: string } = {};
+
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      if (!trimmedName) {
+        res.status(400).json({ error: 'Name cannot be blank' });
+        return;
+      }
+      updateData.name = trimmedName;
+    }
+
+    if (newPassword !== undefined) {
+      if (!currentPassword) {
+        res.status(400).json({ error: 'Current password is required to set a new password' });
+        return;
+      }
+
+      if (String(newPassword).length < VALIDATION.PASSWORD_MIN_LENGTH) {
+        res.status(400).json({
+          error: `Password must be at least ${VALIDATION.PASSWORD_MIN_LENGTH} characters`,
+        });
+        return;
+      }
+
+      const passwordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!passwordValid) {
+        res.status(401).json({ error: 'Current password is incorrect' });
+        return;
+      }
+
+      updateData.passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+    });
+
+    res.json({
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        emailVerified: updatedUser.emailVerified,
+        createdAt: updatedUser.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 authRouter.post('/api/auth/verify-email', async (req, res) => {
   try {
     const { token } = req.body;

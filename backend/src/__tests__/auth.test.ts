@@ -712,3 +712,149 @@ describe('GET /api/auth/me includes emailVerified', () => {
     expect(res.body.user.emailVerified).toBe(true);
   });
 });
+
+describe('PATCH /api/auth/me', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('updates name', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Old Name',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.user.update.mockResolvedValue({
+      ...mockUser,
+      name: 'New Name',
+    });
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'New Name' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.name).toBe('New Name');
+  });
+
+  it('updates password with correct current password', async () => {
+    const bcryptjs = await import('bcryptjs');
+    const hashedPassword = bcryptjs.hashSync('oldpassword123', 10);
+
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: hashedPassword,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.user.update.mockResolvedValue(mockUser);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'oldpassword123', newPassword: 'newpassword123' });
+
+    expect(res.status).toBe(200);
+    expect(mockedPrisma.user.update).toHaveBeenCalled();
+  });
+
+  it('returns 401 for wrong current password', async () => {
+    const bcryptjs = await import('bcryptjs');
+    const hashedPassword = bcryptjs.hashSync('oldpassword123', 10);
+
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: hashedPassword,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'wrongpassword', newPassword: 'newpassword123' });
+
+    expect(res.status).toBe(401);
+    expect(res.body.error).toMatch(/current password/i);
+  });
+
+  it('returns 400 for short new password', async () => {
+    const bcryptjs = await import('bcryptjs');
+    const hashedPassword = bcryptjs.hashSync('oldpassword123', 10);
+
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: hashedPassword,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'oldpassword123', newPassword: 'short' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/password/i);
+  });
+
+  it('returns 400 when newPassword provided without currentPassword', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .patch('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ newPassword: 'newpassword123' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/current password/i);
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app).patch('/api/auth/me').send({ name: 'New Name' });
+
+    expect(res.status).toBe(401);
+  });
+});
