@@ -147,6 +147,119 @@ describe('ElementWizard', () => {
     });
   });
 
+  it('shows error message when hardDelete fails in step 1', async () => {
+    const user = userEvent.setup();
+    mockedElementsApi.hardDelete.mockRejectedValue(new Error('Network error'));
+
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={null}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    // Uncheck one element so it will be deleted
+    const checkboxes = screen.getAllByRole('checkbox');
+    await user.click(checkboxes[1]);
+
+    // Click Next — triggers hardDelete which fails
+    await user.click(screen.getByRole('button', { name: /next/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/network error/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows error message when generateImplied fails', async () => {
+    const user = userEvent.setup();
+    mockedScriptsApi.generateImplied.mockRejectedValue(new Error('Server error'));
+
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={mockSceneData}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /per scene/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/server error/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows error message when department update fails in step 2', async () => {
+    const user = userEvent.setup();
+    mockedElementsApi.update.mockRejectedValue(new Error('Update failed'));
+
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={null}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    // Go to step 2
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Step 2: Review Departments')).toBeInTheDocument();
+    });
+
+    // Change a department assignment
+    const selects = screen.getAllByRole('combobox');
+    await user.selectOptions(selects[0], 'dept-costume');
+
+    // Click Next — triggers update which fails
+    await user.click(screen.getByRole('button', { name: /next/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/update failed/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows error message when acceptElements fails in step 3', async () => {
+    const user = userEvent.setup();
+    mockedScriptsApi.acceptElements.mockRejectedValue(new Error('Accept failed'));
+
+    render(
+      <ElementWizard
+        scriptId="script-1"
+        elements={mockElements as any}
+        sceneData={null}
+        departments={mockDepartments as any}
+        onComplete={vi.fn()}
+      />,
+    );
+
+    // Step 1 → Step 2
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Step 2: Review Departments')).toBeInTheDocument();
+    });
+
+    // Step 2 → Step 3
+    await user.click(screen.getByRole('button', { name: /next/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Step 3: Accept')).toBeInTheDocument();
+    });
+
+    // Accept — fails
+    await user.click(screen.getByRole('button', { name: /accept/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/accept failed/i)).toBeInTheDocument();
+    });
+  });
+
   it('Step 2: renders department dropdowns', async () => {
     const user = userEvent.setup();
 

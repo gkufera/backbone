@@ -32,12 +32,14 @@ export function ElementWizard({
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentElements, setCurrentElements] = useState(elements);
+  const [error, setError] = useState<string | null>(null);
 
   const hasCharacters =
     sceneData && sceneData.some((s) => s.characters && s.characters.length > 0);
 
   async function handleStep1Next() {
     setIsProcessing(true);
+    setError(null);
     try {
       // Delete unchecked elements
       const toDelete = elements.filter((e) => !checkedElements.has(e.id));
@@ -46,8 +48,8 @@ export function ElementWizard({
       }
       setCurrentElements(elements.filter((e) => checkedElements.has(e.id)));
       setStep(2);
-    } catch {
-      // Error handling
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsProcessing(false);
     }
@@ -55,10 +57,11 @@ export function ElementWizard({
 
   async function handleGenerateImplied(mode: 'per-scene' | 'per-character') {
     setIsProcessing(true);
+    setError(null);
     try {
       await scriptsApi.generateImplied(scriptId, mode);
-    } catch {
-      // Error handling
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsProcessing(false);
     }
@@ -66,6 +69,7 @@ export function ElementWizard({
 
   async function handleStep2Next() {
     setIsProcessing(true);
+    setError(null);
     try {
       // Update department assignments
       for (const [elemId, deptId] of Object.entries(elementDepts)) {
@@ -75,8 +79,8 @@ export function ElementWizard({
         }
       }
       setStep(3);
-    } catch {
-      // Error handling
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsProcessing(false);
     }
@@ -84,11 +88,12 @@ export function ElementWizard({
 
   async function handleAccept() {
     setIsProcessing(true);
+    setError(null);
     try {
       await scriptsApi.acceptElements(scriptId);
       onComplete();
-    } catch {
-      // Error handling
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsProcessing(false);
     }
@@ -109,6 +114,8 @@ export function ElementWizard({
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="mb-6 text-2xl">Review Detected Elements</h1>
+
+      {error && <div className="mac-alert-error p-3 text-sm mb-4">{error}</div>}
 
       {/* Step indicator */}
       <div className="mb-6 flex gap-4">
