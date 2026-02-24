@@ -27,7 +27,7 @@ const mockedAuthApi = vi.mocked(authApi);
 
 // Test component that uses the auth context
 function TestConsumer() {
-  const { user, isAuthenticated, isLoading, login, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, login, signup, logout } = useAuth();
 
   return (
     <div>
@@ -35,6 +35,7 @@ function TestConsumer() {
       <div data-testid="authenticated">{String(isAuthenticated)}</div>
       <div data-testid="user">{user ? user.name : 'null'}</div>
       <button onClick={() => login('test@example.com', 'password123')}>Login</button>
+      <button onClick={() => signup('Test', 'test@example.com', 'password123')}>Signup</button>
       <button onClick={logout}>Logout</button>
     </div>
   );
@@ -153,6 +154,35 @@ describe('AuthProvider', () => {
     });
 
     expect(screen.getByTestId('user')).toHaveTextContent('null');
+    expect(localStorage.getItem('token')).toBeNull();
+  });
+
+  it('signup does not store token or set user', async () => {
+    const user = userEvent.setup();
+    mockedAuthApi.me.mockRejectedValue(new Error('No token'));
+
+    mockedAuthApi.signup.mockResolvedValue({
+      message: 'Account created. Please check your email to verify your account.',
+    } as any);
+
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('false');
+    });
+
+    await user.click(screen.getByRole('button', { name: /signup/i }));
+
+    // Wait a tick to ensure the signup callback has completed
+    await waitFor(() => {
+      expect(mockedAuthApi.signup).toHaveBeenCalled();
+    });
+
+    expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
     expect(localStorage.getItem('token')).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ interface AuthUser {
   id: string;
   name: string;
   email: string;
+  emailVerified: boolean;
   createdAt: string;
 }
 
@@ -17,6 +18,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -53,14 +55,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signup = useCallback(async (name: string, email: string, password: string) => {
-    const response = await authApi.signup({ name, email, password });
-    localStorage.setItem('token', response.token);
-    setUser(response.user);
+    await authApi.signup({ name, email, password });
+    // No token returned — user must verify email first
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
+  }, []);
+
+  const updateUser = useCallback((updatedUser: AuthUser) => {
+    setUser(updatedUser);
   }, []);
 
   const value: AuthContextValue = {
@@ -70,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     signup,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

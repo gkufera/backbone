@@ -17,12 +17,25 @@ type JsonSerialized<T> = {
   [K in keyof T]: T[K] extends Date ? string : T[K];
 };
 
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
 interface AuthResponse {
   token: string;
   user: {
     id: string;
     name: string;
     email: string;
+    emailVerified: boolean;
     createdAt: string;
   };
 }
@@ -43,7 +56,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ?? `Request failed with status ${res.status}`);
+    throw new ApiError(
+      body.error ?? `Request failed with status ${res.status}`,
+      res.status,
+      body.code,
+    );
   }
 
   return res.json() as Promise<T>;
@@ -369,8 +386,12 @@ export const optionsApi = {
 };
 
 export const authApi = {
-  signup(data: { name: string; email: string; password: string }): Promise<AuthResponse> {
-    return request<AuthResponse>('/api/auth/signup', {
+  signup(data: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -385,6 +406,45 @@ export const authApi = {
 
   me(): Promise<{ user: AuthResponse['user'] }> {
     return request<{ user: AuthResponse['user'] }>('/api/auth/me');
+  },
+
+  forgotPassword(email: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    });
+  },
+
+  verifyEmail(token: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  },
+
+  resendVerification(email: string): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  updateMe(data: {
+    name?: string;
+    currentPassword?: string;
+    newPassword?: string;
+  }): Promise<{ user: AuthResponse['user'] }> {
+    return request<{ user: AuthResponse['user'] }>('/api/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   },
 };
 
