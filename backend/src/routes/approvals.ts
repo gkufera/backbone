@@ -5,10 +5,10 @@ import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
 import { ApprovalDecision, MemberRole, NotificationType } from '@backbone/shared/types';
 import { createNotification, notifyDeciders } from '../services/notification-service.js';
 
-const DECISION_TO_NOTIFICATION_TYPE: Record<string, NotificationType> = {
-  APPROVED: NotificationType.OPTION_APPROVED,
-  REJECTED: NotificationType.OPTION_REJECTED,
-  MAYBE: NotificationType.OPTION_MAYBE,
+const DECISION_TO_NOTIFICATION_TYPE: Record<ApprovalDecision, NotificationType> = {
+  [ApprovalDecision.APPROVED]: NotificationType.OPTION_APPROVED,
+  [ApprovalDecision.REJECTED]: NotificationType.OPTION_REJECTED,
+  [ApprovalDecision.MAYBE]: NotificationType.OPTION_MAYBE,
 };
 
 const approvalsRouter = Router();
