@@ -2,6 +2,9 @@
 UPDATE "production_members" SET "role" = 'ADMIN' WHERE "role" = 'OWNER';
 
 -- Step 2: Recreate MemberRole enum without OWNER, with DECIDER
+-- Drop the default first (PostgreSQL can't cast defaults automatically)
+ALTER TABLE "production_members" ALTER COLUMN "role" DROP DEFAULT;
+
 -- Rename old enum
 ALTER TYPE "MemberRole" RENAME TO "MemberRole_old";
 
@@ -10,7 +13,10 @@ CREATE TYPE "MemberRole" AS ENUM ('ADMIN', 'DECIDER', 'MEMBER');
 
 -- Alter column to use new enum
 ALTER TABLE "production_members"
-  ALTER COLUMN "role" TYPE "MemberRole" USING ("role"::text::"MemberRole"),
+  ALTER COLUMN "role" TYPE "MemberRole" USING ("role"::text::"MemberRole");
+
+-- Re-add the default with the new enum type
+ALTER TABLE "production_members"
   ALTER COLUMN "role" SET DEFAULT 'MEMBER'::"MemberRole";
 
 -- Drop old enum
