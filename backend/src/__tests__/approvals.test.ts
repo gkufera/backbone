@@ -15,6 +15,8 @@ vi.mock('../lib/prisma.js', () => ({
     approval: {
       create: vi.fn(),
       findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
     },
     element: {
       findMany: vi.fn(),
@@ -455,6 +457,219 @@ describe('Tentative approval logic', () => {
       where: { id: 'elem-1' },
       data: { workflowState: 'APPROVED' },
     });
+  });
+});
+
+// ── PATCH /api/approvals/:approvalId/confirm ─────────────────────
+
+describe('PATCH /api/approvals/:approvalId/confirm', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('DECIDER can confirm a tentative approval', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: true,
+      note: null,
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        element: {
+          id: 'elem-1',
+          scriptId: 'script-1',
+          name: 'JOHN',
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+    } as any);
+
+    mockedPrisma.approval.update.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: false,
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .patch('/api/approvals/appr-1/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(mockedPrisma.approval.update).toHaveBeenCalledWith({
+      where: { id: 'appr-1' },
+      data: { tentative: false },
+    });
+  });
+
+  it('confirming APPROVED triggers element lock', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: true,
+      note: null,
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        element: {
+          id: 'elem-1',
+          scriptId: 'script-1',
+          name: 'JOHN',
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+    } as any);
+
+    mockedPrisma.approval.update.mockResolvedValue({
+      id: 'appr-1',
+      decision: 'APPROVED',
+      tentative: false,
+    } as any);
+
+    mockedPrisma.element.update.mockResolvedValue({} as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+
+    const res = await request(app)
+      .patch('/api/approvals/appr-1/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(mockedPrisma.element.update).toHaveBeenCalledWith({
+      where: { id: 'elem-1' },
+      data: { workflowState: 'APPROVED' },
+    });
+  });
+
+  it('ADMIN cannot confirm tentative approval', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: true,
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        element: {
+          id: 'elem-1',
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/approvals/appr-1/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/decider/i);
+  });
+
+  it('MEMBER cannot confirm tentative approval', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: true,
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        element: {
+          id: 'elem-1',
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/approvals/appr-1/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/decider/i);
+  });
+
+  it('returns 404 when approval not found', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .patch('/api/approvals/nonexistent/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 400 when approval is already confirmed', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: false,
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        element: {
+          id: 'elem-1',
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/approvals/appr-1/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/already confirmed/i);
   });
 });
 

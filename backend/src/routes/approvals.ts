@@ -114,6 +114,86 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
   }
 });
 
+// Confirm a tentative approval (DECIDER only)
+approvalsRouter.patch('/api/approvals/:approvalId/confirm', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { approvalId } = req.params;
+
+    // Find approval with option→element→script chain
+    const approval = await prisma.approval.findUnique({
+      where: { id: approvalId },
+      include: {
+        option: {
+          include: {
+            element: {
+              include: { script: { select: { productionId: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    if (!approval) {
+      res.status(404).json({ error: 'Approval not found' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: approval.option.element.script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership || membership.role !== MemberRole.DECIDER) {
+      res.status(403).json({ error: 'Only a DECIDER can confirm tentative approvals' });
+      return;
+    }
+
+    if (!approval.tentative) {
+      res.status(400).json({ error: 'Approval is already confirmed' });
+      return;
+    }
+
+    // Confirm: set tentative to false
+    const updated = await prisma.approval.update({
+      where: { id: approvalId },
+      data: { tentative: false },
+    });
+
+    // If confirmed decision is APPROVED, lock the element
+    if (approval.decision === 'APPROVED') {
+      await prisma.element.update({
+        where: { id: approval.option.elementId },
+        data: { workflowState: 'APPROVED' },
+      });
+    }
+
+    // Notify the original approver that their approval was confirmed
+    if (approval.userId !== authReq.user.userId) {
+      const productionId = approval.option.element.script.productionId;
+      const elementName = approval.option.element.name ?? 'an element';
+      const link = `/productions/${productionId}/scripts/${approval.option.element.scriptId}/elements/${approval.option.elementId}`;
+      await createNotification(
+        approval.userId,
+        productionId,
+        NotificationType.TENTATIVE_CONFIRMED,
+        `Your tentative ${approval.decision.toLowerCase()} on ${elementName} was confirmed`,
+        link,
+      );
+    }
+
+    res.json({ approval: updated });
+  } catch (error) {
+    console.error('Confirm approval error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // List approvals for an option
 approvalsRouter.get('/api/options/:optionId/approvals', requireAuth, async (req, res) => {
   try {
