@@ -49,7 +49,8 @@ async function fetchWithRetry(
   try {
     return await fetch(url, init);
   } catch (err) {
-    if (retries > 0 && err instanceof TypeError) {
+    const method = (init.method ?? 'GET').toUpperCase();
+    if (retries > 0 && err instanceof TypeError && method === 'GET') {
       await new Promise((resolve) => setTimeout(resolve, 500));
       return fetchWithRetry(url, init, retries - 1);
     }

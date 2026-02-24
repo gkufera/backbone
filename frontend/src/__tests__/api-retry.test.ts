@@ -56,6 +56,22 @@ describe('API retry logic', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
+  it('does not retry POST requests on network error', async () => {
+    mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    const { authApi } = await import('../lib/api');
+
+    let caught: unknown;
+    try {
+      await authApi.login({ email: 'a@b.com', password: 'pw' });
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught).toBeInstanceOf(TypeError);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
   it('throws after retry exhausted', async () => {
     mockFetch
       .mockRejectedValueOnce(new TypeError('Failed to fetch'))
