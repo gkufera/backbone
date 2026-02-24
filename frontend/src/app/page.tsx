@@ -21,6 +21,7 @@ export default function Home() {
               width={280}
               height={80}
               priority
+              unoptimized
               style={{ imageRendering: 'pixelated' }}
             />
             <span className="text-sm uppercase tracking-widest">For Film &amp; TV Creatives</span>

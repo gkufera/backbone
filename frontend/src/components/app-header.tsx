@@ -14,6 +14,7 @@ export function AppHeader() {
           width={120}
           height={34}
           priority
+          unoptimized
           style={{ imageRendering: 'pixelated' }}
         />
       </Link>
