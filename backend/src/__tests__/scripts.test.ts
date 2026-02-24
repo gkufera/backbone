@@ -54,14 +54,23 @@ vi.mock('../lib/s3.js', () => ({
   getFileBuffer: vi.fn(),
 }));
 
+// Mock notification service
+vi.mock('../services/notification-service.js', () => ({
+  createNotification: vi.fn().mockResolvedValue({ id: 'notif-1' }),
+  notifyProductionMembers: vi.fn().mockResolvedValue([]),
+  notifyDeciders: vi.fn().mockResolvedValue([]),
+}));
+
 import { prisma } from '../lib/prisma.js';
 import { generateUploadUrl, generateDownloadUrl } from '../lib/s3.js';
 import { getProgress } from '../services/processing-progress.js';
+import { notifyProductionMembers } from '../services/notification-service.js';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGenerateUploadUrl = vi.mocked(generateUploadUrl);
 const mockedGenerateDownloadUrl = vi.mocked(generateDownloadUrl);
 const mockedGetProgress = vi.mocked(getProgress);
+const mockedNotifyProductionMembers = vi.mocked(notifyProductionMembers);
 
 const testUser = {
   userId: 'user-1',
@@ -776,5 +785,50 @@ describe('DELETE /api/elements/:id (hard-delete)', () => {
       .set(authHeader());
 
     expect(res.status).toBe(403);
+  });
+});
+
+describe('POST /api/productions/:id/scripts — notification', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('triggers SCRIPT_UPLOADED notification to all production members', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'Episode 1',
+      fileName: 'ep1.pdf',
+      s3Key: 'scripts/uuid/ep1.pdf',
+      status: 'PROCESSING',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/scripts')
+      .set(authHeader())
+      .send({
+        title: 'Episode 1',
+        fileName: 'ep1.pdf',
+        s3Key: 'scripts/uuid/ep1.pdf',
+      });
+
+    expect(res.status).toBe(201);
+    expect(mockedNotifyProductionMembers).toHaveBeenCalledWith(
+      'prod-1',
+      'user-1',
+      'SCRIPT_UPLOADED',
+      expect.stringContaining('Episode 1'),
+      expect.any(String),
+    );
   });
 });

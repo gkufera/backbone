@@ -6,8 +6,9 @@ import { processScript } from '../services/script-processor.js';
 import { processRevision } from '../services/revision-processor.js';
 import { getProgress } from '../services/processing-progress.js';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
-import { ScriptStatus, ElementStatus, ElementType } from '@backbone/shared/types';
+import { ScriptStatus, ElementStatus, ElementType, NotificationType } from '@backbone/shared/types';
 import type { SceneInfo } from '@backbone/shared/types';
+import { notifyProductionMembers } from '../services/notification-service.js';
 
 const scriptsRouter = Router();
 
@@ -81,6 +82,15 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
     processScript(script.id, s3Key).catch((err) =>
       console.error('Background script processing failed:', err),
     );
+
+    // Fire-and-forget: notify all members about new script
+    notifyProductionMembers(
+      id,
+      authReq.user.userId,
+      NotificationType.SCRIPT_UPLOADED,
+      `New script uploaded: "${title}"`,
+      `/productions/${id}/scripts/${script.id}`,
+    ).catch((err) => console.error('Failed to send script upload notifications:', err));
 
     res.status(201).json({ script });
   } catch (error) {
