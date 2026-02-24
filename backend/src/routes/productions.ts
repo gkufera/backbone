@@ -150,6 +150,57 @@ productionsRouter.get('/api/productions/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Update a production (rename)
+productionsRouter.patch('/api/productions/:id', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { id } = req.params;
+    const { title } = req.body;
+
+    // Check membership and role
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: id,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (
+      !membership ||
+      ![MemberRole.ADMIN, MemberRole.DECIDER].includes(membership.role as MemberRole)
+    ) {
+      res.status(403).json({ error: 'Only ADMIN or DECIDER can update a production' });
+      return;
+    }
+
+    if (!title || !String(title).trim()) {
+      res.status(400).json({ error: 'Title is required' });
+      return;
+    }
+
+    const trimmedTitle = String(title).trim();
+
+    if (trimmedTitle.length > PRODUCTION_TITLE_MAX_LENGTH) {
+      res
+        .status(400)
+        .json({ error: `Title must be ${PRODUCTION_TITLE_MAX_LENGTH} characters or fewer` });
+      return;
+    }
+
+    const updated = await prisma.production.update({
+      where: { id },
+      data: { title: trimmedTitle },
+    });
+
+    res.json({ production: updated });
+  } catch (error) {
+    console.error('Update production error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Add a team member by email
 productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, res) => {
   try {

@@ -89,6 +89,13 @@ export const productionsApi = {
     return request(`/api/productions/${id}`);
   },
 
+  update(id: string, data: { title: string }): Promise<{ production: ProductionResponse }> {
+    return request(`/api/productions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
   addMember(
     productionId: string,
     email: string,

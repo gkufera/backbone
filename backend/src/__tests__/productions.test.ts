@@ -14,6 +14,7 @@ vi.mock('../lib/prisma.js', () => ({
       create: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
     productionMember: {
       findUnique: vi.fn(),
@@ -280,5 +281,118 @@ describe('GET /api/productions/:id', () => {
     const res = await request(app).get('/api/productions/prod-1');
 
     expect(res.status).toBe(401);
+  });
+});
+
+describe('PATCH /api/productions/:id', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns updated production for ADMIN', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const updatedProduction = {
+      id: 'prod-1',
+      title: 'Updated Title',
+      description: null,
+      createdById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.production.update.mockResolvedValue(updatedProduction as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .set(authHeader())
+      .send({ title: 'Updated Title' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.production.title).toBe('Updated Title');
+  });
+
+  it('returns updated production for DECIDER', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+    } as any);
+
+    const updatedProduction = {
+      id: 'prod-1',
+      title: 'New Name',
+      description: null,
+      createdById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.production.update.mockResolvedValue(updatedProduction as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .set(authHeader())
+      .send({ title: 'New Name' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.production.title).toBe('New Name');
+  });
+
+  it('returns 403 for MEMBER', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .set(authHeader())
+      .send({ title: 'Updated Title' });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 400 with empty title', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .set(authHeader())
+      .send({ title: '' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/title/i);
+  });
+
+  it('returns 400 with title exceeding max length', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const longTitle = 'x'.repeat(201);
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .set(authHeader())
+      .send({ title: longTitle });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/200 characters/i);
   });
 });

@@ -547,6 +547,40 @@ describe('Production dashboard', () => {
     expect(await screen.findByText(/no elements pending review/i)).toBeInTheDocument();
   });
 
+  it('production title is editable for ADMIN', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+
+    render(<ProductionDashboard />);
+
+    const title = await screen.findByText('Film One');
+    // Click to enter edit mode
+    await user.click(title);
+
+    // Should show an input with the current title
+    const input = screen.getByDisplayValue('Film One');
+    expect(input).toBeInTheDocument();
+  });
+
+  it('saves title on Enter and calls productionsApi.update', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    mockedProductionsApi.update.mockResolvedValue({
+      production: { ...mockProduction, title: 'New Title' },
+    });
+
+    render(<ProductionDashboard />);
+
+    const title = await screen.findByText('Film One');
+    await user.click(title);
+
+    const input = screen.getByDisplayValue('Film One');
+    await user.clear(input);
+    await user.type(input, 'New Title{Enter}');
+
+    expect(mockedProductionsApi.update).toHaveBeenCalledWith('prod-1', { title: 'New Title' });
+  });
+
   it('each member row has a PermissionsTooltip when canManageRoles', async () => {
     const multiMemberProduction = {
       ...mockProduction,
