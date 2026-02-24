@@ -20,11 +20,26 @@ vi.mock('../lib/auth-context', () => ({
     login: mockLogin,
     signup: vi.fn(),
     logout: vi.fn(),
+    updateUser: vi.fn(),
     user: null,
     isAuthenticated: false,
     isLoading: false,
   }),
 }));
+
+// Mock the API (for ApiError and resend) - use vi.hoisted to avoid variable reference issues
+const { mockResendVerification } = vi.hoisted(() => ({
+  mockResendVerification: vi.fn(),
+}));
+vi.mock('../lib/api', async () => {
+  const actual = await vi.importActual('../lib/api');
+  return {
+    ...actual,
+    authApi: {
+      resendVerification: mockResendVerification,
+    },
+  };
+});
 
 describe('Login page', () => {
   beforeEach(() => {
@@ -85,5 +100,24 @@ describe('Login page', () => {
     await user.click(screen.getByRole('button', { name: /log in/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/invalid email or password/i);
+  });
+
+  it('shows verification message with resend option on 403 EMAIL_NOT_VERIFIED', async () => {
+    const user = userEvent.setup();
+
+    // Import ApiError from the actual module
+    const { ApiError } = await import('../lib/api');
+    mockLogin.mockRejectedValue(
+      new ApiError('Please verify your email', 403, 'EMAIL_NOT_VERIFIED'),
+    );
+
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/password/i), 'securepassword123');
+    await user.click(screen.getByRole('button', { name: /log in/i }));
+
+    expect(await screen.findByText(/verify your email/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /resend/i })).toBeInTheDocument();
   });
 });

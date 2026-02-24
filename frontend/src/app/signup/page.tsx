@@ -21,7 +21,7 @@ export default function SignupPage() {
 
     try {
       await signup(name, email, password);
-      router.push('/productions');
+      router.push(`/verify-email-sent?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {

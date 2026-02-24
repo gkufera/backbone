@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth-context';
+import { ApiError, authApi } from '../../lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,20 +12,39 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setNeedsVerification(false);
+    setResendMessage('');
     setLoading(true);
 
     try {
       await login(email, password);
       router.push('/productions');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
+        setNeedsVerification(true);
+        setError(err.message);
+      } else {
+        setError(err instanceof Error ? err.message : 'Login failed');
+      }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    setResendMessage('');
+    try {
+      await authApi.resendVerification(email);
+      setResendMessage('Verification email sent! Check your inbox.');
+    } catch {
+      setResendMessage('Failed to resend. Please try again.');
     }
   }
 
@@ -41,7 +61,20 @@ export default function LoginPage() {
 
           {error && (
             <div role="alert" className="mac-alert-error p-3 text-sm">
-              {error}
+              <p>{error}</p>
+              {needsVerification && (
+                <div className="mt-2">
+                  <button
+                    onClick={handleResend}
+                    className="text-sm underline font-bold"
+                  >
+                    Resend verification email
+                  </button>
+                  {resendMessage && (
+                    <p className="mt-1 text-sm font-mono">{resendMessage}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

@@ -46,7 +46,7 @@ describe('Signup page', () => {
     expect(screen.getByRole('link', { name: /log in/i })).toBeInTheDocument();
   });
 
-  it('calls auth context signup and redirects to /productions on submit', async () => {
+  it('calls auth context signup and redirects to /verify-email-sent on submit', async () => {
     const user = userEvent.setup();
 
     mockSignup.mockResolvedValue(undefined);
@@ -59,7 +59,7 @@ describe('Signup page', () => {
     await user.click(screen.getByRole('button', { name: /sign up/i }));
 
     expect(mockSignup).toHaveBeenCalledWith('Test User', 'test@example.com', 'securepassword123');
-    expect(mockPush).toHaveBeenCalledWith('/productions');
+    expect(mockPush).toHaveBeenCalledWith('/verify-email-sent?email=test%40example.com');
   });
 
   it('displays an error message when signup fails', async () => {
