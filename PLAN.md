@@ -1,7 +1,24 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 9 complete.
+None — Sprint 9 QA check complete.
+
+## Completed (Sprint 9 QA Check)
+
+| Step | Focus | Commit | New Tests |
+|------|-------|--------|-----------|
+| 0 | Add roadmap completeness rule to CLAUDE.md | `docs: add roadmap completeness rule to CLAUDE.md` | 0 |
+| 1 | Fix health test Prisma mock | `fix: add Prisma mock to health test so all backend tests pass` | 0 (fix) |
+| 2 | Breadcrumb + notification bell in AppHeader | `feat: add breadcrumb and notification bell to AppHeader on production pages` | +3 |
+| 3 | Title edit error handling + tests | `fix: title edit error handling and missing test coverage` | +3 |
+| 4 | Login/signup layout fix | `fix: remove min-h-screen from login/signup to fix layout stacking with global header` | +1 |
+| 5 | Backend PATCH edge case tests | `test: add missing PATCH production endpoint edge case tests` | +2 |
+| 6 | Full test suite verification + PLAN.md | `docs: update PLAN.md after Sprint 9 check` | 0 |
+
+### Test Counts (Post Sprint 9 QA Check)
+- **Frontend**: 319 tests (was 312, +7 new)
+- **Backend**: 299 tests (was 296, +3 new)
+- **Total**: 618 tests (was 608, +10 new)
 
 ## Completed (Sprint 9: Navigation, Layout & Quick Fixes)
 
