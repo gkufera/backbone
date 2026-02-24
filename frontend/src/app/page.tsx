@@ -2,18 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { UserNav } from '../components/user-nav';
 import { useAuth } from '../lib/auth-context';
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <header className="flex justify-end p-4">
-        <UserNav />
-      </header>
-      <main className="flex flex-1 flex-col items-center justify-center gap-4">
+    <div className="flex flex-1 flex-col bg-white">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4">
         <div className="mac-window w-full max-w-md">
           <div className="mac-window-title">
             <span>Slug Max</span>
@@ -51,7 +47,7 @@ export default function Home() {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
