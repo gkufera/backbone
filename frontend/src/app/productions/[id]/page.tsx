@@ -26,16 +26,28 @@ export default function ProductionDashboard() {
   const [newDeptName, setNewDeptName] = useState('');
   const [deptError, setDeptError] = useState('');
   const [feedPendingCount, setFeedPendingCount] = useState<number>(0);
+  const [elementStats, setElementStats] = useState<{
+    pending: number;
+    outstanding: number;
+    approved: number;
+    total: number;
+  } | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [titleError, setTitleError] = useState('');
 
   useEffect(() => {
-    Promise.all([productionsApi.get(id), departmentsApi.list(id), feedApi.list(id)])
-      .then(([prodData, deptData, feedData]) => {
+    Promise.all([
+      productionsApi.get(id),
+      departmentsApi.list(id),
+      feedApi.list(id),
+      productionsApi.getElementStats(id).catch(() => null),
+    ])
+      .then(([prodData, deptData, feedData, statsData]) => {
         setProduction(prodData.production);
         setDepartments(deptData.departments);
         setFeedPendingCount(feedData.elements.length);
+        if (statsData) setElementStats(statsData);
       })
       .catch(() => setError('Failed to load production'))
       .finally(() => setIsLoading(false));
@@ -233,6 +245,44 @@ export default function ProductionDashboard() {
           </Link>
         </div>
       </section>
+
+      {/* Element Status */}
+      {elementStats && elementStats.total > 0 && (
+        <section className="mac-window mb-8">
+          <div className="mac-window-title">
+            <span>Element Status</span>
+          </div>
+          <div className="mac-window-body">
+            <div className="flex gap-4 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="badge badge-outstanding">PENDING</span>
+                <span className="font-mono text-sm">{elementStats.pending}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="badge badge-ready">OUTSTANDING</span>
+                <span className="font-mono text-sm">{elementStats.outstanding}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="badge badge-approved">APPROVED</span>
+                <span className="font-mono text-sm">{elementStats.approved}</span>
+              </div>
+            </div>
+            {elementStats.total > 0 && (
+              <div className="border-2 border-black h-4 w-full">
+                <div
+                  className="bg-black h-full"
+                  style={{
+                    width: `${Math.round((elementStats.approved / elementStats.total) * 100)}%`,
+                  }}
+                />
+              </div>
+            )}
+            <p className="mt-2 font-mono text-xs">
+              {elementStats.approved} of {elementStats.total} elements approved
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Team Members */}
       <section className="mac-window mb-8">

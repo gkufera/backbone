@@ -158,6 +158,12 @@ export const productionsApi = {
       body: JSON.stringify({ departmentId }),
     });
   },
+
+  getElementStats(
+    productionId: string,
+  ): Promise<{ pending: number; outstanding: number; approved: number; total: number }> {
+    return request(`/api/productions/${productionId}/element-stats`);
+  },
 };
 
 export const departmentsApi = {

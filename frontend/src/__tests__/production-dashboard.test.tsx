@@ -23,6 +23,7 @@ vi.mock('../lib/api', () => ({
     updateMemberRole: vi.fn(),
     updateMemberDepartment: vi.fn(),
     update: vi.fn(),
+    getElementStats: vi.fn(),
   },
   departmentsApi: {
     list: vi.fn(),
@@ -103,6 +104,12 @@ const mockDepartments = [
 
 function setupMocks() {
   mockedProductionsApi.get.mockResolvedValue({ production: mockProduction });
+  mockedProductionsApi.getElementStats.mockResolvedValue({
+    pending: 5,
+    outstanding: 3,
+    approved: 2,
+    total: 10,
+  });
   mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
   mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
   mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
@@ -715,6 +722,15 @@ describe('Production dashboard', () => {
 
     await screen.findByText('Departments');
     expect(screen.queryAllByLabelText(/color for/i)).toHaveLength(0);
+  });
+
+  it('renders Element Status section with workflow counts', async () => {
+    setupMocks();
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText('Element Status')).toBeInTheDocument();
+    expect(screen.getByText('2 of 10 elements approved')).toBeInTheDocument();
   });
 
   it('MEMBER cannot edit title (no cursor-pointer, click does not enter edit mode)', async () => {
