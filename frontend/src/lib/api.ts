@@ -420,6 +420,47 @@ export const feedApi = {
   },
 };
 
+export type NoteResponse = {
+  id: string;
+  content: string;
+  userId: string;
+  elementId: string | null;
+  optionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user?: { id: string; name: string };
+};
+
+export const notesApi = {
+  listForElement(elementId: string): Promise<{ notes: NoteResponse[] }> {
+    return request(`/api/elements/${elementId}/notes`);
+  },
+
+  createForElement(
+    elementId: string,
+    content: string,
+  ): Promise<{ note: NoteResponse }> {
+    return request(`/api/elements/${elementId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  listForOption(optionId: string): Promise<{ notes: NoteResponse[] }> {
+    return request(`/api/options/${optionId}/notes`);
+  },
+
+  createForOption(
+    optionId: string,
+    content: string,
+  ): Promise<{ note: NoteResponse }> {
+    return request(`/api/options/${optionId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  },
+};
+
 export type RevisionMatchResponse = JsonSerialized<RevisionMatch> & {
   oldElement?: ElementResponse & {
     _count?: { options: number };
