@@ -42,6 +42,10 @@ export function ElementDetailPanel({
   const [submittingApproval, setSubmittingApproval] = useState(false);
 
   useEffect(() => {
+    setLightboxOption(null);
+    setShowUploadForm(false);
+    setError(null);
+    setIsLoading(true);
     loadData();
   }, [elementId]);
 

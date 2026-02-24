@@ -186,4 +186,135 @@ describe('ElementDetailPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /elements/i }));
     expect(onBack).toHaveBeenCalled();
   });
+
+  it('resets lightbox when elementId changes', async () => {
+    const { rerender } = render(
+      <ElementDetailPanel
+        elementId="elem-1"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    // Wait for load
+    await waitFor(() => {
+      expect(screen.getByText('HERO CAPE')).toBeInTheDocument();
+    });
+
+    // Open lightbox by clicking on a thumbnail
+    const buttons = screen.getAllByRole('button');
+    const thumbnailBtn = buttons.find(
+      (b) => b.textContent === 'IMAGE' || b.closest('[class*="w-24"]'),
+    );
+    if (thumbnailBtn) {
+      fireEvent.click(thumbnailBtn);
+    }
+
+    // Set up mocks for second element
+    const mockElement2 = { ...mockElement, id: 'elem-2', name: 'VILLAIN MASK' };
+    (elementsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({
+      elements: [mockElement2],
+    });
+    (optionsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({
+      options: [],
+    });
+
+    // Change elementId
+    rerender(
+      <ElementDetailPanel
+        elementId="elem-2"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    // Lightbox should be closed
+    await waitFor(() => {
+      expect(screen.queryByTestId('lightbox-backdrop')).not.toBeInTheDocument();
+    });
+  });
+
+  it('resets upload form when elementId changes', async () => {
+    const { rerender } = render(
+      <ElementDetailPanel
+        elementId="elem-1"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('HERO CAPE')).toBeInTheDocument();
+    });
+
+    // Open upload form
+    fireEvent.click(screen.getByRole('button', { name: /add option/i }));
+    expect(screen.getByTestId('option-upload-form')).toBeInTheDocument();
+
+    // Set up mocks for second element
+    const mockElement2 = { ...mockElement, id: 'elem-2', name: 'VILLAIN MASK' };
+    (elementsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({
+      elements: [mockElement2],
+    });
+    (optionsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({
+      options: [],
+    });
+
+    rerender(
+      <ElementDetailPanel
+        elementId="elem-2"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('option-upload-form')).not.toBeInTheDocument();
+    });
+  });
+
+  it('clears error when elementId changes', async () => {
+    // Force an error
+    (elementsApi.list as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error('Load failed'),
+    );
+
+    const { rerender } = render(
+      <ElementDetailPanel
+        elementId="elem-1"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load element')).toBeInTheDocument();
+    });
+
+    // Fix the mock and change elementId
+    (elementsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({
+      elements: [{ ...mockElement, id: 'elem-2', name: 'VILLAIN MASK' }],
+    });
+    (optionsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({
+      options: [],
+    });
+
+    rerender(
+      <ElementDetailPanel
+        elementId="elem-2"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText('Failed to load element')).not.toBeInTheDocument();
+    });
+  });
 });
