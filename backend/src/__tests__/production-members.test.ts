@@ -72,6 +72,7 @@ describe('POST /api/productions/:id/members', () => {
       name: 'New User',
       email: 'new@example.com',
       passwordHash: 'hash',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -158,6 +159,7 @@ describe('POST /api/productions/:id/members', () => {
       name: 'Existing Member',
       email: 'existing@example.com',
       passwordHash: 'hash',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -198,6 +200,7 @@ describe('POST /api/productions/:id/members', () => {
       name: 'New User',
       email: 'new@example.com',
       passwordHash: 'hash',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);
@@ -263,6 +266,7 @@ describe('POST /api/productions/:id/members', () => {
       name: 'New User',
       email: 'new@example.com',
       passwordHash: 'hash',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);

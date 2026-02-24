@@ -28,6 +28,7 @@ describe('POST /api/auth/signup', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -97,6 +98,7 @@ describe('POST /api/auth/signup', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -124,6 +126,7 @@ describe('POST /api/auth/signup', () => {
       name: 'Existing User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -156,6 +159,7 @@ describe('POST /api/auth/login', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: hashedPassword,
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -183,6 +187,7 @@ describe('POST /api/auth/login', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: hashedPassword,
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -241,6 +246,7 @@ describe('GET /api/auth/me', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
