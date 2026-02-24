@@ -767,7 +767,8 @@ describe('GET /api/productions/:productionId/feed', () => {
         id: 'elem-1',
         name: 'JOHN',
         type: 'CHARACTER',
-        pageNumbers: [1, 5],
+        highlightPage: 1,
+        highlightText: 'JOHN',
         status: 'ACTIVE',
         options: [
           {
@@ -827,7 +828,8 @@ describe('GET /api/productions/:productionId/feed', () => {
         id: 'elem-1',
         name: 'BEACH',
         type: 'LOCATION',
-        pageNumbers: [3],
+        highlightPage: 3,
+        highlightText: 'BEACH',
         status: 'ACTIVE',
         options: [
           {
