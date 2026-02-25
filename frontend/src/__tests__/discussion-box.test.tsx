@@ -88,6 +88,52 @@ describe('DiscussionBox', () => {
     expect(await screen.findByText(/no notes yet/i)).toBeInTheDocument();
   });
 
+  it('renders notes with department name when available', async () => {
+    mockedNotesApi.listForElement.mockResolvedValue({
+      notes: [
+        {
+          id: 'note-1',
+          content: 'Department note',
+          userId: 'user-1',
+          elementId: 'elem-1',
+          optionId: null,
+          createdAt: '2026-02-24T10:00:00Z',
+          updatedAt: '2026-02-24T10:00:00Z',
+          user: { id: 'user-1', name: 'Jane Director' },
+          department: 'Art Department',
+        },
+      ],
+    });
+
+    render(<DiscussionBox elementId="elem-1" />);
+
+    expect(await screen.findByText(/Jane Director/)).toBeInTheDocument();
+    expect(screen.getByText(/Art Department/)).toBeInTheDocument();
+  });
+
+  it('renders notes without department gracefully', async () => {
+    mockedNotesApi.listForElement.mockResolvedValue({
+      notes: [
+        {
+          id: 'note-1',
+          content: 'No dept note',
+          userId: 'user-1',
+          elementId: 'elem-1',
+          optionId: null,
+          createdAt: '2026-02-24T10:00:00Z',
+          updatedAt: '2026-02-24T10:00:00Z',
+          user: { id: 'user-1', name: 'Jane Director' },
+          department: null,
+        },
+      ],
+    });
+
+    render(<DiscussionBox elementId="elem-1" />);
+
+    expect(await screen.findByText('Jane Director')).toBeInTheDocument();
+    expect(screen.getByText('No dept note')).toBeInTheDocument();
+  });
+
   it('disables submit button when content is empty', async () => {
     mockedNotesApi.listForElement.mockResolvedValue({ notes: [] });
 

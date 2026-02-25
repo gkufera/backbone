@@ -58,7 +58,12 @@ export function OptionNotes({ optionId }: OptionNotesProps) {
           {notes.map((note) => (
             <li key={note.id} className="py-2">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="text-xs font-bold">{note.user?.name ?? 'Unknown'}</span>
+                <span className="text-xs font-bold">
+                  {note.user?.name ?? 'Unknown'}
+                  {note.department && (
+                    <span className="font-mono font-normal"> ({note.department})</span>
+                  )}
+                </span>
                 <span className="text-xs font-mono">
                   {new Date(note.createdAt).toLocaleDateString()}
                 </span>

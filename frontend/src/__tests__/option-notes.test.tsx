@@ -99,6 +99,31 @@ describe('OptionNotes', () => {
     });
   });
 
+  it('shows department name on notes when available', async () => {
+    (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
+      notes: [
+        {
+          id: 'note-1',
+          content: 'Department note',
+          userId: 'user-1',
+          elementId: null,
+          optionId: 'opt-1',
+          createdAt: '2026-02-24T10:00:00Z',
+          updatedAt: '2026-02-24T10:00:00Z',
+          user: { id: 'user-1', name: 'Jane Director' },
+          department: 'Camera',
+        },
+      ],
+    });
+
+    render(<OptionNotes optionId="opt-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Jane Director/)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Camera/)).toBeInTheDocument();
+  });
+
   it('disables submit when content is empty', async () => {
     (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
       notes: [],
