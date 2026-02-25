@@ -1,7 +1,30 @@
 # Current Plan
 
 ## Active Task
-None — Sprint 8.5 complete.
+None — Sprint 8.5 check complete.
+
+## Sprint 8.5 Check Results
+
+| Step | Focus | Status | Commit | New Tests |
+|------|-------|--------|--------|-----------|
+| 1 | Remove compat code + mediaType validation | ✅ | `fix: remove backwards compat code and add mediaType validation in options` | +2 |
+| 2 | Wire composer identity props | ✅ | `fix: wire composer identity props to discussion and option notes` | +1 |
+| 3 | Null department edge case test | ✅ | `test: add edge case test for null department in notes enrichment` | +1 |
+| 4 | Docs + verification | ✅ | `docs: update PLAN.md after Sprint 8.5 check` | 0 |
+
+### Issues Fixed
+| # | Severity | Issue | Fix |
+|---|----------|-------|-----|
+| 1 | CRITICAL | Composer identity props never wired to DiscussionBox/OptionNotes | ElementDetailPanel now fetches user + membership and passes props |
+| 2 | HIGH | Backwards compat code accepting legacy s3Key/fileName params | Removed legacy destructuring and fallback code path |
+| 3 | HIGH | Missing mediaType enum validation in POST /api/options/:id/assets | Added Object.values(MediaType).includes() check |
+| 4 | MEDIUM | Unsafe `as MediaType` casts in assets array mapping | Removed casts, using validated values directly |
+| 5 | LOW | No test for null department in notes enrichment | Added edge case test |
+
+### Test Counts (Post Sprint 8.5 Check)
+- **Frontend**: 421 tests (was 420, +1 new)
+- **Backend**: 370 tests (was 367, +3 new)
+- **Total**: 791 tests (was 787, +4 new)
 
 ## Sprint 8.5 Results
 
@@ -18,11 +41,6 @@ None — Sprint 8.5 complete.
 | 9 | Frontend: display components multi-asset | ✅ | `feat: update option display components for multi-asset model` | +4 |
 | 10 | Frontend: slideshow arrow navigation | ✅ | `feat: add slideshow arrow navigation tests in option lightbox` | +6 |
 | 11 | Roadmap update + docs | ✅ | `docs: update test counts and roadmap after Sprint 8.5` | 0 |
-
-### Test Counts (Post Sprint 8.5)
-- **Frontend**: 420 tests (was 400, +20 new)
-- **Backend**: 367 tests (was 357, +10 new)
-- **Total**: 787 tests (was 757, +30 new)
 
 ## Completed (Edge Case Audit)
 
