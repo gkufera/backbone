@@ -189,99 +189,28 @@ The goal: no deployment failure should ever happen twice for the same reason.
 
 ## Remote Server (Claude Code Container)
 
-Claude Code runs on a remote Hetzner server (`claude-server` SSH alias) inside a Docker container with a firewall-restricted network. This is the environment where autonomous Claude sessions work on the codebase.
+This project uses [claude-project-template](https://github.com/gkufera/claude-project-template) for Claude Code infrastructure (Docker container, firewall, notifications, server management). See that repo's README for full documentation.
 
-### Server Layout
-
-```
-Server host (Ubuntu, user: claude)
-├── ~/cm                          # Container manager script (see below)
-├── ~/workspace/backbone/         # Git repo (bind-mounted into container as /workspace)
-├── ~/.claude/                    # Claude config (bind-mounted as /home/node/.claude)
-│   ├── notify.sh                 # ntfy.sh notification script (host copy)
-│   └── settings.json             # Overwritten by container on start
-└── Docker container: claude-backbone
-    ├── /workspace                # ← bind mount of ~/workspace/backbone
-    ├── /home/node/.claude        # ← bind mount of ~/.claude
-    ├── /usr/local/bin/notify.sh  # ntfy.sh notification script (baked into image)
-    └── tmux session "claude"     # Claude Code runs here with --dangerously-skip-permissions
-```
-
-### Container Manager: `~/cm`
-
-Single command to manage Claude containers. SSH in and run:
+### Quick Reference
 
 ```bash
-~/cm a backbone     # Smart attach: starts container if needed, restarts Claude if crashed, then attaches
-~/cm s backbone     # Start a new container (won't duplicate if already running)
+~/cm a backbone     # Smart attach: start → restart → attach
 ~/cm x backbone     # Stop and remove container
+~/cm r backbone     # Rebuild image after .devcontainer/ changes
 ~/cm st             # Show status of all projects
-~/cm l backbone     # Show container logs (last 50 lines)
-~/cm r backbone     # Rebuild Docker image from .devcontainer/
 ```
 
-**`~/cm a backbone` is the one command you need.** It handles all three cases:
-1. Container not running → starts it → attaches
-2. Container running but Claude/tmux crashed → restarts Claude → attaches
-3. Everything running → just attaches
-
-Multiple clients (phone, laptop) can SSH in and `~/cm a backbone` simultaneously — tmux handles shared sessions.
-
-### Container Internals
-
-- **Image**: `claude-backbone` (built from `.devcontainer/Dockerfile`)
-- **Base**: Node 20 with Claude Code, tmux, zsh, gh, firewall tools
-- **Firewall**: `init-firewall.sh` restricts outbound to: GitHub, npm, Anthropic API, ntfy.sh, Railway, Cloudflare, AWS S3. All other traffic is blocked.
-- **Notifications**: `/usr/local/bin/notify.sh` sends push notifications via [ntfy.sh](https://ntfy.sh) for idle/completion events
-- **Settings**: `.devcontainer/claude-settings.json` is copied to `~/.claude/settings.json` on container start. This is the source of truth for server-side Claude hooks.
-- **Model**: `ANTHROPIC_MODEL=claude-opus-4-6` (set via container env var)
-
-### Key Paths (Container vs Host)
+### Key Paths
 
 | Inside container | On host | Purpose |
 |---|---|---|
 | `/workspace` | `~/workspace/backbone` | Git repo |
-| `/home/node/.claude` | `~/.claude` | Claude config + notify.sh |
-| `/usr/local/bin/notify.sh` | (baked into image from `.devcontainer/notify.sh`) | Notification script |
-| `/workspace/.devcontainer/claude-settings.json` | `~/workspace/backbone/.devcontainer/claude-settings.json` | Claude hooks config |
+| `/home/node/.claude` | `~/claude-configs/backbone` | Per-project Claude config |
+| `/usr/local/bin/notify.sh` | (baked into image) | ntfy.sh notifications ("Slug Max") |
 
-### Rebuilding After Changes
+### Notifications
 
-If you modify `.devcontainer/Dockerfile`, `notify.sh`, or `init-firewall.sh`:
-
-```bash
-~/cm x backbone     # Stop running container
-~/cm r backbone     # Rebuild image
-~/cm a backbone     # Start fresh and attach
-```
-
-## Notifications (ntfy.sh)
-
-Claude Code hooks send push notifications via [ntfy.sh](https://ntfy.sh) so the user knows when Claude needs attention or finishes a task. The same `notify.sh` script is used in both environments but lives at different paths.
-
-### How It Works
-
-The script does a simple `curl` POST to `ntfy.sh/<topic>` with a title, message, priority, and icon tag. The user subscribes to the topic on their phone/laptop via the ntfy app.
-
-### Hook Configuration (Two Layers)
-
-Claude Code merges hooks from **user-level** (`~/.claude/settings.json`) and **project-level** (`.claude/settings.json`). Both must use `~/.claude/notify.sh` as the path — this works on macOS locally AND could work on the server host, though the server container uses its own settings.
-
-| Hook | Defined in | Purpose |
-|---|---|---|
-| **Notification** | User-level `~/.claude/settings.json` | Fires when Claude needs input (permission prompt, idle) |
-| **Stop** | Project-level `.claude/settings.json` | Fires when Claude finishes a task |
-| **UserPromptSubmit** | User-level `~/.claude/settings.json` | Injects `.claude/rules.txt` into every prompt |
-| **PreCompact** | User-level `~/.claude/settings.json` | Re-reads rules + PLAN.md before context compaction |
-
-### Paths Per Environment
-
-| Environment | notify.sh path | Settings source |
-|---|---|---|
-| **Local Mac** | `~/.claude/notify.sh` | User `~/.claude/settings.json` + project `.claude/settings.json` |
-| **Server container** | `/usr/local/bin/notify.sh` (baked into Docker image) | `.devcontainer/claude-settings.json` (copied on start) |
-
-**Important**: The project-level `.claude/settings.json` must use `~/.claude/notify.sh` (not `/usr/local/bin/notify.sh`) because it runs locally. The container has its own settings that reference the container path.
+Push notifications via ntfy.sh say **"Slug Max"** in the title. The project `.claude/settings.json` fires on Stop (task complete), the container `claude-settings.json` fires on Notification (needs input) and Stop.
 
 ## Linting & Code Quality
 

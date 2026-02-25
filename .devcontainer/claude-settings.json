@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/local/bin/notify.sh 'Claude Code' 'Waiting for input' 'high' 'bell'"
+            "command": "/usr/local/bin/notify.sh 'Slug Max' 'Waiting for input' 'high' 'bell'"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/local/bin/notify.sh 'Claude Code' 'Task complete' 'default' 'white_check_mark'"
+            "command": "/usr/local/bin/notify.sh 'Slug Max' 'Task complete' 'default' 'white_check_mark'"
           }
         ]
       }
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat /workspaces/backbone/.claude/rules.txt 2>/dev/null || cat /workspace/.claude/rules.txt 2>/dev/null || true"
+            "command": "cat /workspace/.claude/rules.txt 2>/dev/null || true"
           }
         ]
       }
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat /workspaces/backbone/.claude/rules.txt 2>/dev/null || cat /workspace/.claude/rules.txt 2>/dev/null || true"
+            "command": "cat /workspace/.claude/rules.txt 2>/dev/null || true"
           }
         ]
       }
