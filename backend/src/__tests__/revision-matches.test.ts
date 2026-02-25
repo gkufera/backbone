@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../app';
 import { signToken } from '../lib/jwt';
+import { RevisionMatchDecision } from '@backbone/shared/types';
 
 // Mock Prisma client
 vi.mock('../lib/prisma', () => ({
@@ -237,7 +238,7 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
       .post('/api/scripts/script-2/revision-matches/resolve')
       .set(authHeader())
       .send({
-        decisions: [{ matchId: 'match-1', decision: 'map' }],
+        decisions: [{ matchId: 'match-1', decision: RevisionMatchDecision.MAP }],
       });
 
     expect(res.status).toBe(403);
@@ -301,10 +302,10 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
       .set(authHeader())
       .send({
         decisions: [
-          { matchId: 'match-1', decision: 'map' },
-          { matchId: 'match-2', decision: 'create_new' },
-          { matchId: 'match-3', decision: 'keep' },
-          { matchId: 'match-4', decision: 'archive' },
+          { matchId: 'match-1', decision: RevisionMatchDecision.MAP },
+          { matchId: 'match-2', decision: RevisionMatchDecision.CREATE_NEW },
+          { matchId: 'match-3', decision: RevisionMatchDecision.KEEP },
+          { matchId: 'match-4', decision: RevisionMatchDecision.ARCHIVE },
         ],
       });
 
@@ -359,7 +360,7 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
       .post('/api/scripts/script-2/revision-matches/resolve')
       .set(authHeader())
       .send({
-        decisions: [{ matchId: 'match-1', decision: 'map' }],
+        decisions: [{ matchId: 'match-1', decision: RevisionMatchDecision.MAP }],
       });
 
     expect(res.status).toBe(200);
@@ -399,8 +400,8 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
       .set(authHeader())
       .send({
         decisions: [
-          { matchId: 'match-1', decision: 'map' },
-          { matchId: 'nonexistent-id', decision: 'archive' },
+          { matchId: 'match-1', decision: RevisionMatchDecision.MAP },
+          { matchId: 'nonexistent-id', decision: RevisionMatchDecision.ARCHIVE },
         ],
       });
 

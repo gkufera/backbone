@@ -531,7 +531,7 @@ describe('Notes department enrichment soft-delete filtering (Sprint 21)', () => 
 describe('Prisma schema has deletedAt fields (Sprint 17)', () => {
   it('schema.prisma includes deletedAt on Element', async () => {
     const { readFileSync } = await import('fs');
-    const schema = readFileSync('/workspace/prisma/schema.prisma', 'utf-8');
+    const schema = readFileSync(require('path').resolve(__dirname, '../../../prisma/schema.prisma'), 'utf-8');
 
     const elementModel = schema.match(/model Element \{[\s\S]*?\}/)?.[0] ?? '';
     expect(elementModel).toContain('deletedAt');
@@ -540,7 +540,7 @@ describe('Prisma schema has deletedAt fields (Sprint 17)', () => {
 
   it('schema.prisma includes deletedAt on ProductionMember', async () => {
     const { readFileSync } = await import('fs');
-    const schema = readFileSync('/workspace/prisma/schema.prisma', 'utf-8');
+    const schema = readFileSync(require('path').resolve(__dirname, '../../../prisma/schema.prisma'), 'utf-8');
 
     const memberModel = schema.match(/model ProductionMember \{[\s\S]*?\}/)?.[0] ?? '';
     expect(memberModel).toContain('deletedAt');
@@ -549,7 +549,7 @@ describe('Prisma schema has deletedAt fields (Sprint 17)', () => {
 
   it('schema.prisma includes deletedAt on Department', async () => {
     const { readFileSync } = await import('fs');
-    const schema = readFileSync('/workspace/prisma/schema.prisma', 'utf-8');
+    const schema = readFileSync(require('path').resolve(__dirname, '../../../prisma/schema.prisma'), 'utf-8');
 
     const deptModel = schema.match(/model Department \{[\s\S]*?\}/)?.[0] ?? '';
     expect(deptModel).toContain('deletedAt');
