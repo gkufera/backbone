@@ -143,7 +143,7 @@ departmentsRouter.delete(
 
       // Check if department has members
       const memberCount = await prisma.productionMember.count({
-        where: { departmentId },
+        where: { departmentId, deletedAt: null },
       });
       if (memberCount > 0) {
         res.status(409).json({ error: 'Cannot delete department with members' });

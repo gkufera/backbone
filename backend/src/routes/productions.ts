@@ -130,6 +130,7 @@ productionsRouter.get('/api/productions/:id', requireAuth, async (req, res) => {
       where: { id },
       include: {
         members: {
+          where: { deletedAt: null },
           include: {
             user: {
               select: { id: true, name: true, email: true },
@@ -143,6 +144,7 @@ productionsRouter.get('/api/productions/:id', requireAuth, async (req, res) => {
           orderBy: { createdAt: 'desc' },
         },
         departments: {
+          where: { deletedAt: null },
           orderBy: { name: 'asc' },
         },
       },
@@ -460,6 +462,7 @@ productionsRouter.patch(
           where: {
             productionId: id,
             role: { in: [MemberRole.ADMIN, MemberRole.DECIDER] },
+            deletedAt: null,
           },
         });
         if (privilegedCount <= 1) {
@@ -580,6 +583,7 @@ productionsRouter.get('/api/productions/:id/element-stats', requireAuth, async (
       where: {
         scriptId: { in: scriptIds },
         status: ElementStatus.ACTIVE,
+        deletedAt: null,
       },
       _count: { _all: true },
     });

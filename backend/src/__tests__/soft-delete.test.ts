@@ -13,14 +13,16 @@ vi.mock('../lib/prisma', () => ({
       findMany: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
-    script: { findUnique: vi.fn() },
+    script: { findUnique: vi.fn(), findMany: vi.fn() },
     element: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
       count: vi.fn(),
+      groupBy: vi.fn(),
     },
     department: {
       findUnique: vi.fn(),
@@ -205,6 +207,186 @@ describe('Department soft-delete (Sprint 17)', () => {
       }),
     );
     expect(mockedPrisma.department.delete).not.toHaveBeenCalled();
+  });
+});
+
+describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('GET /api/productions/:id excludes soft-deleted members', async () => {
+    // User is a member
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: null,
+    } as any);
+
+    // Production with members include
+    mockedPrisma.production.findUnique.mockResolvedValue({
+      id: 'prod-1',
+      title: 'Test Production',
+      members: [
+        { id: 'member-1', userId: 'user-1', role: 'ADMIN', deletedAt: null },
+      ],
+      scripts: [],
+      departments: [],
+    } as any);
+
+    await request(app)
+      .get('/api/productions/prod-1')
+      .set(authHeader());
+
+    // The production.findUnique call should include a where filter for members
+    const findUniqueCall = mockedPrisma.production.findUnique.mock.calls.find(
+      (call) => call[0]?.include?.members,
+    );
+    expect(findUniqueCall).toBeDefined();
+    const membersInclude = findUniqueCall![0].include.members;
+    expect(membersInclude.where).toEqual(
+      expect.objectContaining({ deletedAt: null }),
+    );
+  });
+
+  it('GET /api/productions/:id excludes soft-deleted departments', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: null,
+    } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({
+      id: 'prod-1',
+      title: 'Test Production',
+      members: [],
+      scripts: [],
+      departments: [],
+    } as any);
+
+    await request(app)
+      .get('/api/productions/prod-1')
+      .set(authHeader());
+
+    const findUniqueCall = mockedPrisma.production.findUnique.mock.calls.find(
+      (call) => call[0]?.include?.departments,
+    );
+    expect(findUniqueCall).toBeDefined();
+    const departmentsInclude = findUniqueCall![0].include.departments;
+    expect(departmentsInclude.where).toEqual(
+      expect.objectContaining({ deletedAt: null }),
+    );
+  });
+
+  it('DELETE department check excludes soft-deleted members from count', async () => {
+    // Requester is ADMIN
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: null,
+    } as any);
+
+    // Department exists
+    mockedPrisma.department.findUnique.mockResolvedValue({
+      id: 'dept-1',
+      productionId: 'prod-1',
+      name: 'Art',
+      deletedAt: null,
+    } as any);
+
+    // No active members (soft-deleted ones should be excluded)
+    mockedPrisma.productionMember.count.mockResolvedValue(0);
+
+    mockedPrisma.department.update.mockResolvedValue({
+      id: 'dept-1',
+      deletedAt: new Date(),
+    } as any);
+
+    await request(app)
+      .delete('/api/productions/prod-1/departments/dept-1')
+      .set(authHeader());
+
+    // The count call should include deletedAt: null
+    expect(mockedPrisma.productionMember.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ deletedAt: null }),
+      }),
+    );
+  });
+
+  it('PATCH member role privileged count excludes soft-deleted members', async () => {
+    // Requester is ADMIN
+    mockedPrisma.productionMember.findUnique
+      .mockResolvedValueOnce({
+        id: 'member-1',
+        productionId: 'prod-1',
+        userId: 'user-1',
+        role: 'ADMIN',
+        deletedAt: null,
+      } as any)
+      // Target member
+      .mockResolvedValueOnce({
+        id: 'member-1',
+        productionId: 'prod-1',
+        userId: 'user-1',
+        role: 'ADMIN',
+        deletedAt: null,
+      } as any);
+
+    // Privileged count — more than 1 so the demotion is allowed
+    mockedPrisma.productionMember.count.mockResolvedValue(2);
+
+    mockedPrisma.productionMember.update.mockResolvedValue({
+      id: 'member-1',
+      role: 'DECIDER',
+    } as any);
+
+    await request(app)
+      .patch('/api/productions/prod-1/members/member-1/role')
+      .set(authHeader())
+      .send({ role: 'DECIDER' });
+
+    // The count call for privileged members should include deletedAt: null
+    expect(mockedPrisma.productionMember.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ deletedAt: null }),
+      }),
+    );
+  });
+
+  it('GET /api/productions/:id/element-stats excludes soft-deleted elements', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: null,
+    } as any);
+
+    mockedPrisma.script.findMany.mockResolvedValue([
+      { id: 'script-1' },
+    ] as any);
+
+    mockedPrisma.element.groupBy.mockResolvedValue([
+      { workflowState: 'PENDING', _count: { _all: 3 } },
+    ] as any);
+
+    await request(app)
+      .get('/api/productions/prod-1/element-stats')
+      .set(authHeader());
+
+    // The groupBy call should include deletedAt: null
+    expect(mockedPrisma.element.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ deletedAt: null }),
+      }),
+    );
   });
 });
 
