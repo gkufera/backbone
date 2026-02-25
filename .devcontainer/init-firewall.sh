@@ -61,7 +61,7 @@ while read -r cidr; do
     fi
     echo "Adding GitHub range $cidr"
     ipset add allowed-domains "$cidr"
-done < <(echo "$gh_ranges" | jq -r '(.web + .api + .git)[]' | aggregate -q)
+done < <(echo "$gh_ranges" | jq -r '(.web + .api + .git + .actions)[]' | aggregate -q)
 
 # Resolve and add other allowed domains
 for domain in \
@@ -80,14 +80,20 @@ for domain in \
     "s3.amazonaws.com" \
     "s3.us-east-1.amazonaws.com" \
     "sts.amazonaws.com" \
-    "iam.amazonaws.com"; do
+    "iam.amazonaws.com" \
+    "email.us-east-1.amazonaws.com" \
+    "email-smtp.us-east-1.amazonaws.com" \
+    "ses.us-east-1.amazonaws.com" \
+    "cloudfront.amazonaws.com" \
+    "pypi.org" \
+    "files.pythonhosted.org"; do
     echo "Resolving $domain..."
     ips=$(dig +noall +answer A "$domain" | awk '$4 == "A" {print $5}')
     if [ -z "$ips" ]; then
-        echo "ERROR: Failed to resolve $domain"
-        exit 1
+        echo "WARNING: Failed to resolve $domain — skipping"
+        continue
     fi
-    
+
     while read -r ip; do
         if [[ ! "$ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             echo "ERROR: Invalid IP from DNS for $domain: $ip"
@@ -98,7 +104,7 @@ for domain in \
     done < <(echo "$ips")
 done
 
-# Add AWS S3 CIDR ranges (S3 uses many IPs across these ranges)
+# Add AWS S3/SES/CloudFront CIDR ranges
 for cidr in \
     "52.216.0.0/15" \
     "52.218.0.0/17" \
@@ -106,7 +112,9 @@ for cidr in \
     "3.5.0.0/19" \
     "16.15.0.0/16" \
     "44.216.0.0/15" \
-    "209.54.0.0/16"; do
+    "209.54.0.0/16" \
+    "54.240.0.0/18" \
+    "69.169.0.0/20"; do
     echo "Adding AWS CIDR $cidr"
     ipset add allowed-domains "$cidr"
 done

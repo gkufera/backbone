@@ -171,3 +171,27 @@ gh pr checks <pr-number>             # Check CI status on a PR
 Secrets needed for CI workflows (Settings > Secrets and variables > Actions).
 
 Currently **no secrets are required** — both Tier 1 and E2E workflows use only public actions and local test databases. If private package registries or deployment steps are added later, secrets would go here.
+
+---
+
+## Server Container Setup (Hetzner — `claude-server`)
+
+One-time tasks to get the backbone container fully operational on the remote server.
+
+### On the server host (SSH in first)
+
+- [ ] **SSH keys**: `ls ~/.ssh/id_ed25519` — if missing, run `ssh-keygen -t ed25519` and add pubkey to GitHub
+- [ ] **Git config**: `git config --global user.name` and `git config --global user.email` — set if empty
+- [ ] **GitHub CLI**: `gh auth status` — if not logged in, run `gh auth login`
+- [ ] **AWS credentials**: `aws sts get-caller-identity` — if fails, run `aws configure`
+- [ ] **Railway CLI**: `railway whoami` — if fails, run `railway login`
+- [ ] **ntfy topic**: Verify `.devcontainer/notify.sh` has the correct `NTFY_TOPIC` (not a placeholder)
+
+### After container starts
+
+- [ ] `~/cm a backbone` starts without errors
+- [ ] `validate-config.sh` shows no warnings
+- [ ] Phone receives ntfy notification saying "Slug Max"
+- [ ] Inside container: `gh auth status` works
+- [ ] Inside container: `aws sts get-caller-identity` works
+- [ ] Inside container: `git push` works (SSH key mounted)
