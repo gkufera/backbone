@@ -243,29 +243,30 @@ describe('POST /api/elements/:elementId/options', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 201 when creating IMAGE option with s3Key', async () => {
+  it('returns 201 when creating IMAGE option with assets', async () => {
     mockElementWithMembership();
     mockedPrisma.option.create.mockResolvedValue({
       id: 'opt-1',
       elementId: 'elem-1',
       mediaType: 'IMAGE',
       description: 'Costume reference',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
       externalUrl: null,
-      thumbnailS3Key: null,
       status: 'ACTIVE',
       readyForReview: false,
       uploadedById: 'user-1',
       createdAt: new Date(),
       updatedAt: new Date(),
+      assets: [
+        { id: 'a1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+      ],
     } as any);
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
       description: 'Costume reference',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
+      assets: [
+        { s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' },
+      ],
     });
 
     expect(res.status).toBe(201);
@@ -306,8 +307,7 @@ describe('POST /api/elements/:elementId/options', () => {
     mockElementWithMembership();
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
+      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(400);
@@ -326,7 +326,7 @@ describe('POST /api/elements/:elementId/options', () => {
     expect(res.body.error).toMatch(/externalUrl/i);
   });
 
-  it('returns 400 when IMAGE option has no s3Key', async () => {
+  it('returns 400 when IMAGE option has no assets', async () => {
     mockElementWithMembership();
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
@@ -335,7 +335,7 @@ describe('POST /api/elements/:elementId/options', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/s3Key/i);
+    expect(res.body.error).toMatch(/assets/i);
   });
 
   it('returns 403 when not a production member', async () => {
@@ -348,8 +348,7 @@ describe('POST /api/elements/:elementId/options', () => {
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
+      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(403);
@@ -363,8 +362,7 @@ describe('POST /api/elements/:elementId/options', () => {
       .set(authHeader())
       .send({
         mediaType: 'IMAGE',
-        s3Key: 'options/uuid/photo.jpg',
-        fileName: 'photo.jpg',
+        assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
       });
 
     expect(res.status).toBe(404);
@@ -377,8 +375,7 @@ describe('POST /api/elements/:elementId/options', () => {
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
       description: longDescription,
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
+      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(400);
@@ -408,8 +405,7 @@ describe('POST /api/elements/:elementId/options', () => {
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
+      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(201);
@@ -721,6 +717,48 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 400 when asset mediaType is invalid in create option', async () => {
+    mockElementWithMembership();
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      description: 'Bad asset type',
+      assets: [
+        { s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'INVALID' },
+      ],
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/mediaType/i);
+  });
+
+  it('returns 400 when mediaType is invalid in add asset endpoint', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+      mediaType: 'BOGUS',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/mediaType/i);
+  });
+
   it('allows creation even when element has approved option', async () => {
     mockElementWithMembership();
     mockedPrisma.option.create.mockResolvedValue({
@@ -733,8 +771,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
-      s3Key: 'options/uuid/photo.jpg',
-      fileName: 'photo.jpg',
+      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(201);

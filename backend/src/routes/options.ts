@@ -69,8 +69,6 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
     const authReq = req as AuthenticatedRequest;
     const { elementId } = req.params;
     const { mediaType, description, externalUrl, assets } = req.body;
-    // Backwards compat: accept old s3Key/fileName for single-file upload
-    const { s3Key, fileName, thumbnailS3Key } = req.body;
 
     // Find element with script to get productionId
     const element = await prisma.element.findUnique({
@@ -131,11 +129,21 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       }
     }
 
-    // Validate file-based types require assets or legacy s3Key
+    // Validate file-based types require assets array
     const hasAssets = Array.isArray(assets) && assets.length > 0;
-    if (mediaType !== MediaType.LINK && !s3Key && !hasAssets) {
-      res.status(400).json({ error: 's3Key or assets array is required for file-based options' });
+    if (mediaType !== MediaType.LINK && !hasAssets) {
+      res.status(400).json({ error: 'assets array is required for file-based options' });
       return;
+    }
+
+    // Validate each asset's mediaType is a valid enum value
+    if (hasAssets) {
+      for (const asset of assets) {
+        if (!asset.mediaType || !Object.values(MediaType).includes(asset.mediaType)) {
+          res.status(400).json({ error: 'Each asset must have a valid mediaType' });
+          return;
+        }
+      }
     }
 
     const option = await prisma.option.create({
@@ -162,22 +170,12 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
                   s3Key: asset.s3Key,
                   fileName: asset.fileName,
                   thumbnailS3Key: asset.thumbnailS3Key || null,
-                  mediaType: asset.mediaType as MediaType,
+                  mediaType: asset.mediaType,
                   sortOrder: index,
                 }),
               ),
             }
-          : s3Key
-            ? {
-                create: {
-                  s3Key,
-                  fileName: fileName || 'unknown',
-                  thumbnailS3Key: thumbnailS3Key || null,
-                  mediaType: mediaType as MediaType,
-                  sortOrder: 0,
-                },
-              }
-            : undefined,
+          : undefined,
       },
       include: {
         assets: { orderBy: { sortOrder: 'asc' } },
@@ -338,6 +336,11 @@ optionsRouter.post('/api/options/:id/assets', requireAuth, async (req, res) => {
       return;
     }
 
+    if (!Object.values(MediaType).includes(mediaType)) {
+      res.status(400).json({ error: 'Invalid mediaType' });
+      return;
+    }
+
     // Find option with element→script to get productionId
     const option = await prisma.option.findUnique({
       where: { id },
@@ -377,7 +380,7 @@ optionsRouter.post('/api/options/:id/assets', requireAuth, async (req, res) => {
         s3Key,
         fileName,
         thumbnailS3Key: thumbnailS3Key || null,
-        mediaType: mediaType as MediaType,
+        mediaType,
         sortOrder: nextSortOrder,
       },
     });
