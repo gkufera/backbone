@@ -134,6 +134,31 @@ describe('DiscussionBox', () => {
     expect(screen.getByText('No dept note')).toBeInTheDocument();
   });
 
+  it('shows composer name and department when props provided', async () => {
+    mockedNotesApi.listForElement.mockResolvedValue({ notes: [] });
+
+    render(
+      <DiscussionBox
+        elementId="elem-1"
+        composerName="Sarah Chen"
+        composerDepartment="Directing"
+      />,
+    );
+
+    expect(await screen.findByText(/Posting as:/)).toBeInTheDocument();
+    expect(screen.getByText(/Sarah Chen/)).toBeInTheDocument();
+    expect(screen.getByText(/Directing/)).toBeInTheDocument();
+  });
+
+  it('does not show composer label when props absent', async () => {
+    mockedNotesApi.listForElement.mockResolvedValue({ notes: [] });
+
+    render(<DiscussionBox elementId="elem-1" />);
+
+    await screen.findByPlaceholderText(/add a note/i);
+    expect(screen.queryByText(/Posting as:/)).not.toBeInTheDocument();
+  });
+
   it('disables submit button when content is empty', async () => {
     mockedNotesApi.listForElement.mockResolvedValue({ notes: [] });
 

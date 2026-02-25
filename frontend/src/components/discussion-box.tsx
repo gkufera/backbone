@@ -5,9 +5,11 @@ import { notesApi, type NoteResponse } from '../lib/api';
 
 interface DiscussionBoxProps {
   elementId: string;
+  composerName?: string;
+  composerDepartment?: string;
 }
 
-export function DiscussionBox({ elementId }: DiscussionBoxProps) {
+export function DiscussionBox({ elementId, composerName, composerDepartment }: DiscussionBoxProps) {
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,6 +75,13 @@ export function DiscussionBox({ elementId }: DiscussionBoxProps) {
               </li>
             ))}
           </ul>
+        )}
+
+        {composerName && (
+          <p className="text-xs font-mono mb-1">
+            Posting as: <span className="font-bold">{composerName}</span>
+            {composerDepartment && ` (${composerDepartment})`}
+          </p>
         )}
 
         <form onSubmit={handleSubmit} className="flex gap-2">

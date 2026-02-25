@@ -5,9 +5,11 @@ import { notesApi, type NoteResponse } from '../lib/api';
 
 interface OptionNotesProps {
   optionId: string;
+  composerName?: string;
+  composerDepartment?: string;
 }
 
-export function OptionNotes({ optionId }: OptionNotesProps) {
+export function OptionNotes({ optionId, composerName, composerDepartment }: OptionNotesProps) {
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,6 +74,13 @@ export function OptionNotes({ optionId }: OptionNotesProps) {
             </li>
           ))}
         </ul>
+      )}
+
+      {composerName && (
+        <p className="text-xs font-mono mb-1">
+          Posting as: <span className="font-bold">{composerName}</span>
+          {composerDepartment && ` (${composerDepartment})`}
+        </p>
       )}
 
       <form onSubmit={handleSubmit} className="flex gap-2">

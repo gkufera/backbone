@@ -124,6 +124,26 @@ describe('OptionNotes', () => {
     expect(screen.getByText(/Camera/)).toBeInTheDocument();
   });
 
+  it('shows composer identity when props provided', async () => {
+    (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
+      notes: [],
+    });
+
+    render(
+      <OptionNotes
+        optionId="opt-1"
+        composerName="Alex Kim"
+        composerDepartment="Props"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Posting as:/)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Alex Kim/)).toBeInTheDocument();
+    expect(screen.getByText(/Props/)).toBeInTheDocument();
+  });
+
   it('disables submit when content is empty', async () => {
     (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
       notes: [],
