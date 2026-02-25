@@ -51,7 +51,13 @@ export function OptionCard({
 
       {option.description && <p className="mb-2 text-sm">{option.description}</p>}
 
-      {option.fileName && <p className="mb-2 text-xs font-mono text-black">{option.fileName}</p>}
+      {option.assets && option.assets.length > 0 && (
+        <p className="mb-2 text-xs font-mono text-black">
+          {option.assets.length === 1
+            ? option.assets[0].fileName
+            : `${option.assets.length} files`}
+        </p>
+      )}
 
       {option.externalUrl && (
         <a

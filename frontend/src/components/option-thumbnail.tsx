@@ -30,10 +30,11 @@ export function OptionThumbnail({
       ? BORDER_CLASS[approvalState]
       : 'border-2 border-black';
 
-  // Priority: thumbnailS3Key > s3Key (for IMAGE/VIDEO) > null (text fallback)
+  // Read from assets array (first asset), fall back to null for LINK options
+  const firstAsset = option.assets?.[0] ?? null;
   const imageKey =
-    option.thumbnailS3Key ??
-    (['IMAGE', 'VIDEO'].includes(option.mediaType) ? option.s3Key : null);
+    firstAsset?.thumbnailS3Key ??
+    (firstAsset && ['IMAGE', 'VIDEO'].includes(firstAsset.mediaType) ? firstAsset.s3Key : null);
   const mediaUrl = useMediaUrl(imageKey);
 
   const showApprovalButtons = readyForReview && onApprove;
@@ -47,7 +48,7 @@ export function OptionThumbnail({
         {mediaUrl ? (
           <img
             src={mediaUrl}
-            alt={option.fileName ?? option.mediaType}
+            alt={firstAsset?.fileName ?? option.mediaType}
             className="w-full h-full object-cover"
             style={{ imageRendering: 'auto' }}
           />

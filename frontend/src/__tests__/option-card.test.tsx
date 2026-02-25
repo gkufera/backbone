@@ -9,16 +9,16 @@ const mockOption = {
   elementId: 'elem-1',
   mediaType: 'IMAGE',
   description: 'Costume reference photo',
-  s3Key: 'options/uuid/photo.jpg',
-  fileName: 'photo.jpg',
   externalUrl: null,
-  thumbnailS3Key: null,
   status: 'ACTIVE',
   readyForReview: false,
   uploadedById: 'user-1',
   uploadedBy: { id: 'user-1', name: 'Test User' },
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  assets: [
+    { id: 'a1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', thumbnailS3Key: null, createdAt: new Date().toISOString() },
+  ],
 };
 
 describe('OptionCard', () => {
@@ -59,8 +59,7 @@ describe('OptionCard', () => {
       id: 'opt-2',
       mediaType: 'LINK',
       externalUrl: 'https://example.com',
-      s3Key: null,
-      fileName: null,
+      assets: [],
     };
 
     render(
@@ -203,6 +202,27 @@ describe('OptionCard', () => {
     );
 
     expect(screen.getByRole('button', { name: /confirm/i })).toBeInTheDocument();
+  });
+
+  it('shows count badge for multi-asset option', () => {
+    const multiAssetOption = {
+      ...mockOption,
+      assets: [
+        { id: 'a1', s3Key: 'p1.jpg', fileName: 'photo1.jpg', mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', thumbnailS3Key: null, createdAt: new Date().toISOString() },
+        { id: 'a2', s3Key: 'p2.jpg', fileName: 'photo2.jpg', mediaType: 'IMAGE', sortOrder: 1, optionId: 'opt-1', thumbnailS3Key: null, createdAt: new Date().toISOString() },
+        { id: 'a3', s3Key: 'p3.jpg', fileName: 'photo3.jpg', mediaType: 'IMAGE', sortOrder: 2, optionId: 'opt-1', thumbnailS3Key: null, createdAt: new Date().toISOString() },
+      ],
+    };
+
+    render(
+      <OptionCard
+        option={multiAssetOption}
+        onToggleReady={mockOnToggleReady}
+        onArchive={mockOnArchive}
+      />,
+    );
+
+    expect(screen.getByText('3 files')).toBeInTheDocument();
   });
 
   it('does not render confirm button when onConfirm is not provided', () => {
