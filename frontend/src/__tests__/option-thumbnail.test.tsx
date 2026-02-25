@@ -291,6 +291,26 @@ describe('OptionThumbnail', () => {
     expect(screen.getByText('LINK')).toBeInTheDocument();
   });
 
+  it('uses first asset for thumbnail when option has multiple assets', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/first.jpg');
+
+    const multiAssetOption = {
+      ...baseOption,
+      assets: [
+        { id: 'asset-1', s3Key: 'options/uuid/first.jpg', fileName: 'first.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+        { id: 'asset-2', s3Key: 'options/uuid/second.jpg', fileName: 'second.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 1, optionId: 'opt-1', createdAt: new Date().toISOString() },
+        { id: 'asset-3', s3Key: 'options/uuid/third.jpg', fileName: 'third.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 2, optionId: 'opt-1', createdAt: new Date().toISOString() },
+      ],
+    };
+    render(
+      <OptionThumbnail option={multiAssetOption} approvalState={null} onClick={vi.fn()} />,
+    );
+
+    const img = screen.getByRole('img');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('alt', 'first.jpg');
+  });
+
   it('does not render folded-page icon when hasNotes is false', () => {
     (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
 
