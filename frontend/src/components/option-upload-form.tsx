@@ -21,11 +21,31 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
   const [mode, setMode] = useState<Mode>('file');
   const [description, setDescription] = useState('');
   const [externalUrl, setExternalUrl] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function validateFile(f: File): boolean {
+    if (!mediaTypeFromMime(f.type)) {
+      setError('Unsupported file type');
+      return false;
+    }
+    return true;
+  }
+
+  function addFiles(newFiles: File[]) {
+    const valid = newFiles.filter(validateFile);
+    if (valid.length > 0) {
+      setError(null);
+      setFiles((prev) => [...prev, ...valid]);
+    }
+  }
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,8 +55,8 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
       if (!externalUrl.trim()) return;
       await submitLink();
     } else {
-      if (!file) return;
-      await submitFile();
+      if (files.length === 0) return;
+      await submitFiles();
     }
   }
 
@@ -57,71 +77,96 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
     }
   }
 
-  async function submitFile() {
-    if (!file) return;
+  async function submitFiles() {
+    if (files.length === 0) return;
 
-    if (file.size > OPTION_MAX_FILE_SIZE_BYTES) {
-      setError('File is too large. Maximum size is 200 MB.');
-      return;
+    // Validate all file sizes
+    for (const f of files) {
+      if (f.size > OPTION_MAX_FILE_SIZE_BYTES) {
+        setError('File is too large. Maximum size is 200 MB.');
+        return;
+      }
     }
 
     setIsUploading(true);
     try {
-      const mediaType = mediaTypeFromMime(file.type);
-      if (!mediaType) {
-        setError('Unsupported file type');
-        setIsUploading(false);
-        return;
-      }
+      // Upload each file and collect asset metadata
+      const assets: Array<{
+        s3Key: string;
+        fileName: string;
+        thumbnailS3Key?: string;
+        mediaType: string;
+      }> = [];
 
-      // Generate thumbnail for images and videos (non-blocking)
-      let thumbnailFileName: string | undefined;
-      let thumbnailBlob: Blob | undefined;
-      try {
-        if (mediaType === MediaType.IMAGE) {
-          thumbnailBlob = await generateImageThumbnail(file);
-          thumbnailFileName = `thumb_${file.name}`;
-        } else if (mediaType === MediaType.VIDEO) {
-          thumbnailBlob = await generateVideoThumbnail(file);
-          thumbnailFileName = `thumb_${file.name}.jpg`;
+      for (const file of files) {
+        const mediaType = mediaTypeFromMime(file.type);
+        if (!mediaType) {
+          setError('Unsupported file type');
+          setIsUploading(false);
+          return;
         }
-      } catch {
-        // Thumbnail generation failed — proceed without thumbnail
-      }
 
-      // Get presigned upload URL
-      const uploadResult = await optionsApi.getUploadUrl(file.name, file.type, thumbnailFileName);
+        // Generate thumbnail for images and videos (non-blocking)
+        let thumbnailFileName: string | undefined;
+        let thumbnailBlob: Blob | undefined;
+        try {
+          if (mediaType === MediaType.IMAGE) {
+            thumbnailBlob = await generateImageThumbnail(file);
+            thumbnailFileName = `thumb_${file.name}`;
+          } else if (mediaType === MediaType.VIDEO) {
+            thumbnailBlob = await generateVideoThumbnail(file);
+            thumbnailFileName = `thumb_${file.name}.jpg`;
+          }
+        } catch {
+          // Thumbnail generation failed — proceed without thumbnail
+        }
 
-      // Upload file to S3
-      const uploadResponse = await fetch(uploadResult.uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload file to storage');
-      }
+        // Get presigned upload URL
+        const uploadResult = await optionsApi.getUploadUrl(
+          file.name,
+          file.type,
+          thumbnailFileName,
+        );
 
-      // Upload thumbnail if generated
-      let thumbnailS3Key: string | undefined;
-      if (thumbnailBlob && uploadResult.thumbnailUploadUrl && uploadResult.thumbnailS3Key) {
-        const thumbResponse = await fetch(uploadResult.thumbnailUploadUrl, {
+        // Upload file to S3
+        const uploadResponse = await fetch(uploadResult.uploadUrl, {
           method: 'PUT',
-          body: thumbnailBlob,
-          headers: { 'Content-Type': 'image/jpeg' },
+          body: file,
+          headers: { 'Content-Type': file.type },
         });
-        if (thumbResponse.ok) {
-          thumbnailS3Key = uploadResult.thumbnailS3Key;
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload file to storage');
         }
+
+        // Upload thumbnail if generated
+        let thumbnailS3Key: string | undefined;
+        if (thumbnailBlob && uploadResult.thumbnailUploadUrl && uploadResult.thumbnailS3Key) {
+          const thumbResponse = await fetch(uploadResult.thumbnailUploadUrl, {
+            method: 'PUT',
+            body: thumbnailBlob,
+            headers: { 'Content-Type': 'image/jpeg' },
+          });
+          if (thumbResponse.ok) {
+            thumbnailS3Key = uploadResult.thumbnailS3Key;
+          }
+        }
+
+        assets.push({
+          s3Key: uploadResult.s3Key,
+          fileName: file.name,
+          thumbnailS3Key,
+          mediaType: uploadResult.mediaType,
+        });
       }
 
-      // Create the option record
+      // Determine overall option mediaType from first file
+      const primaryMediaType = assets[0].mediaType;
+
+      // Create the option record with all assets
       await optionsApi.create(elementId, {
-        mediaType: uploadResult.mediaType,
+        mediaType: primaryMediaType,
         description: description.trim() || undefined,
-        s3Key: uploadResult.s3Key,
-        fileName: file.name,
-        thumbnailS3Key,
+        assets,
       });
 
       onOptionCreated();
@@ -136,7 +181,7 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
   function resetForm() {
     setDescription('');
     setExternalUrl('');
-    setFile(null);
+    setFiles([]);
     setError(null);
   }
 
@@ -164,49 +209,64 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
       </div>
 
       {mode === 'file' ? (
-        <div
-          className={`mb-3 border-2 border-dashed border-black p-6 text-center cursor-pointer ${
-            isDragging ? 'bg-black text-white' : 'bg-white text-black'
-          }`}
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-            const droppedFile = e.dataTransfer.files[0];
-            if (droppedFile) {
-              if (!mediaTypeFromMime(droppedFile.type)) {
-                setError('Unsupported file type');
-                return;
-              }
-              setError(null);
-              setFile(droppedFile);
-            }
-          }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={(e) => {
-              const picked = e.target.files?.[0] ?? null;
-              if (picked && !mediaTypeFromMime(picked.type)) {
-                setError('Unsupported file type');
-                return;
-              }
-              setError(null);
-              setFile(picked);
+        <>
+          <div
+            className={`mb-3 border-2 border-dashed border-black p-6 text-center cursor-pointer ${
+              isDragging ? 'bg-black text-white' : 'bg-white text-black'
+            }`}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
             }}
-            accept={OPTION_ALLOWED_CONTENT_TYPES.join(',')}
-            className="hidden"
-          />
-          <span className="text-sm font-mono">
-            {file ? file.name : 'Drop file here or click to browse'}
-          </span>
-        </div>
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+              const droppedFiles = Array.from(e.dataTransfer.files);
+              if (droppedFiles.length > 0) {
+                addFiles(droppedFiles);
+              }
+            }}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={(e) => {
+                const picked = Array.from(e.target.files ?? []);
+                if (picked.length > 0) {
+                  addFiles(picked);
+                }
+              }}
+              accept={OPTION_ALLOWED_CONTENT_TYPES.join(',')}
+              className="hidden"
+            />
+            <span className="text-sm font-mono">
+              {files.length === 0
+                ? 'Drop file here or click to browse'
+                : `${files.length} file${files.length > 1 ? 's' : ''} selected`}
+            </span>
+          </div>
+
+          {files.length > 0 && (
+            <ul className="mb-3 divide-y divide-black border-2 border-black">
+              {files.map((f, i) => (
+                <li key={`${f.name}-${i}`} className="flex items-center justify-between px-2 py-1">
+                  <span className="text-xs font-mono">{f.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(i)}
+                    className="btn-text text-xs"
+                    aria-label={`Remove ${f.name}`}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       ) : (
         <input
           type="url"

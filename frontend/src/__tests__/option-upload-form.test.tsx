@@ -303,6 +303,97 @@ describe('OptionUploadForm', () => {
     expect(screen.getByText(/unsupported file type/i)).toBeInTheDocument();
   });
 
+  it('submits single file as assets array', async () => {
+    const user = userEvent.setup();
+
+    mockedGenerateImageThumbnail.mockResolvedValue(new Blob(['thumb'], { type: 'image/jpeg' }));
+
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', mockFetch);
+
+    mockedOptionsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'options/uuid/photo.jpg',
+      mediaType: 'IMAGE',
+      thumbnailUploadUrl: 'https://s3.example.com/thumb',
+      thumbnailS3Key: 'options/uuid/thumb.jpg',
+    });
+
+    mockedOptionsApi.create.mockResolvedValue({
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        mediaType: 'IMAGE',
+        description: null,
+        externalUrl: null,
+        status: 'ACTIVE',
+        readyForReview: false,
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        assets: [{ id: 'asset-1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() }],
+      },
+    });
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, file);
+    await user.click(screen.getByRole('button', { name: /upload|submit|add/i }));
+
+    expect(mockOnOptionCreated).toHaveBeenCalled();
+    expect(mockedOptionsApi.create).toHaveBeenCalledWith(
+      'elem-1',
+      expect.objectContaining({
+        mediaType: 'IMAGE',
+        assets: expect.arrayContaining([
+          expect.objectContaining({
+            s3Key: 'options/uuid/photo.jpg',
+            fileName: 'photo.jpg',
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it('allows selecting multiple files', async () => {
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const file1 = new File(['test-image-1'], 'photo1.jpg', { type: 'image/jpeg' });
+    const file2 = new File(['test-image-2'], 'photo2.jpg', { type: 'image/jpeg' });
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const { fireEvent } = await import('@testing-library/react');
+    fireEvent.change(fileInput, { target: { files: [file1, file2] } });
+
+    expect(screen.getByText('photo1.jpg')).toBeInTheDocument();
+    expect(screen.getByText('photo2.jpg')).toBeInTheDocument();
+  });
+
+  it('can remove a file from the list before upload', async () => {
+    const user = userEvent.setup();
+
+    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+
+    const file1 = new File(['test-image-1'], 'photo1.jpg', { type: 'image/jpeg' });
+    const file2 = new File(['test-image-2'], 'photo2.jpg', { type: 'image/jpeg' });
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const { fireEvent } = await import('@testing-library/react');
+    fireEvent.change(fileInput, { target: { files: [file1, file2] } });
+
+    expect(screen.getByText('photo1.jpg')).toBeInTheDocument();
+    expect(screen.getByText('photo2.jpg')).toBeInTheDocument();
+
+    // Remove first file
+    const removeButtons = screen.getAllByRole('button', { name: /remove/i });
+    await user.click(removeButtons[0]);
+
+    expect(screen.queryByText('photo1.jpg')).not.toBeInTheDocument();
+    expect(screen.getByText('photo2.jpg')).toBeInTheDocument();
+  });
+
   it('succeeds uploading file even when thumbnail generation fails', async () => {
     const user = userEvent.setup();
 
@@ -351,7 +442,12 @@ describe('OptionUploadForm', () => {
       'elem-1',
       expect.objectContaining({
         mediaType: 'IMAGE',
-        s3Key: 'options/uuid/photo.jpg',
+        assets: expect.arrayContaining([
+          expect.objectContaining({
+            s3Key: 'options/uuid/photo.jpg',
+            fileName: 'photo.jpg',
+          }),
+        ]),
       }),
     );
   });
