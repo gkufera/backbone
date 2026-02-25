@@ -76,15 +76,13 @@ describe('OptionUploadForm', () => {
         elementId: 'elem-1',
         mediaType: 'LINK',
         description: 'Reference board',
-        s3Key: null,
-        fileName: null,
         externalUrl: 'https://example.com',
-        thumbnailS3Key: null,
         status: 'ACTIVE',
         readyForReview: false,
         uploadedById: 'user-1',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        assets: [],
       },
     });
 
@@ -138,15 +136,13 @@ describe('OptionUploadForm', () => {
         elementId: 'elem-1',
         mediaType: 'LINK',
         description: null,
-        s3Key: null,
-        fileName: null,
         externalUrl: 'https://example.com',
-        thumbnailS3Key: null,
         status: 'ACTIVE',
         readyForReview: false,
         uploadedById: 'user-1',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        assets: [],
       },
     });
 
@@ -416,15 +412,15 @@ describe('OptionUploadForm', () => {
         elementId: 'elem-1',
         mediaType: 'IMAGE',
         description: null,
-        s3Key: 'options/uuid/photo.jpg',
-        fileName: 'photo.jpg',
         externalUrl: null,
-        thumbnailS3Key: null,
         status: 'ACTIVE',
         readyForReview: false,
         uploadedById: 'user-1',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        assets: [
+          { id: 'asset-1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+        ],
       },
     });
 

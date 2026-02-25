@@ -90,10 +90,10 @@ const mockOptions = [
     elementId: 'elem-1',
     mediaType: 'IMAGE',
     description: 'Costume reference',
-    s3Key: 'options/uuid/photo.jpg',
-    fileName: 'photo.jpg',
     externalUrl: null,
-    thumbnailS3Key: null,
+    assets: [
+      { id: 'a1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+    ],
     status: 'ACTIVE',
     readyForReview: false,
     uploadedById: 'user-1',

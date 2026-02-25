@@ -14,15 +14,15 @@ const baseOption = {
   elementId: 'elem-1',
   mediaType: 'IMAGE',
   description: 'Photo reference',
-  s3Key: 'options/uuid/photo.jpg',
-  fileName: 'photo.jpg',
   externalUrl: null,
-  thumbnailS3Key: null,
   status: 'ACTIVE',
   readyForReview: true,
   uploadedById: 'user-1',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  assets: [
+    { id: 'asset-1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+  ],
 };
 
 describe('OptionLightbox', () => {
@@ -108,7 +108,13 @@ describe('OptionLightbox', () => {
   it('renders video tag when mediaType is VIDEO and URL resolves', () => {
     (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/clip.mp4');
 
-    const videoOption = { ...baseOption, mediaType: 'VIDEO', s3Key: 'options/uuid/clip.mp4', fileName: 'clip.mp4' };
+    const videoOption = {
+      ...baseOption,
+      mediaType: 'VIDEO',
+      assets: [
+        { id: 'asset-1', s3Key: 'options/uuid/clip.mp4', fileName: 'clip.mp4', thumbnailS3Key: null, mediaType: 'VIDEO', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+      ],
+    };
     const { container } = render(
       <OptionLightbox
         option={videoOption}
@@ -125,7 +131,13 @@ describe('OptionLightbox', () => {
   it('renders audio tag when mediaType is AUDIO and URL resolves', () => {
     (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/track.mp3');
 
-    const audioOption = { ...baseOption, mediaType: 'AUDIO', s3Key: 'options/uuid/track.mp3', fileName: 'track.mp3' };
+    const audioOption = {
+      ...baseOption,
+      mediaType: 'AUDIO',
+      assets: [
+        { id: 'asset-1', s3Key: 'options/uuid/track.mp3', fileName: 'track.mp3', thumbnailS3Key: null, mediaType: 'AUDIO', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+      ],
+    };
     const { container } = render(
       <OptionLightbox
         option={audioOption}
@@ -145,8 +157,8 @@ describe('OptionLightbox', () => {
     const linkOption = {
       ...baseOption,
       mediaType: 'LINK',
-      s3Key: null,
       externalUrl: 'https://example.com/ref',
+      assets: [],
     };
     render(
       <OptionLightbox
@@ -173,6 +185,51 @@ describe('OptionLightbox', () => {
 
     const img = screen.getByRole('img');
     expect(img.style.filter).toBeFalsy();
+  });
+
+  it('renders first asset by default for multi-asset option', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/photo1.jpg');
+
+    const multiOption = {
+      ...baseOption,
+      assets: [
+        { id: 'a1', s3Key: 'options/uuid/photo1.jpg', fileName: 'photo1.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+        { id: 'a2', s3Key: 'options/uuid/photo2.jpg', fileName: 'photo2.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 1, optionId: 'opt-1', createdAt: new Date().toISOString() },
+      ],
+    };
+
+    render(
+      <OptionLightbox
+        option={multiOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const img = screen.getByRole('img');
+    expect(img).toBeInTheDocument();
+  });
+
+  it('LINK option renders without assets', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const linkOption = {
+      ...baseOption,
+      mediaType: 'LINK',
+      externalUrl: 'https://example.com/ref',
+      assets: [],
+    };
+
+    render(
+      <OptionLightbox
+        option={linkOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('href', 'https://example.com/ref');
   });
 
   it('renders approval history when approvals are provided', () => {

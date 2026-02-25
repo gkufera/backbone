@@ -15,24 +15,30 @@ const baseOption = {
   elementId: 'elem-1',
   mediaType: 'IMAGE',
   description: 'Photo ref',
-  s3Key: 'options/uuid/photo.jpg',
-  fileName: 'photo.jpg',
   externalUrl: null,
-  thumbnailS3Key: null,
   status: 'ACTIVE',
   readyForReview: true,
   uploadedById: 'user-1',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  assets: [
+    { id: 'asset-1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+  ],
 };
 
 describe('OptionThumbnail', () => {
   it('renders an img when thumbnailS3Key is non-null and URL resolves', () => {
     (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/thumb.jpg');
 
+    const optionWithThumb = {
+      ...baseOption,
+      assets: [
+        { ...baseOption.assets[0], thumbnailS3Key: 'thumbs/uuid/thumb.jpg' },
+      ],
+    };
     render(
       <OptionThumbnail
-        option={{ ...baseOption, thumbnailS3Key: 'thumbs/uuid/thumb.jpg' }}
+        option={optionWithThumb}
         approvalState={null}
         onClick={vi.fn()}
       />,
@@ -57,7 +63,7 @@ describe('OptionThumbnail', () => {
   it('renders text fallback when no thumbnail and type is LINK', () => {
     (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
 
-    const linkOption = { ...baseOption, mediaType: 'LINK', s3Key: null, fileName: null };
+    const linkOption = { ...baseOption, mediaType: 'LINK', assets: [] };
     render(
       <OptionThumbnail option={linkOption} approvalState={null} onClick={vi.fn()} />,
     );
@@ -251,6 +257,38 @@ describe('OptionThumbnail', () => {
     );
 
     expect(screen.getByTestId('notes-icon')).toBeInTheDocument();
+  });
+
+  it('reads thumbnail from assets array when available', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/photo.jpg');
+
+    const assetOption = {
+      ...baseOption,
+      assets: [
+        { id: 'asset-1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+      ],
+    };
+    render(
+      <OptionThumbnail option={assetOption} approvalState={null} onClick={vi.fn()} />,
+    );
+
+    const img = screen.getByRole('img');
+    expect(img).toBeInTheDocument();
+  });
+
+  it('LINK option renders without assets', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
+
+    const linkOption = {
+      ...baseOption,
+      mediaType: 'LINK',
+      assets: [],
+    };
+    render(
+      <OptionThumbnail option={linkOption} approvalState={null} onClick={vi.fn()} />,
+    );
+
+    expect(screen.getByText('LINK')).toBeInTheDocument();
   });
 
   it('does not render folded-page icon when hasNotes is false', () => {
