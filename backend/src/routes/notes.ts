@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import { NOTE_CONTENT_MAX_LENGTH } from '@backbone/shared/constants';
 import { NotificationType } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
@@ -134,10 +135,13 @@ notesRouter.get('/api/elements/:elementId/notes', requireAuth, async (req, res) 
       return;
     }
 
+    const { take, skip } = parsePagination(req);
     const notes = await prisma.note.findMany({
       where: { elementId },
       include: { user: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'asc' },
+      take,
+      skip,
     });
 
     // Enrich notes with department names
@@ -255,10 +259,13 @@ notesRouter.get('/api/options/:optionId/notes', requireAuth, async (req, res) =>
       return;
     }
 
+    const { take, skip } = parsePagination(req);
     const notes = await prisma.note.findMany({
       where: { optionId },
       include: { user: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'asc' },
+      take,
+      skip,
     });
 
     // Enrich notes with department names

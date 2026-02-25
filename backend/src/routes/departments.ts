@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import { MemberRole } from '@backbone/shared/types';
 import { DEPARTMENT_NAME_MAX_LENGTH } from '@backbone/shared/constants';
 
@@ -31,12 +32,15 @@ departmentsRouter.get('/api/productions/:id/departments', requireAuth, async (re
       return;
     }
 
+    const { take, skip } = parsePagination(req);
     const departments = await prisma.department.findMany({
       where: { productionId: id },
       include: {
         _count: { select: { members: true } },
       },
       orderBy: { name: 'asc' },
+      take,
+      skip,
     });
 
     res.json({ departments });

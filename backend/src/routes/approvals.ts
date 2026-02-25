@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
 import { ApprovalDecision, MemberRole, NotificationType } from '@backbone/shared/types';
 import { createNotification, notifyDeciders } from '../services/notification-service';
@@ -224,10 +225,13 @@ approvalsRouter.get('/api/options/:optionId/approvals', requireAuth, async (req,
       return;
     }
 
+    const { take, skip } = parsePagination(req);
     const approvals = await prisma.approval.findMany({
       where: { optionId },
       include: { user: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
+      take,
+      skip,
     });
 
     res.json({ approvals });
@@ -258,6 +262,7 @@ approvalsRouter.get('/api/productions/:productionId/feed', requireAuth, async (r
       return;
     }
 
+    const { take, skip } = parsePagination(req);
     const elements = await prisma.element.findMany({
       where: {
         script: { productionId },
@@ -287,6 +292,8 @@ approvalsRouter.get('/api/productions/:productionId/feed', requireAuth, async (r
         },
       },
       orderBy: { name: 'asc' },
+      take,
+      skip,
     });
 
     res.json({ elements });

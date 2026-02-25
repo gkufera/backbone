@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import { MemberRole } from '@backbone/shared/types';
 
 const directorNotesRouter = Router();
@@ -38,12 +39,15 @@ directorNotesRouter.get(
         return;
       }
 
+      const { take, skip } = parsePagination(req);
       const notes = await prisma.directorNote.findMany({
         where: { scriptId, deletedAt: null },
         orderBy: [{ sceneNumber: 'asc' }, { createdAt: 'asc' }],
         include: {
           createdBy: { select: { id: true, name: true } },
         },
+        take,
+        skip,
       });
 
       res.json({ notes });

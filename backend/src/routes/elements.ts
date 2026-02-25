@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import { ElementType, ElementStatus, ElementSource } from '@backbone/shared/types';
 
 const elementsRouter = Router();
@@ -45,6 +46,13 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
     // Validate type against enum if provided
     if (type && !Object.values(ElementType).includes(type)) {
       res.status(400).json({ error: 'Invalid element type' });
+      return;
+    }
+
+    // Enforce element count limit per script
+    const elementCount = await prisma.element.count({ where: { scriptId } });
+    if (elementCount >= 1000) {
+      res.status(400).json({ error: 'Element limit reached (max 1000 per script)' });
       return;
     }
 
@@ -105,6 +113,7 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
       where.status = ElementStatus.ACTIVE;
     }
 
+    const { take, skip } = parsePagination(req);
     const elements = await prisma.element.findMany({
       where,
       orderBy: { name: 'asc' },
@@ -113,6 +122,8 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
           select: { options: { where: { status: 'ACTIVE' } } },
         },
       },
+      take,
+      skip,
     });
 
     res.json({ elements });

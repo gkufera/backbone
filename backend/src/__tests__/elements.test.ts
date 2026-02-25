@@ -33,6 +33,7 @@ vi.mock('../lib/prisma', () => ({
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      count: vi.fn(),
     },
     $transaction: vi.fn(),
   },
@@ -86,6 +87,9 @@ function mockScriptWithMembership() {
     createdAt: new Date(),
     updatedAt: new Date(),
   } as any);
+
+  // Element count (below limit)
+  mockedPrisma.element.count.mockResolvedValue(10);
 }
 
 describe('POST /api/scripts/:scriptId/elements', () => {

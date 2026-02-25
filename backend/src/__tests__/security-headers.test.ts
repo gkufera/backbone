@@ -22,4 +22,33 @@ describe('Security Headers', () => {
     expect(res.status).toBe(200);
     expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
   });
+
+  it('does NOT expose X-Powered-By header (S18)', async () => {
+    const res = await request(app).get('/health');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['x-powered-by']).toBeUndefined();
+  });
+
+  it('sets Strict-Transport-Security header (S18)', async () => {
+    const res = await request(app).get('/health');
+
+    expect(res.status).toBe(200);
+    // Helmet sets HSTS by default
+    expect(res.headers['strict-transport-security']).toBeDefined();
+  });
+
+  it('sets X-Download-Options header (S18)', async () => {
+    const res = await request(app).get('/health');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['x-download-options']).toBe('noopen');
+  });
+
+  it('sets X-DNS-Prefetch-Control header (S18)', async () => {
+    const res = await request(app).get('/health');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['x-dns-prefetch-control']).toBe('off');
+  });
 });

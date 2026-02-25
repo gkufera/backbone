@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import {
   PRODUCTION_TITLE_MAX_LENGTH,
   MEMBER_TITLE_MAX_LENGTH,
@@ -75,12 +76,15 @@ productionsRouter.get('/api/productions', requireAuth, async (req, res) => {
   try {
     const authReq = req as AuthenticatedRequest;
 
+    const { take, skip } = parsePagination(req);
     const memberships = await prisma.productionMember.findMany({
       where: { userId: authReq.user.userId },
       include: {
         production: true,
       },
       orderBy: { production: { createdAt: 'desc' } },
+      take,
+      skip,
     });
 
     const productions = memberships.map((m) => ({
@@ -312,6 +316,7 @@ productionsRouter.get('/api/productions/:id/members', requireAuth, async (req, r
       return;
     }
 
+    const { take, skip } = parsePagination(req);
     const members = await prisma.productionMember.findMany({
       where: { productionId: id },
       include: {
@@ -322,6 +327,8 @@ productionsRouter.get('/api/productions/:id/members', requireAuth, async (req, r
           select: { id: true, name: true },
         },
       },
+      take,
+      skip,
     });
 
     res.json({ members });

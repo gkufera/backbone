@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import { generateMediaUploadUrl, generateDownloadUrl } from '../lib/s3';
 import {
   mediaTypeFromMime,
@@ -173,6 +174,12 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       return;
     }
 
+    // Enforce max assets per option
+    if (hasAssets && assets.length > 20) {
+      res.status(400).json({ error: 'Maximum 20 assets per option' });
+      return;
+    }
+
     // Validate each asset's mediaType is a valid enum value
     if (hasAssets) {
       for (const asset of assets) {
@@ -264,6 +271,7 @@ optionsRouter.get('/api/elements/:elementId/options', requireAuth, async (req, r
       where.status = OptionStatus.ACTIVE;
     }
 
+    const { take, skip } = parsePagination(req);
     const options = await prisma.option.findMany({
       where,
       include: {
@@ -271,6 +279,8 @@ optionsRouter.get('/api/elements/:elementId/options', requireAuth, async (req, r
         assets: { orderBy: { sortOrder: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },
+      take,
+      skip,
     });
 
     res.json({ options });

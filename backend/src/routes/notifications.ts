@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 
 const notificationsRouter = Router();
 
@@ -28,12 +29,15 @@ notificationsRouter.get(
         return;
       }
 
+      const { take, skip } = parsePagination(req);
       const notifications = await prisma.notification.findMany({
         where: {
           userId: authReq.user.userId,
           productionId,
         },
         orderBy: { createdAt: 'desc' },
+        take,
+        skip,
       });
 
       res.json({ notifications });

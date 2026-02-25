@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { parsePagination } from '../lib/pagination';
 import { generateUploadUrl, generateDownloadUrl } from '../lib/s3';
 import { processScript } from '../services/script-processor';
 import { processRevision } from '../services/revision-processor';
@@ -120,9 +121,12 @@ scriptsRouter.get('/api/productions/:id/scripts', requireAuth, async (req, res) 
       return;
     }
 
+    const { take, skip } = parsePagination(req);
     const scripts = await prisma.script.findMany({
       where: { productionId: id },
       orderBy: { createdAt: 'desc' },
+      take,
+      skip,
     });
 
     res.json({ scripts });
