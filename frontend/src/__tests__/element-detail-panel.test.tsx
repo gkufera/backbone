@@ -29,6 +29,12 @@ vi.mock('../lib/api', () => ({
     listForOption: vi.fn(),
     createForOption: vi.fn(),
   },
+  authApi: {
+    me: vi.fn(),
+  },
+  productionsApi: {
+    listMembers: vi.fn(),
+  },
 }));
 
 // Mock useMediaUrl to avoid real S3 calls in component tests
@@ -51,6 +57,8 @@ import {
   approvalsApi,
   departmentsApi,
   notesApi,
+  authApi,
+  productionsApi,
 } from '../lib/api';
 
 const mockElement = {
@@ -118,6 +126,22 @@ describe('ElementDetailPanel', () => {
     });
     (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
       notes: [],
+    });
+    (authApi.me as ReturnType<typeof vi.fn>).mockResolvedValue({
+      user: { id: 'user-1', name: 'Jane Director', email: 'jane@example.com' },
+    });
+    (productionsApi.listMembers as ReturnType<typeof vi.fn>).mockResolvedValue({
+      members: [
+        {
+          id: 'member-1',
+          productionId: 'prod-1',
+          userId: 'user-1',
+          role: 'ADMIN',
+          departmentId: 'dept-1',
+          department: { id: 'dept-1', name: 'Art Department' },
+          user: { id: 'user-1', name: 'Jane Director', email: 'jane@example.com' },
+        },
+      ],
     });
   });
 
@@ -363,6 +387,23 @@ describe('ElementDetailPanel', () => {
     // Now Escape should close lightbox, not call onBack
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onBack).not.toHaveBeenCalled();
+  });
+
+  it('renders Posting as composer identity in discussion box', async () => {
+    render(
+      <ElementDetailPanel
+        elementId="elem-1"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Posting as:/)).toBeInTheDocument();
+    });
+    expect(screen.getByText('Jane Director')).toBeInTheDocument();
+    expect(screen.getByText(/(Art Department)/)).toBeInTheDocument();
   });
 
   it('disables department dropdown during save', async () => {

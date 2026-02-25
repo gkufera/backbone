@@ -7,6 +7,8 @@ import {
   approvalsApi,
   departmentsApi,
   notesApi,
+  authApi,
+  productionsApi,
   type ElementResponse,
   type OptionResponse,
   type ApprovalResponse,
@@ -43,6 +45,8 @@ export function ElementDetailPanel({
   const [submittingApproval, setSubmittingApproval] = useState(false);
   const [optionHasNotes, setOptionHasNotes] = useState<Record<string, boolean>>({});
   const [savingDepartment, setSavingDepartment] = useState(false);
+  const [composerName, setComposerName] = useState<string | undefined>();
+  const [composerDepartment, setComposerDepartment] = useState<string | undefined>();
 
   useEffect(() => {
     setLightboxOption(null);
@@ -76,6 +80,20 @@ export function ElementDetailPanel({
       }
       setElement(found);
       setDepartments(deptResult.departments);
+
+      // Fetch composer identity (current user + their department in this production)
+      try {
+        const [meResult, membersResult] = await Promise.all([
+          authApi.me(),
+          productionsApi.listMembers(productionId),
+        ]);
+        const currentUser = meResult.user;
+        setComposerName(currentUser.name);
+        const myMembership = membersResult.members.find((m) => m.userId === currentUser.id);
+        setComposerDepartment(myMembership?.department?.name ?? undefined);
+      } catch {
+        // Non-critical: composer identity is supplementary
+      }
 
       const { options: opts } = await optionsApi.list(elementId);
       setOptions(opts);
@@ -243,7 +261,7 @@ export function ElementDetailPanel({
 
       {/* Discussion */}
       <div className="mb-4">
-        <DiscussionBox elementId={elementId} />
+        <DiscussionBox elementId={elementId} composerName={composerName} composerDepartment={composerDepartment} />
       </div>
 
       {/* Options section */}
@@ -292,6 +310,8 @@ export function ElementDetailPanel({
           disableApproval={submittingApproval}
           approvals={optionApprovals[lightboxOption.id]?.approvals}
           onConfirmApproval={handleConfirmApproval}
+          composerName={composerName}
+          composerDepartment={composerDepartment}
         />
       )}
     </div>
