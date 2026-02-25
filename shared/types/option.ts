@@ -16,13 +16,21 @@ export interface Option {
   elementId: string;
   mediaType: MediaType;
   description: string | null;
-  s3Key: string | null;
-  fileName: string | null;
   externalUrl: string | null;
-  thumbnailS3Key: string | null;
   status: OptionStatus;
   readyForReview: boolean;
   uploadedById: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface OptionAsset {
+  id: string;
+  optionId: string;
+  s3Key: string;
+  fileName: string;
+  thumbnailS3Key: string | null;
+  mediaType: MediaType;
+  sortOrder: number;
+  createdAt: Date;
 }

@@ -5,6 +5,7 @@ import type {
   Script,
   Element,
   Option,
+  OptionAsset,
   Approval,
   RevisionMatch,
   Notification,
@@ -352,8 +353,11 @@ export const elementsApi = {
   },
 };
 
+export type OptionAssetResponse = JsonSerialized<OptionAsset>;
+
 export type OptionResponse = JsonSerialized<Option> & {
   uploadedBy?: { id: string; name: string };
+  assets?: OptionAssetResponse[];
 };
 
 export const optionsApi = {
@@ -379,10 +383,13 @@ export const optionsApi = {
     data: {
       mediaType: string;
       description?: string;
-      s3Key?: string;
-      fileName?: string;
       externalUrl?: string;
-      thumbnailS3Key?: string;
+      assets?: Array<{
+        s3Key: string;
+        fileName: string;
+        thumbnailS3Key?: string;
+        mediaType: string;
+      }>;
     },
   ): Promise<{ option: OptionResponse }> {
     return request(`/api/elements/${elementId}/options`, {
