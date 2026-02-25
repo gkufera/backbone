@@ -7,6 +7,30 @@ import { notifyProductionMembers } from '../services/notification-service.js';
 
 const notesRouter = Router();
 
+// Enrich note objects with the user's department name from their production membership
+async function enrichNotesWithDepartment(
+  notes: Array<{ userId: string; [key: string]: unknown }>,
+  productionId: string,
+) {
+  if (notes.length === 0) return notes;
+
+  const uniqueUserIds = [...new Set(notes.map((n) => n.userId))];
+  const members = await prisma.productionMember.findMany({
+    where: { productionId, userId: { in: uniqueUserIds } },
+    include: { department: { select: { name: true } } },
+  });
+
+  const deptMap = new Map<string, string | null>();
+  for (const member of members) {
+    deptMap.set(member.userId, member.department?.name ?? null);
+  }
+
+  return notes.map((note) => ({
+    ...note,
+    department: deptMap.get(note.userId) ?? null,
+  }));
+}
+
 // Create a note for an element (discussion)
 notesRouter.post('/api/elements/:elementId/notes', requireAuth, async (req, res) => {
   try {
@@ -43,6 +67,7 @@ notesRouter.post('/api/elements/:elementId/notes', requireAuth, async (req, res)
           userId: authReq.user.userId,
         },
       },
+      include: { department: { select: { name: true } } },
     });
 
     if (!membership) {
@@ -70,7 +95,9 @@ notesRouter.post('/api/elements/:elementId/notes', requireAuth, async (req, res)
       link,
     );
 
-    res.status(201).json({ note });
+    res.status(201).json({
+      note: { ...note, department: membership.department?.name ?? null },
+    });
   } catch (error) {
     console.error('Create element note error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -113,7 +140,11 @@ notesRouter.get('/api/elements/:elementId/notes', requireAuth, async (req, res) 
       orderBy: { createdAt: 'asc' },
     });
 
-    res.json({ notes });
+    // Enrich notes with department names
+    const productionId = element.script.productionId;
+    const enrichedNotes = await enrichNotesWithDepartment(notes, productionId);
+
+    res.json({ notes: enrichedNotes });
   } catch (error) {
     console.error('List element notes error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -156,6 +187,7 @@ notesRouter.post('/api/options/:optionId/notes', requireAuth, async (req, res) =
           userId: authReq.user.userId,
         },
       },
+      include: { department: { select: { name: true } } },
     });
 
     if (!membership) {
@@ -184,7 +216,9 @@ notesRouter.post('/api/options/:optionId/notes', requireAuth, async (req, res) =
       link,
     );
 
-    res.status(201).json({ note });
+    res.status(201).json({
+      note: { ...note, department: membership.department?.name ?? null },
+    });
   } catch (error) {
     console.error('Create option note error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -227,7 +261,11 @@ notesRouter.get('/api/options/:optionId/notes', requireAuth, async (req, res) =>
       orderBy: { createdAt: 'asc' },
     });
 
-    res.json({ notes });
+    // Enrich notes with department names
+    const productionId = option.element.script.productionId;
+    const enrichedNotes = await enrichNotesWithDepartment(notes, productionId);
+
+    res.json({ notes: enrichedNotes });
   } catch (error) {
     console.error('List option notes error:', error);
     res.status(500).json({ error: 'Internal server error' });

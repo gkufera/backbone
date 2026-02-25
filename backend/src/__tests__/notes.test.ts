@@ -80,6 +80,156 @@ function mockOptionWithMembership() {
   } as any);
 }
 
+// ── Department enrichment tests ──────────────────────────────────
+
+describe('GET /api/elements/:elementId/notes returns user department name', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('includes department name on each note', async () => {
+    mockElementWithMembership();
+    mockedPrisma.note.findMany.mockResolvedValue([
+      {
+        id: 'note-1',
+        content: 'Great reference',
+        userId: 'user-1',
+        elementId: 'elem-1',
+        optionId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: { id: 'user-1', name: 'Test User' },
+      },
+    ] as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      {
+        userId: 'user-1',
+        department: { name: 'Art Department' },
+      },
+    ] as any);
+
+    const res = await request(app)
+      .get('/api/elements/elem-1/notes')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.notes[0].department).toBe('Art Department');
+  });
+});
+
+describe('POST /api/elements/:elementId/notes returns user department name', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('includes department name on created note', async () => {
+    mockElementWithMembership();
+    // Override the membership mock to include department
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+      department: { name: 'Props' },
+    } as any);
+    mockedPrisma.note.create.mockResolvedValue({
+      id: 'note-1',
+      content: 'Nice find',
+      userId: 'user-1',
+      elementId: 'elem-1',
+      optionId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: { id: 'user-1', name: 'Test User' },
+    } as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-2' },
+    ] as any);
+    mockedPrisma.notification.create.mockResolvedValue({} as any);
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/elements/elem-1/notes')
+      .set(authHeader())
+      .send({ content: 'Nice find' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.note.department).toBe('Props');
+  });
+});
+
+describe('GET /api/options/:optionId/notes returns user department name', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('includes department name on each option note', async () => {
+    mockOptionWithMembership();
+    mockedPrisma.note.findMany.mockResolvedValue([
+      {
+        id: 'note-1',
+        content: 'Good angle',
+        userId: 'user-1',
+        elementId: null,
+        optionId: 'opt-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: { id: 'user-1', name: 'Test User' },
+      },
+    ] as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      {
+        userId: 'user-1',
+        department: { name: 'Camera' },
+      },
+    ] as any);
+
+    const res = await request(app)
+      .get('/api/options/opt-1/notes')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.notes[0].department).toBe('Camera');
+  });
+});
+
+describe('POST /api/options/:optionId/notes returns user department name', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('includes department name on created option note', async () => {
+    mockOptionWithMembership();
+    // Override the membership mock to include department
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+      department: { name: 'Wardrobe' },
+    } as any);
+    mockedPrisma.note.create.mockResolvedValue({
+      id: 'note-2',
+      content: 'Fabric looks right',
+      userId: 'user-1',
+      elementId: null,
+      optionId: 'opt-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: { id: 'user-1', name: 'Test User' },
+    } as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({ content: 'Fabric looks right' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.note.department).toBe('Wardrobe');
+  });
+});
+
 // ── POST /api/elements/:elementId/notes ──────────────────────────
 
 describe('POST /api/elements/:elementId/notes', () => {
