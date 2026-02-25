@@ -36,6 +36,13 @@ export enum RevisionMatchStatus {
   MISSING = 'MISSING',
 }
 
+export enum RevisionMatchDecision {
+  MAP = 'map',
+  CREATE_NEW = 'create_new',
+  KEEP = 'keep',
+  ARCHIVE = 'archive',
+}
+
 export interface RevisionMatch {
   id: string;
   newScriptId: string;
