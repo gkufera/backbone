@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(process.cwd(), '..'),
     resolveAlias: {
-      '@backbone/shared': sharedPath,
-      '@backbone/shared/*': `${sharedPath}/*`,
+      '@backbone/shared': '../shared',
+      '@backbone/shared/*': '../shared/*',
     },
   },
   webpack: (config) => {

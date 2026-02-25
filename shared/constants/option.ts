@@ -1,4 +1,4 @@
-import { MediaType } from '../types/option.js';
+import { MediaType } from '../types/option';
 
 export const OPTION_MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024; // 200 MB
 

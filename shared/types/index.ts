@@ -1,23 +1,23 @@
-export type { User } from './user.js';
+export type { User } from './user';
 
-export { MemberRole } from './production.js';
-export type { Production, ProductionMember, Department } from './production.js';
+export { MemberRole } from './production';
+export type { Production, ProductionMember, Department } from './production';
 
-export { ScriptStatus, RevisionMatchStatus } from './script.js';
-export type { Script, SceneInfo, RevisionMatch } from './script.js';
+export { ScriptStatus, RevisionMatchStatus } from './script';
+export type { Script, SceneInfo, RevisionMatch } from './script';
 
-export { ElementType, ElementStatus, ElementSource, ElementWorkflowState } from './element.js';
-export type { Element } from './element.js';
+export { ElementType, ElementStatus, ElementSource, ElementWorkflowState } from './element';
+export type { Element } from './element';
 
-export { MediaType, OptionStatus } from './option.js';
-export type { Option, OptionAsset } from './option.js';
+export { MediaType, OptionStatus } from './option';
+export type { Option, OptionAsset } from './option';
 
-export { ApprovalDecision } from './approval.js';
-export type { Approval } from './approval.js';
+export { ApprovalDecision } from './approval';
+export type { Approval } from './approval';
 
-export { NotificationType } from './notification.js';
-export type { Notification } from './notification.js';
+export { NotificationType } from './notification';
+export type { Notification } from './notification';
 
-export type { Note } from './note.js';
+export type { Note } from './note';
 
-export type { DirectorNote } from './director-note.js';
+export type { DirectorNote } from './director-note';

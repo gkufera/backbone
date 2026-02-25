@@ -1,19 +1,19 @@
-export { VALIDATION } from './validation.js';
-export { PRODUCTION_TITLE_MAX_LENGTH, MEMBER_TITLE_MAX_LENGTH } from './production.js';
-export { SCRIPT_MAX_FILE_SIZE_BYTES, SCRIPT_ALLOWED_MIME_TYPES } from './script.js';
+export { VALIDATION } from './validation';
+export { PRODUCTION_TITLE_MAX_LENGTH, MEMBER_TITLE_MAX_LENGTH } from './production';
+export { SCRIPT_MAX_FILE_SIZE_BYTES, SCRIPT_ALLOWED_MIME_TYPES } from './script';
 export {
   OPTION_MAX_FILE_SIZE_BYTES,
   OPTION_DESCRIPTION_MAX_LENGTH,
   OPTION_ALLOWED_MIME_TYPES,
   OPTION_ALLOWED_CONTENT_TYPES,
   mediaTypeFromMime,
-} from './option.js';
-export { APPROVAL_NOTE_MAX_LENGTH, APPROVAL_COLORS } from './approval.js';
+} from './option';
+export { APPROVAL_NOTE_MAX_LENGTH, APPROVAL_COLORS } from './approval';
 export {
   DEFAULT_DEPARTMENTS,
   DEFAULT_DEPARTMENT_COLORS,
   DEPARTMENT_NAME_MAX_LENGTH,
   ELEMENT_TYPE_DEPARTMENT_MAP,
-} from './departments.js';
-export { NOTIFICATION_MESSAGE_MAX_LENGTH } from './notification.js';
-export { NOTE_CONTENT_MAX_LENGTH } from './note.js';
+} from './departments';
+export { NOTIFICATION_MESSAGE_MAX_LENGTH } from './notification';
+export { NOTE_CONTENT_MAX_LENGTH } from './note';
