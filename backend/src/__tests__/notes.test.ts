@@ -230,6 +230,41 @@ describe('POST /api/options/:optionId/notes returns user department name', () =>
   });
 });
 
+describe('GET /api/elements/:elementId/notes returns null department for unassigned user', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns department as null when user has no department assignment', async () => {
+    mockElementWithMembership();
+    mockedPrisma.note.findMany.mockResolvedValue([
+      {
+        id: 'note-1',
+        content: 'No department user',
+        userId: 'user-1',
+        elementId: 'elem-1',
+        optionId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: { id: 'user-1', name: 'Test User' },
+      },
+    ] as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      {
+        userId: 'user-1',
+        department: null,
+      },
+    ] as any);
+
+    const res = await request(app)
+      .get('/api/elements/elem-1/notes')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.notes[0].department).toBeNull();
+  });
+});
+
 // ── POST /api/elements/:elementId/notes ──────────────────────────
 
 describe('POST /api/elements/:elementId/notes', () => {
