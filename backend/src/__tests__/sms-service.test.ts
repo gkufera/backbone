@@ -39,4 +39,16 @@ describe('SMS Service', () => {
     );
     consoleSpy.mockRestore();
   });
+
+  it('does not log the actual verification code (S10)', async () => {
+    process.env.SMS_ENABLED = 'false';
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await sendSms('+15551234567', 'Your Slug Max verification code is: 987654');
+
+    const loggedMessage = consoleSpy.mock.calls[0]?.[0] as string;
+    expect(loggedMessage).not.toContain('987654');
+    expect(loggedMessage).toContain('+15551234567');
+    consoleSpy.mockRestore();
+  });
 });

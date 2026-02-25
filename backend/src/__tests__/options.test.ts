@@ -189,7 +189,27 @@ describe('GET /api/options/download-url', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 200 with download URL', async () => {
+  it('returns 200 with download URL when user is a member', async () => {
+    // Mock asset lookup
+    mockedPrisma.optionAsset.findFirst.mockResolvedValue({
+      id: 'asset-1',
+      optionId: 'opt-1',
+      s3Key: 'options/uuid/photo.jpg',
+      option: {
+        element: {
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    // Mock membership check
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
     mockedGenerateDownloadUrl.mockResolvedValue(
       'https://s3.amazonaws.com/bucket/options/uuid/photo.jpg?signed-get',
     );

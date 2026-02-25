@@ -22,7 +22,7 @@ describe('PDF Parser', () => {
     });
     MockedPDFParse.prototype.getText = mockGetText;
 
-    const result = await parsePdf(Buffer.from('fake pdf'));
+    const result = await parsePdf(Buffer.from('%PDF-1.4 fake pdf content'));
 
     expect(result.text).toContain('INT. OFFICE');
     expect(result.text).toContain('JOHN');
@@ -36,7 +36,7 @@ describe('PDF Parser', () => {
     });
     MockedPDFParse.prototype.getText = mockGetText;
 
-    const result = await parsePdf(Buffer.from('fake pdf'));
+    const result = await parsePdf(Buffer.from('%PDF-1.4 fake pdf content'));
 
     expect(result.pageCount).toBe(120);
   });
@@ -45,7 +45,7 @@ describe('PDF Parser', () => {
     const mockGetText = vi.fn().mockRejectedValue(new Error('Corrupted PDF'));
     MockedPDFParse.prototype.getText = mockGetText;
 
-    await expect(parsePdf(Buffer.from('bad data'))).rejects.toThrow('Corrupted PDF');
+    await expect(parsePdf(Buffer.from('%PDF-1.4 bad data'))).rejects.toThrow('Corrupted PDF');
   });
 
   it('returns per-page text when pages data is available', async () => {
@@ -59,7 +59,7 @@ describe('PDF Parser', () => {
     });
     MockedPDFParse.prototype.getText = mockGetText;
 
-    const result = await parsePdf(Buffer.from('fake pdf'));
+    const result = await parsePdf(Buffer.from('%PDF-1.4 fake pdf content'));
 
     expect(result.pageCount).toBe(2);
     expect(result.pages).toHaveLength(2);
@@ -75,10 +75,21 @@ describe('PDF Parser', () => {
     });
     MockedPDFParse.prototype.getText = mockGetText;
 
-    const result = await parsePdf(Buffer.from('fake pdf'));
+    const result = await parsePdf(Buffer.from('%PDF-1.4 fake pdf content'));
 
     expect(result.pages).toHaveLength(1);
     expect(result.pages[0]).toEqual({ pageNumber: 1, text: 'All text content' });
+  });
+
+  it('rejects non-PDF buffer (S11: magic byte validation)', async () => {
+    // PNG file header
+    const pngBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+    await expect(parsePdf(pngBuffer)).rejects.toThrow(/Invalid PDF.*magic bytes/);
+  });
+
+  it('rejects empty buffer (S11: magic byte validation)', async () => {
+    await expect(parsePdf(Buffer.alloc(0))).rejects.toThrow(/Invalid PDF.*magic bytes/);
   });
 
   it('calls destroy after parsing', async () => {
@@ -90,7 +101,7 @@ describe('PDF Parser', () => {
     });
     MockedPDFParse.prototype.destroy = mockDestroy;
 
-    await parsePdf(Buffer.from('fake pdf'));
+    await parsePdf(Buffer.from('%PDF-1.4 fake pdf content'));
 
     expect(mockDestroy).toHaveBeenCalled();
   });

@@ -12,6 +12,12 @@ export interface ParsedPdf {
 }
 
 export async function parsePdf(buffer: Buffer): Promise<ParsedPdf> {
+  // Validate PDF magic bytes (%PDF-)
+  const PDF_MAGIC = Buffer.from('%PDF-');
+  if (buffer.length < 5 || !buffer.subarray(0, 5).equals(PDF_MAGIC)) {
+    throw new Error('Invalid PDF: file does not start with %PDF- magic bytes');
+  }
+
   const parser = new PDFParse({ data: buffer });
   const textResult = await parser.getText();
 

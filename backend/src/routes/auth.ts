@@ -96,14 +96,14 @@ authRouter.post('/api/auth/login', async (req, res) => {
       return;
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      res.status(401).json({ error: 'Invalid email or password' });
-      return;
-    }
+    // Dummy hash used when user is not found to prevent timing attacks.
+    // bcrypt.compare runs in constant time regardless of whether user exists.
+    const DUMMY_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
 
-    const passwordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!passwordValid) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    const passwordValid = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
+
+    if (!user || !passwordValid) {
       res.status(401).json({ error: 'Invalid email or password' });
       return;
     }

@@ -18,15 +18,21 @@ import { directorNotesRouter } from './routes/director-notes';
 export function createApp() {
   const app = express();
 
+  app.set('trust proxy', 1);
+
   app.use(helmet());
 
   if (process.env.NODE_ENV !== 'test') {
     app.use(createGeneralLimiter());
+
+    if (!process.env.CORS_ORIGINS) {
+      throw new Error('CORS_ORIGINS environment variable is required. Set it in .env.');
+    }
   }
 
   const allowedOrigins = process.env.CORS_ORIGINS?.split(',') ?? [];
   app.use(cors(allowedOrigins.length > 0 ? { origin: allowedOrigins } : undefined));
-  app.use(express.json());
+  app.use(express.json({ limit: '1mb' }));
 
   app.use(healthRouter);
   if (process.env.NODE_ENV !== 'test') {
@@ -45,7 +51,12 @@ export function createApp() {
   app.use(directorNotesRouter);
 
   // Global error handler — safety net for any unhandled errors
-  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: Error & { status?: number; type?: string }, _req: Request, res: Response, _next: NextFunction) => {
+    // Handle body-parser errors (e.g., payload too large)
+    if (err.type === 'entity.too.large') {
+      res.status(413).json({ error: 'Request body too large' });
+      return;
+    }
     console.error('Unhandled error:', err);
     res.status(500).json({ error: 'Internal server error' });
   });

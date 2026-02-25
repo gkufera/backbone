@@ -48,10 +48,47 @@ optionsRouter.post('/api/options/upload-url', requireAuth, async (req, res) => {
 // Generate presigned download URL for option media
 optionsRouter.get('/api/options/download-url', requireAuth, async (req, res) => {
   try {
+    const authReq = req as AuthenticatedRequest;
     const s3Key = req.query.s3Key as string;
 
     if (!s3Key) {
       res.status(400).json({ error: 's3Key is required' });
+      return;
+    }
+
+    // Look up asset by s3Key to determine production membership
+    const asset = await prisma.optionAsset.findFirst({
+      where: { s3Key },
+      include: {
+        option: {
+          include: {
+            element: {
+              include: {
+                script: { select: { productionId: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!asset) {
+      res.status(404).json({ error: 'Asset not found' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: asset.option.element.script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
 

@@ -1,12 +1,10 @@
 import jwt from 'jsonwebtoken';
 
-if (!process.env.JWT_SECRET) {
-  console.warn(
-    'WARNING: JWT_SECRET is not set. Using insecure default. Set JWT_SECRET in .env for production.',
-  );
+if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
+  throw new Error('JWT_SECRET environment variable is required. Set it in .env.');
 }
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret-do-not-use-in-production';
 const JWT_EXPIRES_IN = '7d';
 
 export interface JwtPayload {

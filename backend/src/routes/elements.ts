@@ -42,6 +42,12 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
       return;
     }
 
+    // Validate type against enum if provided
+    if (type && !Object.values(ElementType).includes(type)) {
+      res.status(400).json({ error: 'Invalid element type' });
+      return;
+    }
+
     const element = await prisma.element.create({
       data: {
         scriptId,
@@ -146,6 +152,17 @@ elementsRouter.patch('/api/elements/:id', requireAuth, async (req, res) => {
 
     if (!membership) {
       res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    // Validate type and status against enums if provided
+    if (type !== undefined && !Object.values(ElementType).includes(type)) {
+      res.status(400).json({ error: 'Invalid element type' });
+      return;
+    }
+
+    if (status !== undefined && !Object.values(ElementStatus).includes(status)) {
+      res.status(400).json({ error: 'Invalid element status' });
       return;
     }
 

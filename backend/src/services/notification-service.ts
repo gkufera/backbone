@@ -29,7 +29,7 @@ export async function createNotification(
       await sendNotificationEmail(user.email, { type, message });
     }
   } catch (error) {
-    console.error('Failed to send notification email:', error);
+    console.error('Failed to send notification email:', error instanceof Error ? error.message : 'Unknown error');
   }
 
   return notification;
