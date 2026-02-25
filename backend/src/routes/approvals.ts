@@ -281,6 +281,7 @@ approvalsRouter.get('/api/productions/:productionId/feed', requireAuth, async (r
               include: { user: { select: { id: true, name: true } } },
               orderBy: { createdAt: 'desc' },
             },
+            assets: { orderBy: { sortOrder: 'asc' } },
           },
           orderBy: { createdAt: 'desc' },
         },

@@ -796,6 +796,60 @@ describe('GET /api/productions/:productionId/feed', () => {
     expect(res.body.elements[0].options[0].uploadedBy.name).toBe('Alice');
   });
 
+  it('returns options with assets array', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+    } as any);
+
+    mockedPrisma.element.findMany.mockResolvedValue([
+      {
+        id: 'elem-1',
+        name: 'JOHN',
+        type: 'CHARACTER',
+        highlightPage: 1,
+        highlightText: 'JOHN',
+        status: 'ACTIVE',
+        options: [
+          {
+            id: 'opt-1',
+            mediaType: 'IMAGE',
+            description: 'Multi-photo',
+            readyForReview: true,
+            status: 'ACTIVE',
+            uploadedBy: { id: 'user-2', name: 'Alice' },
+            approvals: [],
+            assets: [
+              { id: 'asset-1', s3Key: 'options/uuid/p1.jpg', fileName: 'p1.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+              { id: 'asset-2', s3Key: 'options/uuid/p2.jpg', fileName: 'p2.jpg', mediaType: 'IMAGE', sortOrder: 1 },
+            ],
+          },
+        ],
+      },
+    ] as any);
+
+    const res = await request(app).get('/api/productions/prod-1/feed').set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.elements[0].options[0].assets).toHaveLength(2);
+    expect(res.body.elements[0].options[0].assets[0].s3Key).toBe('options/uuid/p1.jpg');
+
+    // Verify the query includes assets
+    expect(mockedPrisma.element.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: expect.objectContaining({
+          options: expect.objectContaining({
+            include: expect.objectContaining({
+              assets: expect.anything(),
+            }),
+          }),
+        }),
+      }),
+    );
+  });
+
   it('returns 200 with empty array when no elements have ready options', async () => {
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
