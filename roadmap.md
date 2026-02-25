@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 422 frontend + 370 backend = 792 total
+**Test counts:** 427 frontend + 370 backend = 797 total
 
 ---
 
@@ -299,6 +299,9 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 ## Post-MVP (v2+) — Backlog
 
 These features are explicitly deferred. Do not work on them during MVP sprints.
+
+### Tech Debt
+- [ ] Remove `.js` extensions from backend TypeScript imports (~90 files use `.js` in import paths; works due to `tsup`/`tsx` but inconsistent with frontend and shared packages which use extensionless imports)
 
 ### High (v2)
 - [ ] Tinder-like swipe interface for mobile approval
