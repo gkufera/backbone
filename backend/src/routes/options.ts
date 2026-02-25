@@ -68,7 +68,9 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
   try {
     const authReq = req as AuthenticatedRequest;
     const { elementId } = req.params;
-    const { mediaType, description, s3Key, fileName, externalUrl, thumbnailS3Key } = req.body;
+    const { mediaType, description, externalUrl, assets } = req.body;
+    // Backwards compat: accept old s3Key/fileName for single-file upload
+    const { s3Key, fileName, thumbnailS3Key } = req.body;
 
     // Find element with script to get productionId
     const element = await prisma.element.findUnique({
@@ -129,9 +131,10 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       }
     }
 
-    // Validate file-based types require s3Key
-    if (mediaType !== MediaType.LINK && !s3Key) {
-      res.status(400).json({ error: 's3Key is required for file-based options' });
+    // Validate file-based types require assets or legacy s3Key
+    const hasAssets = Array.isArray(assets) && assets.length > 0;
+    if (mediaType !== MediaType.LINK && !s3Key && !hasAssets) {
+      res.status(400).json({ error: 's3Key or assets array is required for file-based options' });
       return;
     }
 
@@ -140,13 +143,44 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
         elementId,
         mediaType,
         description: description || null,
-        s3Key: s3Key || null,
-        fileName: fileName || null,
         externalUrl: externalUrl || null,
-        thumbnailS3Key: thumbnailS3Key || null,
         status: OptionStatus.ACTIVE,
         readyForReview: false,
         uploadedById: authReq.user.userId,
+        assets: hasAssets
+          ? {
+              create: assets.map(
+                (
+                  asset: {
+                    s3Key: string;
+                    fileName: string;
+                    thumbnailS3Key?: string;
+                    mediaType: string;
+                  },
+                  index: number,
+                ) => ({
+                  s3Key: asset.s3Key,
+                  fileName: asset.fileName,
+                  thumbnailS3Key: asset.thumbnailS3Key || null,
+                  mediaType: asset.mediaType as MediaType,
+                  sortOrder: index,
+                }),
+              ),
+            }
+          : s3Key
+            ? {
+                create: {
+                  s3Key,
+                  fileName: fileName || 'unknown',
+                  thumbnailS3Key: thumbnailS3Key || null,
+                  mediaType: mediaType as MediaType,
+                  sortOrder: 0,
+                },
+              }
+            : undefined,
+      },
+      include: {
+        assets: { orderBy: { sortOrder: 'asc' } },
       },
     });
 
@@ -197,7 +231,10 @@ optionsRouter.get('/api/elements/:elementId/options', requireAuth, async (req, r
 
     const options = await prisma.option.findMany({
       where,
-      include: { uploadedBy: { select: { id: true, name: true } } },
+      include: {
+        uploadedBy: { select: { id: true, name: true } },
+        assets: { orderBy: { sortOrder: 'asc' } },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -285,6 +322,69 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
     res.json({ option: updated });
   } catch (error) {
     console.error('Update option error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Add asset to existing option
+optionsRouter.post('/api/options/:id/assets', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { id } = req.params;
+    const { s3Key, fileName, thumbnailS3Key, mediaType } = req.body;
+
+    if (!s3Key || !fileName || !mediaType) {
+      res.status(400).json({ error: 's3Key, fileName, and mediaType are required' });
+      return;
+    }
+
+    // Find option with element→script to get productionId
+    const option = await prisma.option.findUnique({
+      where: { id },
+      include: { element: { include: { script: { select: { productionId: true } } } } },
+    });
+
+    if (!option) {
+      res.status(404).json({ error: 'Option not found' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId: option.element.script.productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    // Determine next sortOrder
+    const lastAsset = await prisma.optionAsset.findFirst({
+      where: { optionId: id },
+      orderBy: { sortOrder: 'desc' },
+    });
+    const nextSortOrder = (lastAsset?.sortOrder ?? -1) + 1;
+
+    const asset = await prisma.optionAsset.create({
+      data: {
+        optionId: id,
+        s3Key,
+        fileName,
+        thumbnailS3Key: thumbnailS3Key || null,
+        mediaType: mediaType as MediaType,
+        sortOrder: nextSortOrder,
+      },
+    });
+
+    res.status(201).json({ asset });
+  } catch (error) {
+    console.error('Add option asset error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

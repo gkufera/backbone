@@ -39,6 +39,10 @@ vi.mock('../lib/prisma.js', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    optionAsset: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+    },
     approval: {
       findFirst: vi.fn(),
     },
@@ -571,6 +575,150 @@ describe('PATCH /api/options/:id', () => {
 describe('POST /api/elements/:elementId/options (no locking)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('creates option with assets array', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      mediaType: 'IMAGE',
+      description: 'Multi-photo option',
+      externalUrl: null,
+      status: 'ACTIVE',
+      readyForReview: false,
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      assets: [
+        { id: 'asset-1', s3Key: 'options/uuid/photo1.jpg', fileName: 'photo1.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+        { id: 'asset-2', s3Key: 'options/uuid/photo2.jpg', fileName: 'photo2.jpg', mediaType: 'IMAGE', sortOrder: 1 },
+      ],
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      description: 'Multi-photo option',
+      assets: [
+        { s3Key: 'options/uuid/photo1.jpg', fileName: 'photo1.jpg', mediaType: 'IMAGE' },
+        { s3Key: 'options/uuid/photo2.jpg', fileName: 'photo2.jpg', mediaType: 'IMAGE' },
+      ],
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.option.assets).toHaveLength(2);
+    expect(res.body.option.assets[0].fileName).toBe('photo1.jpg');
+  });
+
+  it('creates LINK option without assets', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-2',
+      elementId: 'elem-1',
+      mediaType: 'LINK',
+      description: 'Reference board',
+      externalUrl: 'https://pinterest.com/board/123',
+      status: 'ACTIVE',
+      readyForReview: false,
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      assets: [],
+    } as any);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'LINK',
+      description: 'Reference board',
+      externalUrl: 'https://pinterest.com/board/123',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.option.mediaType).toBe('LINK');
+    expect(res.body.option.assets).toHaveLength(0);
+  });
+
+  it('lists options with assets included', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.findMany.mockResolvedValue([
+      {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        mediaType: 'IMAGE',
+        description: 'Photo',
+        status: 'ACTIVE',
+        readyForReview: false,
+        uploadedBy: { id: 'user-1', name: 'Test User' },
+        assets: [
+          { id: 'asset-1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+        ],
+      },
+    ] as any);
+
+    const res = await request(app).get('/api/elements/elem-1/options').set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.options[0].assets).toHaveLength(1);
+    expect(res.body.options[0].assets[0].s3Key).toBe('options/uuid/photo.jpg');
+  });
+
+  it('adds asset to existing option', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+    mockedPrisma.optionAsset.findFirst.mockResolvedValue({
+      sortOrder: 0,
+    } as any);
+    mockedPrisma.optionAsset.create.mockResolvedValue({
+      id: 'asset-2',
+      optionId: 'opt-1',
+      s3Key: 'options/uuid/photo2.jpg',
+      fileName: 'photo2.jpg',
+      mediaType: 'IMAGE',
+      sortOrder: 1,
+      createdAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
+      s3Key: 'options/uuid/photo2.jpg',
+      fileName: 'photo2.jpg',
+      mediaType: 'IMAGE',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.asset.s3Key).toBe('options/uuid/photo2.jpg');
+    expect(res.body.asset.sortOrder).toBe(1);
+  });
+
+  it('rejects asset creation for non-member', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
+      s3Key: 'options/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+      mediaType: 'IMAGE',
+    });
+
+    expect(res.status).toBe(403);
   });
 
   it('allows creation even when element has approved option', async () => {
