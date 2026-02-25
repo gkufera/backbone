@@ -32,7 +32,7 @@ fi
 
 # 5. Check gh auth
 if ! gh auth status >/dev/null 2>&1; then
-    warnings+=("gh not authenticated — run: gh auth login (on host)")
+    warnings+=("gh not authenticated — run: ~/cm auth <project>")
 fi
 
 # 6. Check notify.sh NTFY_TOPIC is not a placeholder
@@ -45,6 +45,20 @@ fi
 # 7. Check SSH key exists
 if [ ! -f /home/node/.ssh/id_ed25519 ] && [ ! -f /home/node/.ssh/id_rsa ]; then
     warnings+=("No SSH key found — run: ssh-keygen -t ed25519 (on host)")
+fi
+
+# 8. Check AWS credentials (if mounted)
+if [ -d /home/node/.aws ]; then
+    if ! aws sts get-caller-identity >/dev/null 2>&1; then
+        warnings+=("AWS credentials invalid or expired — run: ~/cm auth <project>")
+    fi
+fi
+
+# 9. Check Railway auth (if mounted)
+if [ -d /home/node/.railway ]; then
+    if ! railway whoami >/dev/null 2>&1; then
+        warnings+=("Railway not authenticated — run: ~/cm auth <project>")
+    fi
 fi
 
 # Print results
