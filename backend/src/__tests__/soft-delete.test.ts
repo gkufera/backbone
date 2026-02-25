@@ -32,6 +32,7 @@ vi.mock('../lib/prisma', () => ({
       count: vi.fn(),
     },
     option: { findMany: vi.fn() },
+    note: { findMany: vi.fn(), create: vi.fn() },
     notification: { create: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -383,6 +384,62 @@ describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
 
     // The groupBy call should include deletedAt: null
     expect(mockedPrisma.element.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ deletedAt: null }),
+      }),
+    );
+  });
+});
+
+describe('Notes department enrichment soft-delete filtering (Sprint 21)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('enrichNotesWithDepartment excludes soft-deleted production members', async () => {
+    // Element exists
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      script: { productionId: 'prod-1' },
+    } as any);
+
+    // User is a member
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+      deletedAt: null,
+    } as any);
+
+    // Notes exist
+    (mockedPrisma.note as any).findMany.mockResolvedValue([
+      {
+        id: 'note-1',
+        content: 'Test note',
+        userId: 'user-1',
+        elementId: 'elem-1',
+        createdAt: new Date(),
+        user: { id: 'user-1', name: 'Test User' },
+      },
+    ]);
+
+    // Department enrichment lookup
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      {
+        userId: 'user-1',
+        department: { name: 'Art' },
+      },
+    ] as any);
+
+    await request(app)
+      .get('/api/elements/elem-1/notes')
+      .set(authHeader());
+
+    // The findMany call for enrichment should include deletedAt: null
+    expect(mockedPrisma.productionMember.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ deletedAt: null }),
       }),

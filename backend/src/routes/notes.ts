@@ -17,7 +17,7 @@ async function enrichNotesWithDepartment(
 
   const uniqueUserIds = [...new Set(notes.map((n) => n.userId))];
   const members = await prisma.productionMember.findMany({
-    where: { productionId, userId: { in: uniqueUserIds } },
+    where: { productionId, userId: { in: uniqueUserIds }, deletedAt: null },
     include: { department: { select: { name: true } } },
   });
 
