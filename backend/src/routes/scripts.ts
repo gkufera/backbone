@@ -7,9 +7,10 @@ import { processScript } from '../services/script-processor';
 import { processRevision } from '../services/revision-processor';
 import { getProgress } from '../services/processing-progress';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
-import { ScriptStatus, ElementStatus, ElementSource, ElementType, NotificationType, OptionStatus, ApprovalDecision } from '@backbone/shared/types';
+import { ScriptStatus, ElementStatus, NotificationType, OptionStatus, ApprovalDecision } from '@backbone/shared/types';
 import type { SceneInfo } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
+import { generateImpliedElements } from '../services/implied-elements';
 
 const scriptsRouter = Router();
 
@@ -542,87 +543,9 @@ scriptsRouter.post('/api/scripts/:scriptId/generate-implied', requireAuth, async
       return;
     }
 
-    // Look up Costume and Hair & Makeup departments
-    const departments = await prisma.department.findMany({
-      where: { productionId: script.productionId },
-      select: { id: true, name: true },
-    });
-    const deptMap = new Map(departments.map((d) => [d.name, d.id]));
-    const costumeId = deptMap.get('Costume') ?? null;
-    const hmId = deptMap.get('Hair & Makeup') ?? null;
+    const count = await generateImpliedElements(scriptId, script.productionId, sceneData, mode);
 
-    // Collect all unique characters from sceneData
-    const elementsToCreate: Array<{
-      scriptId: string;
-      name: string;
-      type: string;
-      departmentId: string | null;
-      status: string;
-      source: string;
-    }> = [];
-
-    if (mode === 'per-scene') {
-      for (const scene of sceneData) {
-        for (const character of scene.characters) {
-          elementsToCreate.push({
-            scriptId,
-            name: `${character} - Wardrobe (Scene ${scene.sceneNumber})`,
-            type: ElementType.OTHER,
-            departmentId: costumeId,
-            status: ElementStatus.ACTIVE,
-            source: ElementSource.AUTO,
-          });
-          elementsToCreate.push({
-            scriptId,
-            name: `${character} - Hair & Makeup (Scene ${scene.sceneNumber})`,
-            type: ElementType.OTHER,
-            departmentId: hmId,
-            status: ElementStatus.ACTIVE,
-            source: ElementSource.AUTO,
-          });
-        }
-      }
-    } else {
-      // per-character: one wardrobe + one H&M per unique character
-      const allCharacters = new Set<string>();
-      for (const scene of sceneData) {
-        for (const character of scene.characters) {
-          allCharacters.add(character);
-        }
-      }
-      for (const character of allCharacters) {
-        elementsToCreate.push({
-          scriptId,
-          name: `${character} - Wardrobe`,
-          type: ElementType.OTHER,
-          departmentId: costumeId,
-          status: ElementStatus.ACTIVE,
-          source: ElementSource.AUTO,
-        });
-        elementsToCreate.push({
-          scriptId,
-          name: `${character} - Hair & Makeup`,
-          type: ElementType.OTHER,
-          departmentId: hmId,
-          status: ElementStatus.ACTIVE,
-          source: ElementSource.AUTO,
-        });
-      }
-    }
-
-    // Filter out elements that already exist to prevent duplicates on re-run
-    const existing = await prisma.element.findMany({
-      where: { scriptId, status: ElementStatus.ACTIVE },
-      select: { name: true },
-    });
-    const existingNames = new Set(existing.map((e) => e.name));
-    const filtered = elementsToCreate.filter((e) => !existingNames.has(e.name));
-
-    if (filtered.length > 0) {
-      await prisma.element.createMany({ data: filtered });
-    }
-
-    res.json({ message: `Created ${filtered.length} implied elements`, count: filtered.length });
+    res.json({ message: `Created ${count} implied elements`, count });
   } catch (error) {
     console.error('Generate implied elements error:', error);
     res.status(500).json({ error: 'Internal server error' });
