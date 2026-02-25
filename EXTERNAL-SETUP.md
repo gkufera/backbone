@@ -176,22 +176,48 @@ Currently **no secrets are required** — both Tier 1 and E2E workflows use only
 
 ## Server Container Setup (Hetzner — `claude-server`)
 
-One-time tasks to get the backbone container fully operational on the remote server.
+One-time credential setup for the backbone container. Everything else
+(CLI installation, container management, config validation) is automated
+by the `cm` script and `validate-config.sh`.
 
-### On the server host (SSH in first)
+### Authenticate CLIs
 
-- [ ] **SSH keys**: `ls ~/.ssh/id_ed25519` — if missing, run `ssh-keygen -t ed25519` and add pubkey to GitHub
-- [ ] **Git config**: `git config --global user.name` and `git config --global user.email` — set if empty
-- [ ] **GitHub CLI**: `gh auth status` — if not logged in, run `gh auth login`
-- [ ] **AWS credentials**: `aws sts get-caller-identity` — if fails, run `aws configure`
-- [ ] **Railway CLI**: `railway whoami` — if fails, run `railway login`
-- [ ] **ntfy topic**: Verify `.devcontainer/notify.sh` has the correct `NTFY_TOPIC` (not a placeholder)
+SSH into the server and run the auth setup container. This gives you
+an interactive shell with gh, aws, and railway CLIs pre-installed.
+Auth credentials are saved to the host and mounted into future containers.
 
-### After container starts
+```bash
+ssh claude-server
+~/cm auth backbone
+# Inside the container:
+gh auth login          # Follow device code flow (opens URL on your phone/laptop)
+aws configure          # Enter: Access Key ID, Secret Access Key, us-east-1, json
+railway login          # Follow browser auth flow
+exit
+```
 
-- [ ] `~/cm a backbone` starts without errors
-- [ ] `validate-config.sh` shows no warnings
-- [ ] Phone receives ntfy notification saying "Slug Max"
-- [ ] Inside container: `gh auth status` works
-- [ ] Inside container: `aws sts get-caller-identity` works
-- [ ] Inside container: `git push` works (SSH key mounted)
+### SSH Key + Git Config (on host)
+
+```bash
+ssh claude-server
+ssh-keygen -t ed25519                                    # If ~/.ssh/id_ed25519 doesn't exist
+# Add pubkey to GitHub: Settings > SSH keys
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+### Subscribe to Notifications
+
+1. Install the [ntfy app](https://ntfy.sh/) on your phone
+2. Subscribe to the topic in `.devcontainer/notify.sh` (`NTFY_TOPIC` variable)
+3. Verify: `~/cm a backbone` → phone receives "Slug Max" notification
+
+### Troubleshooting
+
+| Warning from validate-config.sh | Fix |
+|--------------------------------|-----|
+| gh not authenticated | `~/cm auth backbone` → `gh auth login` |
+| AWS credentials invalid | `~/cm auth backbone` → `aws configure` |
+| Railway not authenticated | `~/cm auth backbone` → `railway login` |
+| No SSH key found | On host: `ssh-keygen -t ed25519`, add pubkey to GitHub |
+| git user.name not set | On host: `git config --global user.name "Name"` |
