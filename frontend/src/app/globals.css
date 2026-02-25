@@ -335,32 +335,41 @@ select:focus {
 /* ── Approval Color Buttons (exception to 1-bit rule, like dept colors) */
 
 .approval-btn-approved {
-  background-color: #00A651;
+  background: #000;
   color: #fff;
   border: 2px solid #000;
 }
 .approval-btn-approved:hover:not(:disabled) {
-  background-color: #008c44;
-  color: #fff;
+  background: #fff;
+  color: #000;
 }
 
 .approval-btn-maybe {
-  background-color: #FFD700;
+  background: repeating-conic-gradient(
+    #000 0% 25%,
+    #fff 0% 50%
+  ) 50% / 6px 6px;
   color: #000;
   border: 2px solid #000;
 }
 .approval-btn-maybe:hover:not(:disabled) {
-  background-color: #e6c200;
-  color: #000;
+  background: #000;
+  color: #fff;
 }
 
 .approval-btn-rejected {
-  background-color: #E63946;
-  color: #fff;
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff,
+    #fff 3px,
+    #000 3px,
+    #000 6px
+  );
+  color: #000;
   border: 2px solid #000;
 }
 .approval-btn-rejected:hover:not(:disabled) {
-  background-color: #c72d39;
+  background: #000;
   color: #fff;
 }
 
