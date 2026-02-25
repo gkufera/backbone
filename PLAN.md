@@ -1,7 +1,17 @@
 # Current Plan
 
 ## Active Task
-Sprint 21 complete. All deferred fixes from Sprints 17 & 19 resolved.
+Sprint 22 complete. All 12 globals.css color violations fixed with 1-bit patterns.
+
+## Completed: Sprint 22 (Fix Color Violations in globals.css) ✅
+
+Fixed 12 prohibited hex color values (green #00A651, gold #FFD700, red #E63946) in globals.css:
+- Approval buttons: green → inverted, gold → checkerboard, red → diagonal stripes
+- Option borders: green → 4px solid black, red → 2px dashed black
+- Rejected overlay: red → black
+- Temperature indicators: all → black, with distinct glyphs (● approved, ◐ mixed, ○ rejected)
+- Added globals.css hex color compliance test
+- Removed misleading "exception to 1-bit rule" CSS comment
 
 ## Completed: Sprint 15 (Critical Security Hardening) ✅
 
@@ -69,9 +79,9 @@ Fixed gaps identified in post-sprint review:
 - Updated roadmap.md test count from 843 to 849
 
 ## Test Counts
-- **Frontend**: 432 tests
-- **Backend**: 417 tests (+1 notes soft-delete test)
-- **Total**: 849 tests
+- **Frontend**: 434 tests (+1 hex color compliance, +1 temp glyph)
+- **Backend**: 420 tests
+- **Total**: 854 tests
 
 ## Security Audit Summary
 

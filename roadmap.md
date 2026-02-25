@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 432 frontend + 417 backend = 849 total
+**Test counts:** 434 frontend + 420 backend = 854 total
 
 ---
 
@@ -373,9 +373,9 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 - [x] Automated design-system compliance tests (no prohibited colors, no bg-opacity, no rounded, no shadow, no dark mode)
 
 ### Notes
-- No color violations were found (approval buttons, option borders, temperature indicators already use correct 1-bit patterns from globals.css badge classes)
 - 15 font-weight violations fixed across 13 files
 - 1 opacity violation fixed
+- **Color violations were NOT fixed in Sprint 18** — they were incorrectly reported as "already correct." Fixed in Sprint 22.
 
 ### Tests
 - 5 new automated tests: no bg-opacity, no prohibited colors, no rounded, no shadows, no dark mode
@@ -413,6 +413,30 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 - productions.ts and auth.ts are within the 400-600 "Comfortable" threshold per CLAUDE.md file size guidelines
 - Forcing extraction on those files would create artificial abstractions with no real benefit
 - All 843 tests continue passing (pure refactor, no behavior changes)
+
+---
+
+## Sprint 22: Fix Color Violations in globals.css ✅
+
+**Goal:** Replace all 12 prohibited hex color values in globals.css with 1-bit patterns.
+
+### Tasks
+
+- [x] Add globals.css hex color compliance test (scans for non-#000/#fff hex values)
+- [x] Replace approval button colors: green → inverted, gold → checkerboard, red → diagonal stripes
+- [x] Replace option border colors: green → 4px solid black, red → 2px dashed black + grayscale
+- [x] Replace rejected overlay color: red → black
+- [x] Replace temperature indicator colors: all → black, with distinct glyphs (● approved, ◐ mixed, ○ rejected)
+- [x] Remove misleading "exception to 1-bit rule" CSS comment
+
+### Notes
+- These 12 violations were identified in the codebase audit (commit c39eda8) as Critical violation C2
+- Sprint 18 incorrectly skipped them, claiming "No color violations were found"
+- Existing compliance tests only scanned .tsx files for Tailwind color classes — new test scans globals.css for hex values
+
+### Tests
+- 1 new compliance test: globals.css hex color scan (catches all prohibited hex values)
+- 1 new element-list test: distinct temperature glyphs per state
 
 ---
 

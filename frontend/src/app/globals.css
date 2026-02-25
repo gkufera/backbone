@@ -332,7 +332,7 @@ select:focus {
   right: -4px;
 }
 
-/* ── Approval Color Buttons (exception to 1-bit rule, like dept colors) */
+/* ── Approval Buttons (1-bit patterns) ─────────────────── */
 
 .approval-btn-approved {
   background: #000;
