@@ -296,6 +296,81 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ---
 
+## Sprint 15: Immutability & Soft-Delete (~500 LOC)
+
+**Goal:** Fix all hard-delete violations. Add deletedAt fields. Replace prisma.delete() with soft-delete.
+
+### Tasks
+
+- [ ] Schema migration — add `deletedAt DateTime?` to Element, ProductionMember, Department
+- [ ] Replace element hard-delete with soft-delete (elements.ts)
+- [ ] Replace productionMember hard-delete with soft-delete (productions.ts)
+- [ ] Replace department hard-delete with soft-delete (departments.ts)
+- [ ] Update all queries on these models to filter `deletedAt: null`
+
+### Tests
+- Schema has deletedAt on required models
+- DELETE endpoints set deletedAt instead of removing records
+- Queries exclude soft-deleted records
+
+---
+
+## Sprint 16: Design System Compliance (~400 LOC)
+
+**Goal:** Replace all color violations with 1-bit patterns. Fix font system violations.
+
+### Tasks
+
+- [ ] Replace approval button colors (green/yellow/red) with 1-bit patterns (inversion, stripes, checkerboard)
+- [ ] Replace option border colors with 1-bit border-weight/style patterns
+- [ ] Replace temperature indicator colors with 1-bit patterns
+- [ ] Fix lightbox backdrop `bg-opacity-90` → solid `bg-white`
+- [ ] Fix font-bold/font-medium on VT323 elements (user-nav, element-list)
+- [ ] Add missing `font-mono` to body text spans (discussion-box, element-detail-panel, option-lightbox)
+- [ ] Remove unnecessary font-bold from home tagline, login signup link
+
+### Tests
+- CSS classes contain no hex colors other than #000/#fff (except department colors)
+- No bg-opacity in component files (except disabled:opacity-50)
+- No font-bold/font-medium on non-font-mono elements
+
+---
+
+## Sprint 17: Single Source of Truth (~300 LOC)
+
+**Goal:** Replace hardcoded status strings with shared enum values. Move magic constants to shared/.
+
+### Tasks
+
+- [ ] Replace 14+ hardcoded status strings in backend routes/services with shared enum imports
+- [ ] Move SALT_ROUNDS, JWT_EXPIRES_IN, rate limit values to shared/constants/
+- [ ] Replace 50+ hardcoded test values with shared enum/constant imports
+- [ ] Complete routes barrel export (6/13 → 13/13)
+- [ ] Strengthen weak test assertions (toBeDefined → specific values)
+
+### Tests
+- No hardcoded status strings in backend source files
+- All magic constants importable from shared/
+- Tests use shared constants instead of hardcoded strings
+
+---
+
+## Sprint 18: Backend Route Refactoring (~600 LOC, net neutral)
+
+**Goal:** Split oversized route files into router + service layers.
+
+### Tasks
+
+- [ ] Extract script service from scripts.ts (628 → ~250 lines)
+- [ ] Extract production member + stats services from productions.ts (599 → ~250 lines)
+- [ ] Extract auth service from auth.ts (509 → ~200 lines)
+
+### Tests
+- All existing tests continue passing (pure refactor, no behavior changes)
+- Each route file under 400 lines after extraction
+
+---
+
 ## Post-MVP (v2+) — Backlog
 
 These features are explicitly deferred. Do not work on them during MVP sprints.
