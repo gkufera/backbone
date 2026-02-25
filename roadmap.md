@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 420 frontend + 367 backend = 787 total
+**Test counts:** 421 frontend + 370 backend = 791 total
 
 ---
 
@@ -269,11 +269,11 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ### Tasks
 
-- [ ] E2E test infrastructure (GitHub Actions CI/CD)
-  - Set up GitHub Actions workflow for Playwright E2E tests
-  - Docker Compose for test DB + backend + frontend
-  - Run E2E on PR and push to main
-  - Gate merges on green E2E suite
+- [x] E2E test infrastructure (GitHub Actions CI/CD)
+  - Tier 1 workflow: parallel frontend + backend Vitest on push/PR to main
+  - E2E workflow: PostgreSQL service, backend/frontend build+start, Playwright Chromium
+  - Artifact upload for HTML report and traces on failure
+  - Concurrency groups to cancel redundant runs
 
 - [ ] AWS SES email integration (carried from Sprint 13)
   - Verify `slugmax.com` domain in AWS SES
