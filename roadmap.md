@@ -2,17 +2,17 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 400 frontend + 357 backend = 757 total
+**Test counts:** 420 frontend + 367 backend = 787 total
 
 ---
 
-## Sprint 8.5: Element/Approval Polish (Deferred)
+## Sprint 8.5: Element/Approval Polish ✅
 
 Items identified during QA but requiring schema migrations or cross-cutting backend changes.
 
-- [ ] Multi-asset options (slideshow of multiple files per option) — requires `OptionAsset` schema migration
-- [ ] Slideshow left/right arrow navigation in lightbox — depends on multi-asset model
-- [ ] Discussion box auto-display of user name and department when composing notes
+- [x] Multi-asset options (slideshow of multiple files per option) — `OptionAsset` schema migration, backend CRUD, frontend multi-file upload
+- [x] Slideshow left/right arrow navigation in lightbox — prev/next buttons, keyboard arrows, asset counter
+- [x] Discussion box auto-display of user name and department when composing notes — backend department enrichment, frontend display
 
 ---
 
@@ -260,6 +260,39 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 - Phone verification: send code, verify code, reject bad/expired code (+7 backend, +4 frontend)
 - SMS service: logs when disabled (+2)
 - Seed data: users have required fields, elements have valid types (+2)
+
+---
+
+## Sprint 14: E2E CI/CD & Infrastructure
+
+**Goal:** Automated end-to-end testing pipeline and deferred infrastructure tasks.
+
+### Tasks
+
+- [ ] E2E test infrastructure (GitHub Actions CI/CD)
+  - Set up GitHub Actions workflow for Playwright E2E tests
+  - Docker Compose for test DB + backend + frontend
+  - Run E2E on PR and push to main
+  - Gate merges on green E2E suite
+
+- [ ] AWS SES email integration (carried from Sprint 13)
+  - Verify `slugmax.com` domain in AWS SES
+  - Add DKIM/SPF/DMARC DNS records to Cloudflare
+  - Set Railway env vars for SMTP
+
+- [ ] S3/CloudFront CDN for media (carried from Sprint 13)
+  - Configure S3 bucket policy for public read on media objects
+  - Set up CloudFront distribution pointing to S3 bucket
+  - Update option URLs to use CloudFront domain
+
+- [ ] Performance audit (carried from Sprint 13)
+  - Run Lighthouse on key pages (home, production, script viewer)
+  - Measure API response times for critical endpoints
+  - Optimize any endpoints > 500ms
+
+- [ ] Final QA pass (carried from Sprint 13)
+  - Run all Tier 1 and Tier 2 tests
+  - Playwright E2E on desktop + mobile viewports
 
 ---
 
