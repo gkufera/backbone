@@ -66,17 +66,28 @@ export const DEMO_OPTIONS = [
     mediaType: 'LINK' as const,
     description: 'Elena character reference — young woman in her 30s, determined expression',
     externalUrl: 'https://example.com/elena-ref',
+    assets: undefined as
+      | Array<{ s3Key: string; fileName: string; mediaType: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' }>
+      | undefined,
   },
   {
     elementIndex: 1, // MARCUS
-    mediaType: 'LINK' as const,
-    description: 'Marcus character reference — older gentleman, wise appearance',
-    externalUrl: 'https://example.com/marcus-ref',
+    mediaType: 'IMAGE' as const,
+    description: 'Marcus costume reference photos — multiple angles',
+    externalUrl: undefined as string | undefined,
+    assets: [
+      { s3Key: 'demo/marcus-front.jpg', fileName: 'marcus-front.jpg', mediaType: 'IMAGE' as const },
+      { s3Key: 'demo/marcus-side.jpg', fileName: 'marcus-side.jpg', mediaType: 'IMAGE' as const },
+      { s3Key: 'demo/marcus-back.jpg', fileName: 'marcus-back.jpg', mediaType: 'IMAGE' as const },
+    ],
   },
   {
     elementIndex: 2, // THE MIDNIGHT GARDEN
     mediaType: 'LINK' as const,
     description: 'Garden location inspiration — overgrown Victorian garden at night',
     externalUrl: 'https://example.com/garden-ref',
+    assets: undefined as
+      | Array<{ s3Key: string; fileName: string; mediaType: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' }>
+      | undefined,
   },
-] as const;
+];

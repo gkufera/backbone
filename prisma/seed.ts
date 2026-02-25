@@ -80,16 +80,26 @@ async function main() {
     console.log(`  Created element: ${element.name} (${element.type})`);
   }
 
-  // Create options
+  // Create options (with assets for file-based options)
   for (const optionData of DEMO_OPTIONS) {
     const option = await prisma.option.create({
       data: {
         elementId: elements[optionData.elementIndex].id,
         mediaType: optionData.mediaType,
         description: optionData.description,
-        externalUrl: optionData.externalUrl,
+        externalUrl: optionData.externalUrl || null,
         readyForReview: true,
         uploadedById: users[2].id, // Crew member uploads
+        assets: optionData.assets
+          ? {
+              create: optionData.assets.map((asset, index) => ({
+                s3Key: asset.s3Key,
+                fileName: asset.fileName,
+                mediaType: asset.mediaType,
+                sortOrder: index,
+              })),
+            }
+          : undefined,
       },
     });
     console.log(`  Created option for ${elements[optionData.elementIndex].name}: ${option.description?.slice(0, 40)}...`);
