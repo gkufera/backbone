@@ -8,15 +8,15 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Infrastructure Status
 
-| Service | Status | Notes |
-|---------|--------|-------|
-| Railway (frontend) | Running | slugmax.com |
-| Railway (backend) | Running | api.slugmax.com |
-| PostgreSQL | Running | Railway-managed |
-| AWS S3 | Running | slugmax-uploads bucket |
-| AWS SES | Sandbox | Domain verified (DKIM SUCCESS). Production access pending (case #177205820000226) |
-| Cloudflare DNS | Configured | Frontend, API, DKIM, SPF, DMARC records all set |
-| GitHub CI/CD | Tier 1 passing | E2E fixed in Sprint 23 (port conflict resolved) |
+| Service            | Status         | Notes                                                                             |
+| ------------------ | -------------- | --------------------------------------------------------------------------------- |
+| Railway (frontend) | Running        | slugmax.com                                                                       |
+| Railway (backend)  | Running        | api.slugmax.com                                                                   |
+| PostgreSQL         | Running        | Railway-managed                                                                   |
+| AWS S3             | Running        | slugmax-uploads bucket                                                            |
+| AWS SES            | Sandbox        | Domain verified (DKIM SUCCESS). Production access pending (case #177205820000226) |
+| Cloudflare DNS     | Configured     | Frontend, API, DKIM, SPF, DMARC records all set                                   |
+| GitHub CI/CD       | Tier 1 passing | E2E fixed in Sprint 23 (port conflict resolved)                                   |
 
 ---
 
@@ -63,44 +63,37 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
   - Optimize any endpoints > 500ms
 - [ ] Full QA pass
   - All Tier 1 tests pass
-  - All Tier 2 E2E tests pass (Playwright on desktop + mobile viewports)
-  - Manual walkthrough: signup → verify email → create production → upload script → tag elements → upload options → approve
+  - All Tier 2 E2E tests pass (Playwright on desktop + mobile viewports) - this runs in Github Actions
 
 ---
 
-## Backlog (v2+)
+## Following sprints - once you get here, first investigate these issues and split them into sprints.
+
+- [ ] Custom MAIL FROM domain for full DMARC alignment
+- [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, and then generate a PDF of that FDX file so that everything works better. Note in the software in a tooltip that this works better, and that the AI that pulls tags is very inaccurate.
+- [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department as well as a director and a production coordinator.
+
+---
+
+## Backlog Optimization Ideas (v2+)
 
 Explicitly deferred. Do not work on these during current sprints.
 
 ### Infrastructure
+
 - [ ] CloudFront CDN for S3 media (optimization — not needed until real user load)
 - [ ] Redis for session/rate-limit persistence
-- [ ] Custom MAIL FROM domain for full DMARC alignment
+- [ ] Per-project subscription billing (Stripe)
+- [ ] Enterprise SSO (SAML)
 
-### High (v2)
+### Features
+
+- [ ] React Native iOS/Android apps with offline sync
 - [ ] Tinder-like swipe interface for mobile approval
 - [ ] Storyboard panel support (visual options with sequential ordering)
 - [ ] VR/3D model link support for set design options
-- [ ] Advanced analytics (% elements done, time-to-decision)
-- [ ] Due dates on elements with overdue highlighting
-- [ ] Multiple decision-makers (require two directors to agree)
-- [ ] Google OAuth provider
-
-### Medium (v2-v3)
+- [ ] OAuth providers / Okta
 - [ ] Google Drive / Dropbox integration for file import
 - [ ] Frame.io integration for video review
 - [ ] Scriptation integration for annotated script import/export
-- [ ] FDX (Final Draft) script format support
-- [ ] Fountain script format support
-- [ ] Offline support (mobile apps cache scripts/options for review)
-- [ ] AI-assisted option suggestions (image search, similar options)
-- [ ] Slack webhook integration for push alerts
-
-### Low (v3+)
-- [ ] Native iOS/Android apps with offline sync
-- [ ] ShotGrid integration for VFX pipeline studios
-- [ ] Casting website integration (CSV import)
-- [ ] Per-project subscription billing (Stripe)
-- [ ] Enterprise SSO (SAML)
 - [ ] Cascading approvals (Lead Designer → Director multi-tier)
-- [ ] Call-sheet auto-updates on element approval changes
