@@ -232,6 +232,131 @@ describe('OptionLightbox', () => {
     expect(link).toHaveAttribute('href', 'https://example.com/ref');
   });
 
+  // --- Slideshow navigation tests ---
+
+  const multiAssetOption = {
+    ...baseOption,
+    assets: [
+      { id: 'a1', s3Key: 'options/uuid/photo1.jpg', fileName: 'photo1.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-1', createdAt: new Date().toISOString() },
+      { id: 'a2', s3Key: 'options/uuid/photo2.jpg', fileName: 'photo2.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 1, optionId: 'opt-1', createdAt: new Date().toISOString() },
+      { id: 'a3', s3Key: 'options/uuid/photo3.jpg', fileName: 'photo3.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 2, optionId: 'opt-1', createdAt: new Date().toISOString() },
+    ],
+  };
+
+  it('shows left/right arrows for multi-asset option', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/photo1.jpg');
+
+    render(
+      <OptionLightbox
+        option={multiAssetOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Previous asset' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next asset' })).toBeInTheDocument();
+  });
+
+  it('hides arrows for single-asset option', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/photo.jpg');
+
+    render(
+      <OptionLightbox
+        option={baseOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Previous asset' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next asset' })).not.toBeInTheDocument();
+  });
+
+  it('right arrow advances to next asset', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/img.jpg');
+
+    render(
+      <OptionLightbox
+        option={multiAssetOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    // Initially at 1 / 3
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('1 / 3');
+
+    // Click next
+    fireEvent.click(screen.getByRole('button', { name: 'Next asset' }));
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('2 / 3');
+  });
+
+  it('left arrow goes to previous asset', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/img.jpg');
+
+    render(
+      <OptionLightbox
+        option={multiAssetOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    // Advance to asset 2
+    fireEvent.click(screen.getByRole('button', { name: 'Next asset' }));
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('2 / 3');
+
+    // Go back
+    fireEvent.click(screen.getByRole('button', { name: 'Previous asset' }));
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('1 / 3');
+  });
+
+  it('arrow keys navigate between assets', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/img.jpg');
+
+    render(
+      <OptionLightbox
+        option={multiAssetOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('1 / 3');
+
+    // ArrowRight advances
+    fireEvent.keyDown(document, { key: 'ArrowRight' });
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('2 / 3');
+
+    fireEvent.keyDown(document, { key: 'ArrowRight' });
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('3 / 3');
+
+    // ArrowRight at end does nothing
+    fireEvent.keyDown(document, { key: 'ArrowRight' });
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('3 / 3');
+
+    // ArrowLeft goes back
+    fireEvent.keyDown(document, { key: 'ArrowLeft' });
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('2 / 3');
+  });
+
+  it('shows asset counter (1 / 3)', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/img.jpg');
+
+    render(
+      <OptionLightbox
+        option={multiAssetOption}
+        onClose={vi.fn()}
+        onApprove={vi.fn()}
+      />,
+    );
+
+    const counter = screen.getByTestId('asset-counter');
+    expect(counter).toBeInTheDocument();
+    expect(counter).toHaveTextContent('1 / 3');
+  });
+
   it('renders approval history when approvals are provided', () => {
     (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue(null);
 
