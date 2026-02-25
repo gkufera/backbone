@@ -20,7 +20,7 @@ export async function processRevision(
 
     // Step 3: Load existing elements from parent script
     const existingElements = await prisma.element.findMany({
-      where: { scriptId: parentScriptId },
+      where: { scriptId: parentScriptId, deletedAt: null },
     });
 
     // Step 4: Run element matcher

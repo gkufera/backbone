@@ -31,7 +31,7 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
     let departmentMap: Map<string, string> | null = null;
     if (script?.productionId) {
       const departments = await prisma.department.findMany({
-        where: { productionId: script.productionId },
+        where: { productionId: script.productionId, deletedAt: null },
         select: { id: true, name: true },
       });
       departmentMap = new Map(departments.map((d) => [d.name, d.id]));

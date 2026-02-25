@@ -15,7 +15,7 @@ vi.mock('../lib/prisma', () => ({
       delete: vi.fn(),
       count: vi.fn(),
     },
-    script: { findUnique: vi.fn(), findMany: vi.fn() },
+    script: { findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn(), create: vi.fn() },
     element: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -23,6 +23,7 @@ vi.mock('../lib/prisma', () => ({
       delete: vi.fn(),
       count: vi.fn(),
       groupBy: vi.fn(),
+      createMany: vi.fn(),
     },
     department: {
       findUnique: vi.fn(),
@@ -54,9 +55,39 @@ vi.mock('../services/sms-service', () => ({
   sendSms: vi.fn(),
 }));
 
+vi.mock('../services/pdf-parser', () => ({
+  parsePdf: vi.fn(),
+}));
+
+vi.mock('../services/element-detector', () => ({
+  detectElements: vi.fn(),
+}));
+
+vi.mock('../services/element-matcher', () => ({
+  matchElements: vi.fn(),
+}));
+
+vi.mock('../services/processing-progress', () => ({
+  setProgress: vi.fn(),
+  clearProgress: vi.fn(),
+}));
+
 import { prisma } from '../lib/prisma';
 
 const mockedPrisma = vi.mocked(prisma);
+
+import { generateImpliedElements } from '../services/implied-elements';
+import { processScript } from '../services/script-processor';
+import { processRevision } from '../services/revision-processor';
+import { getFileBuffer } from '../lib/s3';
+import { parsePdf } from '../services/pdf-parser';
+import { detectElements } from '../services/element-detector';
+import { matchElements } from '../services/element-matcher';
+
+const mockedGetFileBuffer = vi.mocked(getFileBuffer);
+const mockedParsePdf = vi.mocked(parsePdf);
+const mockedDetectElements = vi.mocked(detectElements);
+const mockedMatchElements = vi.mocked(matchElements);
 
 const testUser = {
   userId: 'user-1',
@@ -384,6 +415,56 @@ describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
 
     // The groupBy call should include deletedAt: null
     expect(mockedPrisma.element.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ deletedAt: null }),
+      }),
+    );
+  });
+
+  it('generateImpliedElements excludes soft-deleted departments', async () => {
+    mockedPrisma.department.findMany.mockResolvedValue([]);
+    mockedPrisma.element.findMany.mockResolvedValue([]);
+
+    await generateImpliedElements('script-1', 'prod-1', [], 'per-character');
+
+    expect(mockedPrisma.department.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ deletedAt: null }),
+      }),
+    );
+  });
+
+  it('processScript excludes soft-deleted departments', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('%PDF-'));
+    mockedParsePdf.mockResolvedValue({ pages: [], pageCount: 0 } as any);
+    mockedDetectElements.mockReturnValue({ elements: [], sceneData: [] } as any);
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      productionId: 'prod-1',
+      parentScriptId: null,
+    } as any);
+    mockedPrisma.department.findMany.mockResolvedValue([]);
+    (mockedPrisma.script as any).update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 's3key');
+
+    expect(mockedPrisma.department.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ deletedAt: null }),
+      }),
+    );
+  });
+
+  it('processRevision excludes soft-deleted elements from parent script', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('%PDF-'));
+    mockedParsePdf.mockResolvedValue({ pages: [], pageCount: 0 } as any);
+    mockedDetectElements.mockReturnValue({ elements: [], sceneData: [] } as any);
+    mockedPrisma.element.findMany.mockResolvedValue([]);
+    mockedMatchElements.mockReturnValue({ matches: [], missing: [] } as any);
+    mockedPrisma.$transaction.mockImplementation(async () => {});
+
+    await processRevision('new-script', 'parent-script', 's3key');
+
+    expect(mockedPrisma.element.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ deletedAt: null }),
       }),

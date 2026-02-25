@@ -14,7 +14,7 @@ export async function generateImpliedElements(
 ): Promise<number> {
   // Look up Costume and Hair & Makeup departments
   const departments = await prisma.department.findMany({
-    where: { productionId },
+    where: { productionId, deletedAt: null },
     select: { id: true, name: true },
   });
   const deptMap = new Map(departments.map((d) => [d.name, d.id]));
