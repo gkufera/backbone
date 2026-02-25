@@ -191,12 +191,17 @@ The goal: no deployment failure should ever happen twice for the same reason.
 
 This project uses [claude-project-template](https://github.com/gkufera/claude-project-template) for Claude Code infrastructure (Docker container, firewall, notifications, server management). See that repo's README for full documentation.
 
+### Architecture
+
+CLIs (`gh`, `aws`, `railway`) are installed **inside Docker containers** via the Dockerfile. The server host is just a Docker host running multiple containers — one per project, each with its own Claude instance. Auth credentials live on the host in `~/.config/gh/`, `~/.aws/`, `~/.railway/` and are mounted read-only into containers. To set up or refresh credentials, use `~/cm auth <project>` which starts a temporary container with **writable** auth mounts. Config validation runs on both start and re-attach, catching expired tokens between sessions.
+
 ### Quick Reference
 
 ```bash
-~/cm a backbone     # Smart attach: start → restart → attach
-~/cm x backbone     # Stop and remove container
-~/cm r backbone     # Rebuild image after .devcontainer/ changes
+~/cm a  backbone    # Smart attach: start → restart → attach
+~/cm au backbone    # Auth setup: interactive shell with writable credential mounts
+~/cm x  backbone    # Stop and remove container
+~/cm r  backbone    # Rebuild image after .devcontainer/ changes
 ~/cm st             # Show status of all projects
 ```
 
