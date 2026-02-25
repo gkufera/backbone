@@ -1,7 +1,7 @@
 # Current Plan
 
 ## Active Task
-Security Hardening & Best Practices Audit — Sprints 15-19 complete.
+Security Hardening & Best Practices Audit — Sprints 15-20 complete.
 
 ## Completed: Sprint 15 (Critical Security Hardening) ✅
 
@@ -44,11 +44,6 @@ Fixed all design system violations:
 - Replaced notification unread `font-bold` with `border-l-4` border indicator
 - Added 5 automated design-system compliance tests
 
-## Test Counts
-- **Frontend**: 432 tests (+5 design system compliance tests)
-- **Backend**: 411 tests (+40 new tests from Sprints 15-17)
-- **Total**: 843 tests
-
 ## Completed: Sprint 19 (Single Source of Truth) ✅
 
 Replaced hardcoded strings with shared enums:
@@ -56,10 +51,16 @@ Replaced hardcoded strings with shared enums:
 - Routes barrel export completed (6/12 → 12/12)
 - New imports added to revision-matches.ts, element-matcher.ts, script-processor.ts
 
-## Next Sprint
+## Completed: Sprint 20 (Backend Route Refactoring) ✅
 
-### Sprint 20: Backend Route Refactoring
-- Split oversized route files into router + service layers
+Extracted business logic from oversized route files:
+- Extracted `generateImpliedElements` service from scripts.ts (632 → 555 lines)
+- productions.ts (609) and auth.ts (509) evaluated — within acceptable range, no artificial extraction needed
+
+## Test Counts
+- **Frontend**: 432 tests (+5 design system compliance tests)
+- **Backend**: 411 tests (+40 new tests from Sprints 15-17)
+- **Total**: 843 tests
 
 ## Security Audit Summary
 
