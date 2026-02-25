@@ -34,7 +34,6 @@ jobs:
       DATABASE_URL: postgresql://test:test@localhost:5432/slugmax_test
       JWT_SECRET: ci-test-secret
       NODE_ENV: test
-      PORT: 8000
       CORS_ORIGINS: http://localhost:3000
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
       EMAIL_ENABLED: "false"
@@ -76,7 +75,7 @@ jobs:
         working-directory: backend
 
       - name: Start backend
-        run: node dist/index.js > backend.log 2>&1 &
+        run: PORT=8000 node dist/index.js > backend.log 2>&1 &
         working-directory: backend
 
       - name: Build frontend
@@ -84,7 +83,7 @@ jobs:
         working-directory: frontend
 
       - name: Start frontend
-        run: npm run start > frontend.log 2>&1 &
+        run: PORT=3000 npm run start > frontend.log 2>&1 &
         working-directory: frontend
 
       - name: Wait for backend
