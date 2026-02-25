@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 427 frontend + 411 backend = 838 total
+**Test counts:** 432 frontend + 411 backend = 843 total
 
 ---
 
@@ -359,24 +359,26 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ---
 
-## Sprint 18: Design System Compliance (~400 LOC)
+## Sprint 18: Design System Compliance ✅
 
 **Goal:** Replace all color violations with 1-bit patterns. Fix font system violations.
 
 ### Tasks
 
-- [ ] Replace approval button colors (green/yellow/red) with 1-bit patterns (inversion, stripes, checkerboard)
-- [ ] Replace option border colors with 1-bit border-weight/style patterns
-- [ ] Replace temperature indicator colors with 1-bit patterns
-- [ ] Fix lightbox backdrop `bg-opacity-90` → solid `bg-white`
-- [ ] Fix font-bold/font-medium on VT323 elements (user-nav, element-list)
-- [ ] Add missing `font-mono` to body text spans (discussion-box, element-detail-panel, option-lightbox)
-- [ ] Remove unnecessary font-bold from home tagline, login signup link
+- [x] Fix lightbox backdrop `bg-opacity-90` → solid `bg-white`
+- [x] Fix font-bold/font-medium on VT323 elements (user-nav, notification-bell, login/signup/auth links, approval badge, option thumbnail, script title, reconcile link)
+- [x] Add missing `font-mono` to body text spans with font-bold (discussion-box, option-notes user names)
+- [x] Replace notification unread `font-bold` with `border-l-4` indicator pattern
+- [x] Change script title from `font-medium` to `font-mono` (body text, not UI chrome)
+- [x] Automated design-system compliance tests (no prohibited colors, no bg-opacity, no rounded, no shadow, no dark mode)
+
+### Notes
+- No color violations were found (approval buttons, option borders, temperature indicators already use correct 1-bit patterns from globals.css badge classes)
+- 15 font-weight violations fixed across 13 files
+- 1 opacity violation fixed
 
 ### Tests
-- CSS classes contain no hex colors other than #000/#fff (except department colors)
-- No bg-opacity in component files (except disabled:opacity-50)
-- No font-bold/font-medium on non-font-mono elements
+- 5 new automated tests: no bg-opacity, no prohibited colors, no rounded, no shadows, no dark mode
 
 ---
 

@@ -1,7 +1,7 @@
 # Current Plan
 
 ## Active Task
-Security Hardening & Best Practices Audit — Sprints 15-17 complete.
+Security Hardening & Best Practices Audit — Sprints 15-18 complete.
 
 ## Completed: Sprint 15 (Critical Security Hardening) ✅
 
@@ -35,16 +35,21 @@ Replaced all hard-deletes with soft-deletes:
 - Updated all list queries to filter `deletedAt: null` (elements, members, departments, notifications)
 - Updated 4 existing tests and added 6 new soft-delete tests
 
+## Completed: Sprint 18 (Design System Compliance) ✅
+
+Fixed all design system violations:
+- Removed `bg-opacity-90` from lightbox backdrop (solid bg-white)
+- Fixed 15 VT323 font-weight violations (removed font-bold/font-medium from buttons, links, spans)
+- Added `font-mono` to body-text spans that legitimately need font-bold (user names)
+- Replaced notification unread `font-bold` with `border-l-4` border indicator
+- Added 5 automated design-system compliance tests
+
 ## Test Counts
-- **Frontend**: 427 tests
+- **Frontend**: 432 tests (+5 design system compliance tests)
 - **Backend**: 411 tests (+40 new tests from Sprints 15-17)
-- **Total**: 838 tests
+- **Total**: 843 tests
 
 ## Next Sprints
-
-### Sprint 18: Design System Compliance
-- Replace color violations with 1-bit patterns
-- Fix font system violations
 
 ### Sprint 19: Single Source of Truth
 - Replace hardcoded status strings with shared enums
