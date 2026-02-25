@@ -34,7 +34,7 @@ departmentsRouter.get('/api/productions/:id/departments', requireAuth, async (re
 
     const { take, skip } = parsePagination(req);
     const departments = await prisma.department.findMany({
-      where: { productionId: id },
+      where: { productionId: id, deletedAt: null },
       include: {
         _count: { select: { members: true } },
       },
@@ -150,7 +150,10 @@ departmentsRouter.delete(
         return;
       }
 
-      await prisma.department.delete({ where: { id: departmentId } });
+      await prisma.department.update({
+        where: { id: departmentId },
+        data: { deletedAt: new Date() },
+      });
 
       res.json({ message: 'Department deleted' });
     } catch (error: any) {

@@ -214,9 +214,9 @@ describe('notifyDeciders', () => {
       '/productions/prod-1/scripts/s1/elements/e1',
     );
 
-    // Should query for DECIDER members
+    // Should query for DECIDER members (excluding soft-deleted)
     expect(mockedPrisma.productionMember.findMany).toHaveBeenCalledWith({
-      where: { productionId: 'prod-1', role: 'DECIDER' },
+      where: { productionId: 'prod-1', role: 'DECIDER', deletedAt: null },
       select: { userId: true },
     });
 

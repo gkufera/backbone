@@ -78,7 +78,7 @@ productionsRouter.get('/api/productions', requireAuth, async (req, res) => {
 
     const { take, skip } = parsePagination(req);
     const memberships = await prisma.productionMember.findMany({
-      where: { userId: authReq.user.userId },
+      where: { userId: authReq.user.userId, deletedAt: null },
       include: {
         production: true,
       },
@@ -318,7 +318,7 @@ productionsRouter.get('/api/productions/:id/members', requireAuth, async (req, r
 
     const { take, skip } = parsePagination(req);
     const members = await prisma.productionMember.findMany({
-      where: { productionId: id },
+      where: { productionId: id, deletedAt: null },
       include: {
         user: {
           select: { id: true, name: true, email: true },
@@ -380,7 +380,10 @@ productionsRouter.delete(
         return;
       }
 
-      await prisma.productionMember.delete({ where: { id: memberId } });
+      await prisma.productionMember.update({
+        where: { id: memberId },
+        data: { deletedAt: new Date() },
+      });
 
       res.json({ message: 'Member removed' });
     } catch (error) {

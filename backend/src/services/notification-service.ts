@@ -43,7 +43,7 @@ export async function notifyProductionMembers(
   link?: string,
 ) {
   const members = await prisma.productionMember.findMany({
-    where: { productionId },
+    where: { productionId, deletedAt: null },
     select: { userId: true },
   });
 
@@ -64,7 +64,7 @@ export async function notifyDeciders(
   link?: string,
 ) {
   const deciders = await prisma.productionMember.findMany({
-    where: { productionId, role: MemberRole.DECIDER },
+    where: { productionId, role: MemberRole.DECIDER, deletedAt: null },
     select: { userId: true },
   });
 

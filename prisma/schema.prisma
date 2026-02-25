@@ -170,6 +170,7 @@ model ProductionMember {
   departmentId String?    @map("department_id")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
+  deletedAt    DateTime?  @map("deleted_at")
 
   production   Production  @relation(fields: [productionId], references: [id])
   user         User        @relation(fields: [userId], references: [id])
@@ -219,6 +220,7 @@ model Element {
   workflowState  ElementWorkflowState @default(PENDING) @map("workflow_state")
   createdAt      DateTime             @default(now()) @map("created_at")
   updatedAt      DateTime             @updatedAt @map("updated_at")
+  deletedAt      DateTime?            @map("deleted_at")
 
   script          Script          @relation(fields: [scriptId], references: [id])
   department      Department?     @relation(fields: [departmentId], references: [id])
@@ -288,6 +290,7 @@ model Department {
   color        String?            @map("color")
   createdAt    DateTime           @default(now()) @map("created_at")
   updatedAt    DateTime           @updatedAt @map("updated_at")
+  deletedAt    DateTime?          @map("deleted_at")
 
   production   Production         @relation(fields: [productionId], references: [id])
   members      ProductionMember[]

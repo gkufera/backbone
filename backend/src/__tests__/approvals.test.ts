@@ -320,9 +320,9 @@ describe('Tentative approval logic', () => {
       data: expect.objectContaining({ tentative: true }),
     });
 
-    // DECIDERs should be notified via TENTATIVE_APPROVAL
+    // DECIDERs should be notified via TENTATIVE_APPROVAL (excluding soft-deleted)
     expect(mockedPrisma.productionMember.findMany).toHaveBeenCalledWith({
-      where: { productionId: 'prod-1', role: 'DECIDER' },
+      where: { productionId: 'prod-1', role: 'DECIDER', deletedAt: null },
       select: { userId: true },
     });
   });

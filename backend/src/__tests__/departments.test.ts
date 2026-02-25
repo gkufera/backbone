@@ -310,10 +310,11 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
     // No members in this department
     mockedPrisma.productionMember.count.mockResolvedValueOnce(0);
 
-    mockedPrisma.department.delete.mockResolvedValue({
+    mockedPrisma.department.update.mockResolvedValue({
       id: 'dept-1',
       productionId: 'prod-1',
       name: 'Costume',
+      deletedAt: new Date(),
     } as any);
 
     const res = await request(app)
@@ -374,7 +375,7 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
 
     const prismaError = new Error('Record not found') as any;
     prismaError.code = 'P2025';
-    mockedPrisma.department.delete.mockRejectedValue(prismaError);
+    mockedPrisma.department.update.mockRejectedValue(prismaError);
 
     const res = await request(app)
       .delete('/api/productions/prod-1/departments/dept-1')
@@ -405,10 +406,11 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
 
     mockedPrisma.productionMember.count.mockResolvedValueOnce(0);
 
-    mockedPrisma.department.delete.mockResolvedValue({
+    mockedPrisma.department.update.mockResolvedValue({
       id: 'dept-1',
       productionId: 'prod-1',
       name: 'Costume',
+      deletedAt: new Date(),
     } as any);
 
     const res = await request(app)
@@ -430,10 +432,11 @@ describe('DELETE /api/productions/:id/departments/:departmentId', () => {
 
     mockedPrisma.productionMember.count.mockResolvedValueOnce(0);
 
-    mockedPrisma.department.delete.mockResolvedValue({
+    mockedPrisma.department.update.mockResolvedValue({
       id: 'dept-1',
       productionId: 'prod-1',
       name: 'Costume',
+      deletedAt: new Date(),
     } as any);
 
     const res = await request(app)

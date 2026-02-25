@@ -108,7 +108,7 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
       return;
     }
 
-    const where: { scriptId: string; status?: ElementStatus } = { scriptId };
+    const where: { scriptId: string; status?: ElementStatus; deletedAt?: null } = { scriptId, deletedAt: null };
     if (!includeArchived) {
       where.status = ElementStatus.ACTIVE;
     }
@@ -247,7 +247,10 @@ elementsRouter.delete('/api/elements/:id', requireAuth, async (req, res) => {
       return;
     }
 
-    await prisma.element.delete({ where: { id } });
+    await prisma.element.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
 
     res.json({ message: 'Element deleted' });
   } catch (error) {

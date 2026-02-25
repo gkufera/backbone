@@ -32,6 +32,7 @@ vi.mock('../lib/prisma', () => ({
       createMany: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
       delete: vi.fn(),
     },
     department: {
@@ -734,12 +735,12 @@ describe('GET /api/productions/:id/scripts/:scriptId approvalTemperature', () =>
   });
 });
 
-describe('DELETE /api/elements/:id (hard-delete)', () => {
+describe('DELETE /api/elements/:id (soft-delete)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('hard-deletes when script is REVIEWING', async () => {
+  it('soft-deletes when script is REVIEWING', async () => {
     mockedPrisma.element.findUnique.mockResolvedValue({
       id: 'elem-1',
       scriptId: 'script-1',
@@ -755,14 +756,23 @@ describe('DELETE /api/elements/:id (hard-delete)', () => {
       role: 'ADMIN',
     } as any);
 
-    mockedPrisma.element.delete.mockResolvedValue({} as any);
+    mockedPrisma.element.update.mockResolvedValue({
+      id: 'elem-1',
+      deletedAt: new Date(),
+    } as any);
 
     const res = await request(app)
       .delete('/api/elements/elem-1')
       .set(authHeader());
 
     expect(res.status).toBe(200);
-    expect(mockedPrisma.element.delete).toHaveBeenCalledWith({ where: { id: 'elem-1' } });
+    expect(mockedPrisma.element.update).toHaveBeenCalledWith({
+      where: { id: 'elem-1' },
+      data: expect.objectContaining({
+        deletedAt: expect.any(Date),
+      }),
+    });
+    expect(mockedPrisma.element.delete).not.toHaveBeenCalled();
   });
 
   it('returns 403 when script is READY', async () => {
