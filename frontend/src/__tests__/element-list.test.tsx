@@ -387,6 +387,29 @@ describe('Element list', () => {
     expect(container.querySelector('.temp-red')).toBeInTheDocument();
   });
 
+  it('renders distinct glyphs for each temperature state', () => {
+    const elementsWithAllTemps = [
+      { ...mockElements[0], approvalTemperature: 'green' as const },
+      { ...mockElements[1], approvalTemperature: 'yellow' as const },
+      { ...mockElements[2], approvalTemperature: 'red' as const },
+    ];
+
+    const { container } = render(
+      <ElementList elements={elementsWithAllTemps} onArchive={mockOnArchive} />,
+    );
+
+    const greenIndicator = container.querySelector('.temp-green');
+    const yellowIndicator = container.querySelector('.temp-yellow');
+    const redIndicator = container.querySelector('.temp-red');
+
+    expect(greenIndicator).toBeInTheDocument();
+    expect(greenIndicator?.textContent).toBe('●');
+    expect(yellowIndicator).toBeInTheDocument();
+    expect(yellowIndicator?.textContent).toBe('◐');
+    expect(redIndicator).toBeInTheDocument();
+    expect(redIndicator?.textContent).toBe('○');
+  });
+
   it('renders no temperature indicator for element with no approvals', () => {
     const elementsNoTemp = [
       {

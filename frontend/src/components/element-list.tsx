@@ -242,6 +242,7 @@ function ElementRow({
   const tempClass = elem.approvalTemperature
     ? `temp-${elem.approvalTemperature}`
     : null;
+  const tempGlyph: Record<string, string> = { green: '●', yellow: '◐', red: '○' };
 
   return (
     <li
@@ -253,8 +254,8 @@ function ElementRow({
       onClick={() => onElementClick?.(elem.id)}
     >
       <div className="flex items-center gap-2">
-        {tempClass && (
-          <span className={`inline-block w-2 h-2 ${tempClass}`} aria-hidden="true">●</span>
+        {tempClass && elem.approvalTemperature && (
+          <span className={`inline-block ${tempClass}`} aria-hidden="true">{tempGlyph[elem.approvalTemperature]}</span>
         )}
         {productionId && scriptId ? (
           <Link

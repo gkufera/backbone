@@ -399,15 +399,15 @@ select:focus {
 /* ── Temperature Indicators for Element List ─────────────── */
 
 .temp-green {
-  color: #00A651;
+  color: #000;
 }
 
 .temp-yellow {
-  color: #FFD700;
+  color: #000;
 }
 
 .temp-red {
-  color: #E63946;
+  color: #000;
 }
 
 /* ── Skeleton Loading ─────────────────────────────────────── */
