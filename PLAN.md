@@ -1,7 +1,7 @@
 # Current Plan
 
 ## Active Task
-None — CI Build Fix Check complete.
+None — Backend .js import cleanup complete.
 
 ## CI Build Fix Results
 
@@ -63,6 +63,22 @@ None — CI Build Fix Check complete.
 | 1 | Stale test counts in roadmap (792 → 797) | Updated roadmap.md | Done |
 | 2 | Backend `.js` imports in ~90 source files (pre-existing) | Added to roadmap backlog | Done |
 | 3 | All other areas verified correct (fonts, Turbopack, shared imports, build prereq tests, docs, CI workflows, builds) | No action needed | Done |
+
+## Backend .js Import Cleanup Results
+
+| Step | Focus | Status | Commit | New Tests |
+|------|-------|--------|--------|-----------|
+| 1 | Write failing build prerequisites test (TDD) | Done | (included in refactor commit) | +1 |
+| 2 | Remove .js extensions from 47 backend files (~142 imports) | Done | `refactor: remove .js extensions from backend TypeScript imports` | 0 |
+| 3 | Verify test passes (0 violations) | Done | — | — |
+| 4 | Full Tier 1 tests pass (427 frontend + 371 backend) | Done | — | — |
+| 5 | Backend build succeeds (tsup) | Done | — | — |
+| 6 | Update roadmap + PLAN.md | Done | `docs: update roadmap and PLAN.md after backend import cleanup` | 0 |
+
+### Test Counts (Post Cleanup)
+- **Frontend**: 427 tests
+- **Backend**: 371 tests (+1 build prerequisites)
+- **Total**: 798 tests
 
 ## Next Up
 Sprint 14 remaining: AWS SES, S3/CloudFront CDN, Performance audit, Final QA pass (all deferred — require external cloud access).
