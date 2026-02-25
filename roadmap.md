@@ -27,7 +27,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Fix E2E workflow port conflict (PORT env var scoped to backend only)
 - [x] Archive old roadmap, delete stale EXTERNAL-SETUP.md
 - [x] Create fresh roadmap (this file)
-- [ ] Update PLAN.md
+- [x] Update PLAN.md
 
 ---
 
