@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 427 frontend + 371 backend = 798 total
+**Test counts:** 427 frontend + 405 backend = 832 total
 
 ---
 
@@ -296,7 +296,50 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ---
 
-## Sprint 15: Immutability & Soft-Delete (~500 LOC)
+## Sprint 15: Critical Security Hardening ✅
+
+**Goal:** Fix all CRITICAL and HIGH-priority security vulnerabilities identified by security audit.
+
+### Tasks
+
+- [x] S1: Crash on missing `JWT_SECRET` in non-test environments (was using insecure dev fallback)
+- [x] S2: Crash on missing `CORS_ORIGINS` in non-test environments (was allowing all origins via `*`)
+- [x] S3: Add 1MB JSON body size limit to prevent payload DoS attacks
+- [x] S4: Add production membership authorization to options download URL endpoint
+- [x] S5: Validate `ElementType` and `ElementStatus` against shared enums on create/update
+- [x] S8: Prevent login timing attack with constant-time bcrypt comparison using dummy hash
+- [x] S9: Add `Content-Disposition: attachment` header to S3 download URLs
+- [x] S10: Mask SMS verification codes in log output (no sensitive data in logs)
+- [x] S11: Validate PDF magic bytes (`%PDF-`) before parsing uploaded files
+- [x] S12: Configure `trust proxy` for correct IP detection behind load balancer
+- [x] S13: Log `error.message` instead of full error object in notification service
+
+### Tests
+- 17 new security tests covering all fixes above
+- S3 Content-Disposition, trust proxy, body size limit, download URL auth, enum validation, timing attack, PDF magic bytes
+
+---
+
+## Sprint 16: Security Defense-in-Depth ✅
+
+**Goal:** Add pagination, resource limits, JWT security claims, and expanded security header tests.
+
+### Tasks
+
+- [x] S6: Add pagination (`limit`/`offset` with max 100) to all 12 list endpoints: notifications, feed, element notes, option notes, approvals, director notes, departments, elements, options, productions, members, scripts
+- [x] S7: Add resource creation limits (max 20 assets per option, max 1000 elements per script)
+- [x] S15/S16: Add explicit HS256 algorithm, issuer (`slugmax`), audience (`slugmax-api`) to JWT sign/verify
+- [x] S18: Expand security headers tests (X-Powered-By removal, HSTS, X-Download-Options, X-DNS-Prefetch-Control)
+
+### Tests
+- Pagination: default 50, max 100, offset support
+- Resource limits: 20 assets, 1000 elements
+- JWT claims: iss, aud, HS256, wrong audience rejected, wrong issuer rejected
+- Security headers: 6 tests (up from 2)
+
+---
+
+## Sprint 17: Immutability & Soft-Delete (~500 LOC)
 
 **Goal:** Fix all hard-delete violations. Add deletedAt fields. Replace prisma.delete() with soft-delete.
 
@@ -315,7 +358,7 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ---
 
-## Sprint 16: Design System Compliance (~400 LOC)
+## Sprint 18: Design System Compliance (~400 LOC)
 
 **Goal:** Replace all color violations with 1-bit patterns. Fix font system violations.
 
@@ -336,7 +379,7 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ---
 
-## Sprint 17: Single Source of Truth (~300 LOC)
+## Sprint 19: Single Source of Truth (~300 LOC)
 
 **Goal:** Replace hardcoded status strings with shared enum values. Move magic constants to shared/.
 
@@ -355,7 +398,7 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ---
 
-## Sprint 18: Backend Route Refactoring (~600 LOC, net neutral)
+## Sprint 20: Backend Route Refactoring (~600 LOC, net neutral)
 
 **Goal:** Split oversized route files into router + service layers.
 
