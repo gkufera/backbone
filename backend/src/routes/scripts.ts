@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
-import { generateUploadUrl, generateDownloadUrl } from '../lib/s3.js';
-import { processScript } from '../services/script-processor.js';
-import { processRevision } from '../services/revision-processor.js';
-import { getProgress } from '../services/processing-progress.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { generateUploadUrl, generateDownloadUrl } from '../lib/s3';
+import { processScript } from '../services/script-processor';
+import { processRevision } from '../services/revision-processor';
+import { getProgress } from '../services/processing-progress';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
 import { ScriptStatus, ElementStatus, ElementType, NotificationType } from '@backbone/shared/types';
 import type { SceneInfo } from '@backbone/shared/types';
-import { notifyProductionMembers } from '../services/notification-service.js';
+import { notifyProductionMembers } from '../services/notification-service';
 
 const scriptsRouter = Router();
 

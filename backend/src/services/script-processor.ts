@@ -1,8 +1,8 @@
-import { prisma } from '../lib/prisma.js';
-import { getFileBuffer } from '../lib/s3.js';
-import { parsePdf } from './pdf-parser.js';
-import { detectElements } from './element-detector.js';
-import { setProgress, clearProgress } from './processing-progress.js';
+import { prisma } from '../lib/prisma';
+import { getFileBuffer } from '../lib/s3';
+import { parsePdf } from './pdf-parser';
+import { detectElements } from './element-detector';
+import { setProgress, clearProgress } from './processing-progress';
 
 export async function processScript(scriptId: string, s3Key: string): Promise<void> {
   try {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectElements } from '../services/element-detector.js';
+import { detectElements } from '../services/element-detector';
 
 describe('Element detection', () => {
   it('detects character names (standalone ALL-CAPS lines)', () => {

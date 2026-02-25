@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { AuthenticatedRequest } from './auth.js';
-import { prisma } from '../lib/prisma.js';
+import type { AuthenticatedRequest } from './auth';
+import { prisma } from '../lib/prisma';
 
 export interface MemberRequest extends AuthenticatedRequest {
   memberRole: string;

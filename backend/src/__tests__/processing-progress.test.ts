@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { setProgress, getProgress, clearProgress } from '../services/processing-progress.js';
+import { setProgress, getProgress, clearProgress } from '../services/processing-progress';
 
 describe('Processing progress', () => {
   beforeEach(() => {

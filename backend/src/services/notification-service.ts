@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma.js';
-import { sendNotificationEmail } from './email-service.js';
+import { prisma } from '../lib/prisma';
+import { sendNotificationEmail } from './email-service';
 import { MemberRole, NotificationType } from '@backbone/shared/types';
 
 export async function createNotification(

@@ -1,37 +1,37 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '../app.js';
-import { signToken } from '../lib/jwt.js';
+import { app } from '../app';
+import { signToken } from '../lib/jwt';
 
 // Mock email service (required by auth router)
-vi.mock('../services/email-service.js', () => ({
+vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn(),
   sendNotificationEmail: vi.fn(),
 }));
 
 // Mock notification service (required by productions router)
-vi.mock('../services/notification-service.js', () => ({
+vi.mock('../services/notification-service', () => ({
   createNotification: vi.fn().mockResolvedValue({ id: 'notif-1' }),
   notifyProductionMembers: vi.fn().mockResolvedValue([]),
   notifyDeciders: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock S3 (required by scripts/options routers)
-vi.mock('../lib/s3.js', () => ({
+vi.mock('../lib/s3', () => ({
   generateUploadUrl: vi.fn(),
   generateDownloadUrl: vi.fn(),
   getFileBuffer: vi.fn(),
 }));
 
 // Mock processing progress (required by scripts router)
-vi.mock('../services/processing-progress.js', () => ({
+vi.mock('../services/processing-progress', () => ({
   getProgress: vi.fn(),
   setProgress: vi.fn(),
   clearProgress: vi.fn(),
 }));
 
 // Mock Prisma client
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
@@ -51,7 +51,7 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma';
 
 const mockedPrisma = vi.mocked(prisma);
 

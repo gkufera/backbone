@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 
 // Mock Prisma client (required because app imports routes that use prisma)
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {},
 }));
 
-import { app } from '../app.js';
+import { app } from '../app';
 
 describe('Security Headers', () => {
   it('sets X-Content-Type-Options nosniff header', async () => {

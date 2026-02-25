@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { MemberRole } from '@backbone/shared/types';
 import { DEPARTMENT_NAME_MAX_LENGTH } from '@backbone/shared/constants';
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '../app.js';
-import { signToken } from '../lib/jwt.js';
+import { app } from '../app';
+import { signToken } from '../lib/jwt';
 
 // Mock Prisma client
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     element: {
       findUnique: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma';
 
 const mockedPrisma = vi.mocked(prisma);
 

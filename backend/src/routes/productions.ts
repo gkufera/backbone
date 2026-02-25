@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import {
   PRODUCTION_TITLE_MAX_LENGTH,
   MEMBER_TITLE_MAX_LENGTH,
@@ -8,7 +8,7 @@ import {
   DEFAULT_DEPARTMENT_COLORS,
 } from '@backbone/shared/constants';
 import { MemberRole, NotificationType, ElementStatus, ElementWorkflowState } from '@backbone/shared/types';
-import { createNotification } from '../services/notification-service.js';
+import { createNotification } from '../services/notification-service';
 
 const productionsRouter = Router();
 

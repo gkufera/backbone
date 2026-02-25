@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '../app.js';
-import { signToken } from '../lib/jwt.js';
+import { app } from '../app';
+import { signToken } from '../lib/jwt';
 
 // Mock Prisma client
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
@@ -33,13 +33,13 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 // Mock S3
-vi.mock('../lib/s3.js', () => ({
+vi.mock('../lib/s3', () => ({
   generateUploadUrl: vi.fn(),
   generateDownloadUrl: vi.fn(),
   getFileBuffer: vi.fn(),
 }));
 
-import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma';
 
 const mockedPrisma = vi.mocked(prisma);
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { sendSms } from '../services/sms-service.js';
+import { sendSms } from '../services/sms-service';
 
 describe('SMS Service', () => {
   const originalEnv = process.env;

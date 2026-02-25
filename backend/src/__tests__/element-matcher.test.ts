@@ -3,7 +3,7 @@ import {
   matchElements,
   type ExistingElement,
   type DetectedElement,
-} from '../services/element-matcher.js';
+} from '../services/element-matcher';
 
 function makeExisting(overrides: Partial<ExistingElement> & { name: string }): ExistingElement {
   return {

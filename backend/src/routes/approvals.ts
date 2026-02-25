@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
 import { ApprovalDecision, MemberRole, NotificationType } from '@backbone/shared/types';
-import { createNotification, notifyDeciders } from '../services/notification-service.js';
+import { createNotification, notifyDeciders } from '../services/notification-service';
 
 const DECISION_TO_NOTIFICATION_TYPE: Record<ApprovalDecision, NotificationType> = {
   [ApprovalDecision.APPROVED]: NotificationType.OPTION_APPROVED,

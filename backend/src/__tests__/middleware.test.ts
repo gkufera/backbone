@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
-import { signToken } from '../lib/jwt.js';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { signToken } from '../lib/jwt';
 
 // Create a test app with a protected route
 function createTestApp() {

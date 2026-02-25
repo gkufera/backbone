@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '../app.js';
-import { signToken } from '../lib/jwt.js';
+import { app } from '../app';
+import { signToken } from '../lib/jwt';
 
 // Mock notification service
-vi.mock('../services/notification-service.js', () => ({
+vi.mock('../services/notification-service', () => ({
   createNotification: vi.fn().mockResolvedValue({ id: 'notif-1' }),
   notifyProductionMembers: vi.fn().mockResolvedValue([]),
   notifyDeciders: vi.fn().mockResolvedValue([]),
 }));
 
 // Mock Prisma client
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
@@ -40,8 +40,8 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
-import { prisma } from '../lib/prisma.js';
-import { createNotification } from '../services/notification-service.js';
+import { prisma } from '../lib/prisma';
+import { createNotification } from '../services/notification-service';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedCreateNotification = vi.mocked(createNotification);

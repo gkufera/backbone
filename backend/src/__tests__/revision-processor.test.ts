@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock dependencies
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     script: {
       update: vi.fn(),
@@ -18,18 +18,18 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
-vi.mock('../lib/s3.js', () => ({
+vi.mock('../lib/s3', () => ({
   getFileBuffer: vi.fn(),
 }));
 
-vi.mock('../services/pdf-parser.js', () => ({
+vi.mock('../services/pdf-parser', () => ({
   parsePdf: vi.fn(),
 }));
 
-import { prisma } from '../lib/prisma.js';
-import { getFileBuffer } from '../lib/s3.js';
-import { parsePdf } from '../services/pdf-parser.js';
-import { processRevision } from '../services/revision-processor.js';
+import { prisma } from '../lib/prisma';
+import { getFileBuffer } from '../lib/s3';
+import { parsePdf } from '../services/pdf-parser';
+import { processRevision } from '../services/revision-processor';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGetFileBuffer = vi.mocked(getFileBuffer);

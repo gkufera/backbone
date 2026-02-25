@@ -10,7 +10,7 @@ vi.mock('nodemailer', () => ({
   },
 }));
 
-import { sendEmail, sendNotificationEmail } from '../services/email-service.js';
+import { sendEmail, sendNotificationEmail } from '../services/email-service';
 
 describe('Email Service', () => {
   const originalEnv = process.env;

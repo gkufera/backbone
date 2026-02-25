@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DEMO_USERS, DEMO_PRODUCTION, DEMO_ELEMENTS } from '../../../prisma/seed-data.js';
+import { DEMO_USERS, DEMO_PRODUCTION, DEMO_ELEMENTS } from '../../../prisma/seed-data';
 
 describe('Seed Data', () => {
   it('demo data has 3 users with required fields', () => {

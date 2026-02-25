@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '../app.js';
-import { signToken } from '../lib/jwt.js';
+import { app } from '../app';
+import { signToken } from '../lib/jwt';
 
 // Mock Prisma client
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
@@ -41,30 +41,30 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
-vi.mock('../services/processing-progress.js', () => ({
+vi.mock('../services/processing-progress', () => ({
   getProgress: vi.fn(),
   setProgress: vi.fn(),
   clearProgress: vi.fn(),
 }));
 
 // Mock S3
-vi.mock('../lib/s3.js', () => ({
+vi.mock('../lib/s3', () => ({
   generateUploadUrl: vi.fn(),
   generateDownloadUrl: vi.fn(),
   getFileBuffer: vi.fn(),
 }));
 
 // Mock notification service
-vi.mock('../services/notification-service.js', () => ({
+vi.mock('../services/notification-service', () => ({
   createNotification: vi.fn().mockResolvedValue({ id: 'notif-1' }),
   notifyProductionMembers: vi.fn().mockResolvedValue([]),
   notifyDeciders: vi.fn().mockResolvedValue([]),
 }));
 
-import { prisma } from '../lib/prisma.js';
-import { generateUploadUrl, generateDownloadUrl } from '../lib/s3.js';
-import { getProgress } from '../services/processing-progress.js';
-import { notifyProductionMembers } from '../services/notification-service.js';
+import { prisma } from '../lib/prisma';
+import { generateUploadUrl, generateDownloadUrl } from '../lib/s3';
+import { getProgress } from '../services/processing-progress';
+import { notifyProductionMembers } from '../services/notification-service';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGenerateUploadUrl = vi.mocked(generateUploadUrl);

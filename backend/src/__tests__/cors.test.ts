@@ -2,11 +2,11 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import request from 'supertest';
 
 // Mock Prisma client (required because app imports routes that use prisma)
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {},
 }));
 
-import { createApp } from '../app.js';
+import { createApp } from '../app';
 
 describe('CORS configuration', () => {
   const originalEnv = process.env.CORS_ORIGINS;

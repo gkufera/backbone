@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { createGeneralLimiter, createAuthLimiter } from '../middleware/rate-limit.js';
+import { createGeneralLimiter, createAuthLimiter } from '../middleware/rate-limit';
 
 function createTestApp(limiter: ReturnType<typeof createGeneralLimiter>) {
   const app = express();

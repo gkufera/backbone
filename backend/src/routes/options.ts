@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
-import { generateMediaUploadUrl, generateDownloadUrl } from '../lib/s3.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { generateMediaUploadUrl, generateDownloadUrl } from '../lib/s3';
 import {
   mediaTypeFromMime,
   OPTION_ALLOWED_CONTENT_TYPES,
   OPTION_DESCRIPTION_MAX_LENGTH,
 } from '@backbone/shared/constants';
 import { MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
-import { notifyProductionMembers } from '../services/notification-service.js';
+import { notifyProductionMembers } from '../services/notification-service';
 
 const optionsRouter = Router();
 

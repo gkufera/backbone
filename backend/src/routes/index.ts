@@ -1,6 +1,6 @@
-export { healthRouter } from './health.js';
-export { authRouter } from './auth.js';
-export { productionsRouter } from './productions.js';
-export { scriptsRouter } from './scripts.js';
-export { elementsRouter } from './elements.js';
-export { notesRouter } from './notes.js';
+export { healthRouter } from './health';
+export { authRouter } from './auth';
+export { productionsRouter } from './productions';
+export { scriptsRouter } from './scripts';
+export { elementsRouter } from './elements';
+export { notesRouter } from './notes';

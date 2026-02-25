@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { prisma } from '../lib/prisma.js';
-import { signToken } from '../lib/jwt.js';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { signToken } from '../lib/jwt';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { VALIDATION } from '@backbone/shared/constants';
-import { sendEmail } from '../services/email-service.js';
-import { sendSms } from '../services/sms-service.js';
+import { sendEmail } from '../services/email-service';
+import { sendSms } from '../services/sms-service';
 
 const authRouter = Router();
 

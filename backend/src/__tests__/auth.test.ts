@@ -1,21 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { app } from '../app.js';
-import { signToken } from '../lib/jwt.js';
+import { app } from '../app';
+import { signToken } from '../lib/jwt';
 
 // Mock email service
-vi.mock('../services/email-service.js', () => ({
+vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn(),
   sendNotificationEmail: vi.fn(),
 }));
 
 // Mock SMS service
-vi.mock('../services/sms-service.js', () => ({
+vi.mock('../services/sms-service', () => ({
   sendSms: vi.fn(),
 }));
 
 // Mock Prisma client
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
@@ -41,9 +41,9 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
-import { prisma } from '../lib/prisma.js';
-import { sendEmail } from '../services/email-service.js';
-import { sendSms } from '../services/sms-service.js';
+import { prisma } from '../lib/prisma';
+import { sendEmail } from '../services/email-service';
+import { sendSms } from '../services/sms-service';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedSendEmail = vi.mocked(sendEmail);

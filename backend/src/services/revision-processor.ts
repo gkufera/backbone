@@ -1,8 +1,8 @@
-import { prisma } from '../lib/prisma.js';
-import { getFileBuffer } from '../lib/s3.js';
-import { parsePdf } from './pdf-parser.js';
-import { detectElements } from './element-detector.js';
-import { matchElements } from './element-matcher.js';
+import { prisma } from '../lib/prisma';
+import { getFileBuffer } from '../lib/s3';
+import { parsePdf } from './pdf-parser';
+import { detectElements } from './element-detector';
+import { matchElements } from './element-matcher';
 import { ElementType } from '@backbone/shared/types';
 
 export async function processRevision(

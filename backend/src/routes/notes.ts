@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
+import { prisma } from '../lib/prisma';
+import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { NOTE_CONTENT_MAX_LENGTH } from '@backbone/shared/constants';
 import { NotificationType } from '@backbone/shared/types';
-import { notifyProductionMembers } from '../services/notification-service.js';
+import { notifyProductionMembers } from '../services/notification-service';
 
 const notesRouter = Router();
 

@@ -1,19 +1,19 @@
 import cors from 'cors';
 import express, { type Request, type Response, type NextFunction } from 'express';
 import helmet from 'helmet';
-import { createGeneralLimiter, createAuthLimiter } from './middleware/rate-limit.js';
-import { healthRouter } from './routes/health.js';
-import { authRouter } from './routes/auth.js';
-import { productionsRouter } from './routes/productions.js';
-import { scriptsRouter } from './routes/scripts.js';
-import { elementsRouter } from './routes/elements.js';
-import { optionsRouter } from './routes/options.js';
-import { approvalsRouter } from './routes/approvals.js';
-import { revisionMatchesRouter } from './routes/revision-matches.js';
-import { departmentsRouter } from './routes/departments.js';
-import { notificationsRouter } from './routes/notifications.js';
-import { notesRouter } from './routes/notes.js';
-import { directorNotesRouter } from './routes/director-notes.js';
+import { createGeneralLimiter, createAuthLimiter } from './middleware/rate-limit';
+import { healthRouter } from './routes/health';
+import { authRouter } from './routes/auth';
+import { productionsRouter } from './routes/productions';
+import { scriptsRouter } from './routes/scripts';
+import { elementsRouter } from './routes/elements';
+import { optionsRouter } from './routes/options';
+import { approvalsRouter } from './routes/approvals';
+import { revisionMatchesRouter } from './routes/revision-matches';
+import { departmentsRouter } from './routes/departments';
+import { notificationsRouter } from './routes/notifications';
+import { notesRouter } from './routes/notes';
+import { directorNotesRouter } from './routes/director-notes';
 
 export function createApp() {
   const app = express();

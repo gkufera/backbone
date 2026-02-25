@@ -9,7 +9,7 @@ vi.mock('pdf-parse', () => {
 });
 
 import { PDFParse } from 'pdf-parse';
-import { parsePdf } from '../services/pdf-parser.js';
+import { parsePdf } from '../services/pdf-parser';
 
 const MockedPDFParse = vi.mocked(PDFParse);
 

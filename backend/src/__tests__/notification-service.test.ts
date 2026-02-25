@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock Prisma client
-vi.mock('../lib/prisma.js', () => ({
+vi.mock('../lib/prisma', () => ({
   prisma: {
     notification: {
       create: vi.fn(),
@@ -16,17 +16,17 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 // Mock email service
-vi.mock('../services/email-service.js', () => ({
+vi.mock('../services/email-service', () => ({
   sendNotificationEmail: vi.fn(),
 }));
 
-import { prisma } from '../lib/prisma.js';
-import { sendNotificationEmail } from '../services/email-service.js';
+import { prisma } from '../lib/prisma';
+import { sendNotificationEmail } from '../services/email-service';
 import {
   createNotification,
   notifyProductionMembers,
   notifyDeciders,
-} from '../services/notification-service.js';
+} from '../services/notification-service';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedSendNotificationEmail = vi.mocked(sendNotificationEmail);
