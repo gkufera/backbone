@@ -928,6 +928,46 @@ describe('PATCH /api/auth/me', () => {
   });
 });
 
+describe('Signup auto-verify in test mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('auto-verifies email when NODE_ENV=test', async () => {
+    const mockUser = {
+      id: 'test-id-auto',
+      name: 'Auto Verify User',
+      email: 'autoverify@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(null);
+    mockedPrisma.user.create.mockResolvedValue(mockUser);
+
+    const res = await request(app).post('/api/auth/signup').send({
+      name: 'Auto Verify User',
+      email: 'autoverify@example.com',
+      password: 'securepassword123',
+    });
+
+    expect(res.status).toBe(201);
+
+    // Should create user with emailVerified: true
+    expect(mockedPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ emailVerified: true }),
+      }),
+    );
+
+    // Should NOT create verification token or send email
+    expect(mockedPrisma.emailVerificationToken.create).not.toHaveBeenCalled();
+    expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
+});
+
 describe('POST /api/auth/send-phone-code', () => {
   beforeEach(() => {
     vi.clearAllMocks();
