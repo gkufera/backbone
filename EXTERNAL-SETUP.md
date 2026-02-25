@@ -206,6 +206,21 @@ git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
 ```
 
+### API Tokens (env vars forwarded to containers)
+
+Add any API tokens that containers need to `~/.config/cm/env` on the host.
+This file uses Docker `--env-file` format (one `KEY=VALUE` per line, no quotes).
+
+```bash
+ssh claude-server
+mkdir -p ~/.config/cm
+cat > ~/.config/cm/env << 'EOF'
+CLOUDFLARE_API_TOKEN=your-token-here
+EOF
+```
+
+All vars in this file are passed to every container started by `cm`.
+
 ### Subscribe to Notifications
 
 1. Install the [ntfy app](https://ntfy.sh/) on your phone
