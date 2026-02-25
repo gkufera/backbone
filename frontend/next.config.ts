@@ -6,6 +6,7 @@ const sharedPath = path.resolve(process.cwd(), '../shared');
 const nextConfig: NextConfig = {
   transpilePackages: ['@backbone/shared'],
   turbopack: {
+    root: path.resolve(process.cwd(), '..'),
     resolveAlias: {
       '@backbone/shared': sharedPath,
       '@backbone/shared/*': `${sharedPath}/*`,
