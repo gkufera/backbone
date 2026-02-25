@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/local/bin/notify.sh 'Claude Code' 'Task complete' 'default' 'white_check_mark'"
+            "command": "~/.claude/notify.sh 'Claude Code' 'Task complete' 'default' 'white_check_mark'"
           }
         ]
       }
