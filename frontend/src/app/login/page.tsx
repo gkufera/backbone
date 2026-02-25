@@ -66,7 +66,7 @@ export default function LoginPage() {
                 <div className="mt-2">
                   <button
                     onClick={handleResend}
-                    className="text-sm underline font-bold"
+                    className="text-sm underline"
                   >
                     Resend verification email
                   </button>
@@ -124,7 +124,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm font-mono text-black">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-bold underline">
+            <Link href="/signup" className="underline">
               Sign up
             </Link>
           </p>

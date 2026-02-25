@@ -132,7 +132,7 @@ export function OptionLightbox({
   return (
     <div
       data-testid="lightbox-backdrop"
-      className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-white flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
       <div className="mac-window max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">

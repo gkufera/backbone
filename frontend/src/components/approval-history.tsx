@@ -25,7 +25,7 @@ export function ApprovalHistory({ approvals }: ApprovalHistoryProps) {
             {approval.decision}
           </span>
           {approval.tentative && (
-            <span className="border-2 border-black px-1.5 py-0.5 font-bold text-black">
+            <span className="border-2 border-black px-1.5 py-0.5 text-black">
               Tentative
             </span>
           )}

@@ -220,7 +220,7 @@ export default function ProductionDashboard() {
                     href={`/productions/${id}/scripts/${s.id}`}
                     className="block py-3 hover:bg-black hover:text-white"
                   >
-                    <span className="font-medium">{s.title}</span>
+                    <span className="font-mono">{s.title}</span>
                     <span className="ml-2 text-xs uppercase">{s.status}</span>
                   </Link>
                 </li>

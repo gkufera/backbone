@@ -225,7 +225,7 @@ export default function ScriptViewerPage() {
             </p>
             <Link
               href={`/productions/${productionId}/scripts/${scriptId}/reconcile`}
-              className="mt-2 inline-block text-sm font-bold underline"
+              className="mt-2 inline-block text-sm underline"
             >
               Review and Reconcile
             </Link>

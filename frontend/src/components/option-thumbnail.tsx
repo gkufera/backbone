@@ -53,7 +53,7 @@ export function OptionThumbnail({
             style={{ imageRendering: 'auto' }}
           />
         ) : (
-          <span className="text-xs font-bold">{option.mediaType}</span>
+          <span className="text-xs">{option.mediaType}</span>
         )}
 
         {approvalState === 'REJECTED' && (

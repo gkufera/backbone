@@ -87,7 +87,7 @@ export function NotificationBell({ productionId }: NotificationBellProps) {
                   <button
                     onClick={() => handleNotificationClick(notif)}
                     className={`w-full border-b border-black px-4 py-3 text-left text-sm hover:bg-black hover:text-white ${
-                      notif.read ? 'text-black' : 'font-bold text-black'
+                      notif.read ? 'text-black' : 'border-l-4 border-l-black text-black'
                     }`}
                   >
                     <p>{notif.message}</p>

@@ -53,7 +53,7 @@ function ResetPasswordForm() {
             <div className="space-y-4">
               <p className="text-sm font-mono text-black">{success}</p>
               <p className="text-center text-sm font-mono text-black">
-                <Link href="/login" className="font-bold underline">
+                <Link href="/login" className="underline">
                   Go to login
                 </Link>
               </p>
