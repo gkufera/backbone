@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { ElementStatus, ElementSource, OptionStatus, ScriptStatus } from '@backbone/shared/types';
 
 const revisionMatchesRouter = Router();
 
@@ -39,7 +40,7 @@ revisionMatchesRouter.get(
         return;
       }
 
-      if (script.status !== 'RECONCILING') {
+      if (script.status !== ScriptStatus.RECONCILING) {
         res.status(400).json({ error: 'Script is not in RECONCILING status' });
         return;
       }
@@ -49,9 +50,9 @@ revisionMatchesRouter.get(
         include: {
           oldElement: {
             include: {
-              _count: { select: { options: { where: { status: 'ACTIVE' } } } },
+              _count: { select: { options: { where: { status: OptionStatus.ACTIVE } } } },
               options: {
-                where: { status: 'ACTIVE' },
+                where: { status: OptionStatus.ACTIVE },
                 include: {
                   approvals: {
                     select: { decision: true },
@@ -106,7 +107,7 @@ revisionMatchesRouter.post(
         return;
       }
 
-      if (script.status !== 'RECONCILING') {
+      if (script.status !== ScriptStatus.RECONCILING) {
         res.status(400).json({ error: 'Script is not in RECONCILING status' });
         return;
       }
@@ -177,8 +178,8 @@ revisionMatchesRouter.post(
                     highlightPage: match.detectedPage,
                     highlightText: match.detectedHighlightText,
                     departmentId: departmentId ?? null,
-                    status: 'ACTIVE',
-                    source: 'AUTO',
+                    status: ElementStatus.ACTIVE,
+                    source: ElementSource.AUTO,
                   },
                 ],
               });
@@ -202,7 +203,7 @@ revisionMatchesRouter.post(
               if (match.oldElementId) {
                 await tx.element.update({
                   where: { id: match.oldElementId },
-                  data: { status: 'ARCHIVED' },
+                  data: { status: ElementStatus.ARCHIVED },
                 });
               }
               break;
@@ -218,7 +219,7 @@ revisionMatchesRouter.post(
         // Transition script to READY
         await tx.script.update({
           where: { id: scriptId },
-          data: { status: 'READY' },
+          data: { status: ScriptStatus.READY },
         });
       });
 

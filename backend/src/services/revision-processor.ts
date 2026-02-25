@@ -3,7 +3,7 @@ import { getFileBuffer } from '../lib/s3';
 import { parsePdf } from './pdf-parser';
 import { detectElements } from './element-detector';
 import { matchElements } from './element-matcher';
-import { ElementType } from '@backbone/shared/types';
+import { ElementType, ElementStatus, ElementSource, RevisionMatchStatus, ScriptStatus } from '@backbone/shared/types';
 
 export async function processRevision(
   newScriptId: string,
@@ -45,7 +45,7 @@ export async function processRevision(
     // Steps 5-7 wrapped in a transaction to prevent partial migrations
     await prisma.$transaction(async (tx) => {
       // Step 5: Auto-resolve EXACT matches — update element.scriptId to new script
-      const exactMatches = report.matches.filter((m) => m.status === 'EXACT');
+      const exactMatches = report.matches.filter((m) => m.status === RevisionMatchStatus.EXACT);
       for (const match of exactMatches) {
         if (match.oldElementId) {
           await tx.element.update({
@@ -60,7 +60,7 @@ export async function processRevision(
       }
 
       // Step 6: Auto-create NEW elements
-      const newElements = report.matches.filter((m) => m.status === 'NEW');
+      const newElements = report.matches.filter((m) => m.status === RevisionMatchStatus.NEW);
       if (newElements.length > 0) {
         await tx.element.createMany({
           data: newElements.map((elem) => ({
@@ -69,14 +69,14 @@ export async function processRevision(
             type: elem.detectedType as ElementType,
             highlightPage: elem.detectedPage,
             highlightText: elem.detectedHighlightText,
-            status: 'ACTIVE',
-            source: 'AUTO',
+            status: ElementStatus.ACTIVE,
+            source: ElementSource.AUTO,
           })),
         });
       }
 
       // Step 7: Check if reconciliation is needed
-      const fuzzyMatches = report.matches.filter((m) => m.status === 'FUZZY');
+      const fuzzyMatches = report.matches.filter((m) => m.status === RevisionMatchStatus.FUZZY);
       const missingElements = report.missing;
 
       if (fuzzyMatches.length > 0 || missingElements.length > 0) {
@@ -88,7 +88,7 @@ export async function processRevision(
             detectedType: m.detectedType as ElementType,
             detectedPage: m.detectedPage,
             detectedHighlightText: m.detectedHighlightText,
-            matchStatus: 'FUZZY' as const,
+            matchStatus: RevisionMatchStatus.FUZZY as const,
             oldElementId: m.oldElementId ?? null,
             similarity: m.similarity ?? null,
             resolved: false,
@@ -99,7 +99,7 @@ export async function processRevision(
             detectedType: m.type as ElementType,
             detectedPage: null,
             detectedHighlightText: null,
-            matchStatus: 'MISSING' as const,
+            matchStatus: RevisionMatchStatus.MISSING as const,
             oldElementId: m.id,
             similarity: null,
             resolved: false,
@@ -111,13 +111,13 @@ export async function processRevision(
         // Set script to RECONCILING
         await tx.script.update({
           where: { id: newScriptId },
-          data: { status: 'RECONCILING', pageCount },
+          data: { status: ScriptStatus.RECONCILING, pageCount },
         });
       } else {
         // No reconciliation needed — script is READY
         await tx.script.update({
           where: { id: newScriptId },
-          data: { status: 'READY', pageCount },
+          data: { status: ScriptStatus.READY, pageCount },
         });
       }
     });
@@ -126,7 +126,7 @@ export async function processRevision(
 
     await prisma.script.update({
       where: { id: newScriptId },
-      data: { status: 'ERROR' },
+      data: { status: ScriptStatus.ERROR },
     });
   }
 }

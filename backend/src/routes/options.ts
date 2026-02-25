@@ -8,7 +8,7 @@ import {
   OPTION_ALLOWED_CONTENT_TYPES,
   OPTION_DESCRIPTION_MAX_LENGTH,
 } from '@backbone/shared/constants';
-import { MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
+import { ElementWorkflowState, MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
 
 const optionsRouter = Router();
@@ -343,10 +343,10 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
     });
 
     // Update element workflow state when option marked readyForReview
-    if (readyForReview === true && option.element.workflowState === 'PENDING') {
+    if (readyForReview === true && option.element.workflowState === ElementWorkflowState.PENDING) {
       await prisma.element.update({
         where: { id: option.elementId },
-        data: { workflowState: 'OUTSTANDING' },
+        data: { workflowState: ElementWorkflowState.OUTSTANDING },
       });
     }
 

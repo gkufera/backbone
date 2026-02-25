@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { parsePagination } from '../lib/pagination';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
-import { ApprovalDecision, MemberRole, NotificationType } from '@backbone/shared/types';
+import { ApprovalDecision, ElementStatus, MemberRole, NotificationType, OptionStatus } from '@backbone/shared/types';
 import { createNotification, notifyDeciders } from '../services/notification-service';
 
 const DECISION_TO_NOTIFICATION_TYPE: Record<ApprovalDecision, NotificationType> = {
@@ -47,12 +47,12 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
     }
 
     // Validate option and element are not archived
-    if (option.status === 'ARCHIVED') {
+    if (option.status === OptionStatus.ARCHIVED) {
       res.status(400).json({ error: 'Cannot approve an archived option' });
       return;
     }
 
-    if (option.element.status === 'ARCHIVED') {
+    if (option.element.status === ElementStatus.ARCHIVED) {
       res.status(400).json({ error: 'Cannot approve an option on an archived element' });
       return;
     }
@@ -266,11 +266,11 @@ approvalsRouter.get('/api/productions/:productionId/feed', requireAuth, async (r
     const elements = await prisma.element.findMany({
       where: {
         script: { productionId },
-        status: 'ACTIVE',
+        status: ElementStatus.ACTIVE,
         options: {
           some: {
             readyForReview: true,
-            status: 'ACTIVE',
+            status: OptionStatus.ACTIVE,
           },
         },
       },
@@ -278,7 +278,7 @@ approvalsRouter.get('/api/productions/:productionId/feed', requireAuth, async (r
         options: {
           where: {
             readyForReview: true,
-            status: 'ACTIVE',
+            status: OptionStatus.ACTIVE,
           },
           include: {
             uploadedBy: { select: { id: true, name: true } },

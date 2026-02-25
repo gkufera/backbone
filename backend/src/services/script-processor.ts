@@ -3,6 +3,7 @@ import { getFileBuffer } from '../lib/s3';
 import { parsePdf } from './pdf-parser';
 import { detectElements } from './element-detector';
 import { setProgress, clearProgress } from './processing-progress';
+import { ElementStatus, ElementSource, ScriptStatus } from '@backbone/shared/types';
 
 export async function processScript(scriptId: string, s3Key: string): Promise<void> {
   try {
@@ -51,8 +52,8 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
             elem.suggestedDepartment && departmentMap
               ? departmentMap.get(elem.suggestedDepartment) ?? null
               : null,
-          status: 'ACTIVE',
-          source: 'AUTO',
+          status: ElementStatus.ACTIVE,
+          source: ElementSource.AUTO,
         })),
       });
     }
@@ -62,7 +63,7 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
     // Step 6: Determine final status
     // New scripts (no parent) → REVIEWING for wizard
     // Revisions are handled by revision-processor.ts
-    const finalStatus = script?.parentScriptId ? 'READY' : 'REVIEWING';
+    const finalStatus = script?.parentScriptId ? ScriptStatus.READY : ScriptStatus.REVIEWING;
 
     await prisma.script.update({
       where: { id: scriptId },
@@ -82,7 +83,7 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
     try {
       await prisma.script.update({
         where: { id: scriptId },
-        data: { status: 'ERROR' },
+        data: { status: ScriptStatus.ERROR },
       });
     } catch (updateError) {
       console.error(`Failed to set ERROR status for ${scriptId}:`, updateError);

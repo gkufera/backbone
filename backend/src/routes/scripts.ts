@@ -7,7 +7,7 @@ import { processScript } from '../services/script-processor';
 import { processRevision } from '../services/revision-processor';
 import { getProgress } from '../services/processing-progress';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
-import { ScriptStatus, ElementStatus, ElementType, NotificationType } from '@backbone/shared/types';
+import { ScriptStatus, ElementStatus, ElementSource, ElementType, NotificationType, OptionStatus, ApprovalDecision } from '@backbone/shared/types';
 import type { SceneInfo } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
 
@@ -168,10 +168,10 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
               select: { id: true, name: true, color: true },
             },
             _count: {
-              select: { options: { where: { status: 'ACTIVE' } } },
+              select: { options: { where: { status: OptionStatus.ACTIVE } } },
             },
             options: {
-              where: { status: 'ACTIVE' },
+              where: { status: OptionStatus.ACTIVE },
               select: {
                 approvals: {
                   where: { tentative: false },
@@ -199,9 +199,9 @@ scriptsRouter.get('/api/productions/:id/scripts/:scriptId', requireAuth, async (
 
       let approvalTemperature: string | null = null;
       if (decisions.length > 0) {
-        if (decisions.includes('APPROVED')) {
+        if (decisions.includes(ApprovalDecision.APPROVED)) {
           approvalTemperature = 'green';
-        } else if (decisions.includes('MAYBE')) {
+        } else if (decisions.includes(ApprovalDecision.MAYBE)) {
           approvalTemperature = 'yellow';
         } else {
           approvalTemperature = 'red';
@@ -483,8 +483,8 @@ scriptsRouter.post('/api/scripts/:scriptId/accept-elements', requireAuth, async 
 
     try {
       await prisma.script.update({
-        where: { id: scriptId, status: 'REVIEWING' },
-        data: { status: 'READY' },
+        where: { id: scriptId, status: ScriptStatus.REVIEWING },
+        data: { status: ScriptStatus.READY },
       });
     } catch (updateError: any) {
       if (updateError?.code === 'P2025') {
@@ -569,16 +569,16 @@ scriptsRouter.post('/api/scripts/:scriptId/generate-implied', requireAuth, async
             name: `${character} - Wardrobe (Scene ${scene.sceneNumber})`,
             type: ElementType.OTHER,
             departmentId: costumeId,
-            status: 'ACTIVE',
-            source: 'AUTO',
+            status: ElementStatus.ACTIVE,
+            source: ElementSource.AUTO,
           });
           elementsToCreate.push({
             scriptId,
             name: `${character} - Hair & Makeup (Scene ${scene.sceneNumber})`,
             type: ElementType.OTHER,
             departmentId: hmId,
-            status: 'ACTIVE',
-            source: 'AUTO',
+            status: ElementStatus.ACTIVE,
+            source: ElementSource.AUTO,
           });
         }
       }
@@ -596,23 +596,23 @@ scriptsRouter.post('/api/scripts/:scriptId/generate-implied', requireAuth, async
           name: `${character} - Wardrobe`,
           type: ElementType.OTHER,
           departmentId: costumeId,
-          status: 'ACTIVE',
-          source: 'AUTO',
+          status: ElementStatus.ACTIVE,
+          source: ElementSource.AUTO,
         });
         elementsToCreate.push({
           scriptId,
           name: `${character} - Hair & Makeup`,
           type: ElementType.OTHER,
           departmentId: hmId,
-          status: 'ACTIVE',
-          source: 'AUTO',
+          status: ElementStatus.ACTIVE,
+          source: ElementSource.AUTO,
         });
       }
     }
 
     // Filter out elements that already exist to prevent duplicates on re-run
     const existing = await prisma.element.findMany({
-      where: { scriptId, status: 'ACTIVE' },
+      where: { scriptId, status: ElementStatus.ACTIVE },
       select: { name: true },
     });
     const existingNames = new Set(existing.map((e) => e.name));

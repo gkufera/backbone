@@ -1,3 +1,5 @@
+import { ElementStatus, RevisionMatchStatus } from '@backbone/shared/types';
+
 export interface ExistingElement {
   id: string;
   name: string;
@@ -20,7 +22,7 @@ export interface MatchResult {
   detectedType: string;
   detectedPage: number | null;
   detectedHighlightText: string | null;
-  status: 'EXACT' | 'FUZZY' | 'NEW';
+  status: RevisionMatchStatus.EXACT | RevisionMatchStatus.FUZZY | RevisionMatchStatus.NEW;
   oldElementId?: string;
   similarity?: number;
 }
@@ -71,7 +73,7 @@ export function matchElements(
   detected: DetectedElement[],
 ): MatchReport {
   // Filter out ARCHIVED elements
-  const pool = existing.filter((e) => e.status !== 'ARCHIVED');
+  const pool = existing.filter((e) => e.status !== ElementStatus.ARCHIVED);
 
   // Track which existing elements have been consumed
   const consumed = new Set<string>();
@@ -99,7 +101,7 @@ export function matchElements(
         detectedType: det.type,
         detectedPage: det.highlightPage,
         detectedHighlightText: det.highlightText,
-        status: 'EXACT',
+        status: RevisionMatchStatus.EXACT,
         oldElementId: exactMatch.id,
         similarity: 1,
       });
@@ -126,7 +128,7 @@ export function matchElements(
         detectedType: det.type,
         detectedPage: det.highlightPage,
         detectedHighlightText: det.highlightText,
-        status: 'FUZZY',
+        status: RevisionMatchStatus.FUZZY,
         oldElementId: bestMatch.id,
         similarity: bestSim,
       });
@@ -136,7 +138,7 @@ export function matchElements(
         detectedType: det.type,
         detectedPage: det.highlightPage,
         detectedHighlightText: det.highlightText,
-        status: 'NEW',
+        status: RevisionMatchStatus.NEW,
       });
     }
   }

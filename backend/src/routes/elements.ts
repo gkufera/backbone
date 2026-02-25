@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { parsePagination } from '../lib/pagination';
-import { ElementType, ElementStatus, ElementSource } from '@backbone/shared/types';
+import { ElementType, ElementStatus, ElementSource, OptionStatus, ScriptStatus } from '@backbone/shared/types';
 
 const elementsRouter = Router();
 
@@ -119,7 +119,7 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
       orderBy: { name: 'asc' },
       include: {
         _count: {
-          select: { options: { where: { status: 'ACTIVE' } } },
+          select: { options: { where: { status: OptionStatus.ACTIVE } } },
         },
       },
       take,
@@ -237,7 +237,7 @@ elementsRouter.delete('/api/elements/:id', requireAuth, async (req, res) => {
       return;
     }
 
-    if (element.script.status !== 'REVIEWING') {
+    if (element.script.status !== ScriptStatus.REVIEWING) {
       res.status(403).json({ error: 'Elements can only be deleted when script is in REVIEWING status' });
       return;
     }
