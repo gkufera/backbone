@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 432 frontend + 411 backend = 843 total
+**Test counts:** 432 frontend + 417 backend = 849 total
 
 ---
 

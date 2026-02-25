@@ -1,7 +1,7 @@
 # Current Plan
 
 ## Active Task
-Sprints 15-20 check complete. All bugs found and fixed.
+Sprint 21 complete. All deferred fixes from Sprints 17 & 19 resolved.
 
 ## Completed: Sprint 15 (Critical Security Hardening) ✅
 
@@ -59,10 +59,19 @@ Extracted business logic from oversized route files:
 - Extracted `generateImpliedElements` service from scripts.ts (632 → 555 lines)
 - productions.ts (609) and auth.ts (509) evaluated — within acceptable range, no artificial extraction needed
 
+## Completed: Sprint 21 (Deferred Fixes from Sprints 17 & 19) ✅
+
+Fixed gaps identified in post-sprint review:
+- Added missing `deletedAt: null` filter to `enrichNotesWithDepartment()` in notes.ts (Sprint 17 gap)
+- Created `RevisionMatchDecision` shared enum in `shared/types/script.ts` (Sprint 19 gap)
+- Replaced hardcoded decision strings in backend `revision-matches.ts` with enum values
+- Replaced hardcoded decision strings in frontend `api.ts`, `reconciliation-card.tsx`, `reconcile/page.tsx`, and tests
+- Updated roadmap.md test count from 843 to 849
+
 ## Test Counts
-- **Frontend**: 432 tests (+5 design system compliance tests)
-- **Backend**: 416 tests (+40 new tests from Sprints 15-17, +5 soft-delete query filter tests)
-- **Total**: 848 tests
+- **Frontend**: 432 tests
+- **Backend**: 417 tests (+1 notes soft-delete test)
+- **Total**: 849 tests
 
 ## Security Audit Summary
 
