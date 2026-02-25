@@ -1,7 +1,7 @@
 # Current Plan
 
 ## Active Task
-Security Hardening & Best Practices Audit — Sprints 15-20 complete.
+Sprints 15-20 check complete. All bugs found and fixed.
 
 ## Completed: Sprint 15 (Critical Security Hardening) ✅
 
@@ -34,6 +34,7 @@ Replaced all hard-deletes with soft-deletes:
 - Replaced `prisma.department.delete()` with soft-delete in departments.ts
 - Updated all list queries to filter `deletedAt: null` (elements, members, departments, notifications)
 - Updated 4 existing tests and added 6 new soft-delete tests
+- **Post-check fix**: Added missing `deletedAt: null` to 5 queries (GET production members/departments include, department delete member count, privileged member count, element stats groupBy)
 
 ## Completed: Sprint 18 (Design System Compliance) ✅
 
@@ -43,6 +44,7 @@ Fixed all design system violations:
 - Added `font-mono` to body-text spans that legitimately need font-bold (user names)
 - Replaced notification unread `font-bold` with `border-l-4` border indicator
 - Added 5 automated design-system compliance tests
+- **Post-check fix**: Removed font-bold from 3 VT323 spans in option-lightbox, removed font-medium from 2 element-list spans, added font-mono to error div in element-detail-panel
 
 ## Completed: Sprint 19 (Single Source of Truth) ✅
 
@@ -59,8 +61,8 @@ Extracted business logic from oversized route files:
 
 ## Test Counts
 - **Frontend**: 432 tests (+5 design system compliance tests)
-- **Backend**: 411 tests (+40 new tests from Sprints 15-17)
-- **Total**: 843 tests
+- **Backend**: 416 tests (+40 new tests from Sprints 15-17, +5 soft-delete query filter tests)
+- **Total**: 848 tests
 
 ## Security Audit Summary
 
