@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { RevisionMatchDecision } from '@backbone/shared/types';
 
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -215,7 +216,7 @@ describe('Reconciliation page', () => {
     await waitFor(() => {
       expect(mockedRevisionMatchesApi.resolve).toHaveBeenCalledWith('script-2', [
         // CHARACTER type gets pre-filled with Cast department
-        { matchId: 'match-1', decision: 'map', departmentId: 'dept-cast' },
+        { matchId: 'match-1', decision: RevisionMatchDecision.MAP, departmentId: 'dept-cast' },
       ]);
     });
   });

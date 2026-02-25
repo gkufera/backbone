@@ -1,6 +1,7 @@
 'use client';
 
 import type { RevisionMatchResponse, DepartmentResponse } from '../lib/api';
+import { RevisionMatchDecision } from '@backbone/shared/types';
 
 interface ReconciliationCardProps {
   match: RevisionMatchResponse;
@@ -59,9 +60,9 @@ export function ReconciliationCard({
           <div className="mb-3 flex gap-2">
             <button
               type="button"
-              onClick={() => onDecision(match.id, 'map')}
+              onClick={() => onDecision(match.id, RevisionMatchDecision.MAP)}
               className={`px-3 py-1 text-sm ${
-                decision === 'map' ? 'bg-black text-white' : 'bg-white text-black'
+                decision === RevisionMatchDecision.MAP ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Map to Existing"
             >
@@ -69,9 +70,9 @@ export function ReconciliationCard({
             </button>
             <button
               type="button"
-              onClick={() => onDecision(match.id, 'create_new')}
+              onClick={() => onDecision(match.id, RevisionMatchDecision.CREATE_NEW)}
               className={`px-3 py-1 text-sm ${
-                decision === 'create_new' ? 'bg-black text-white' : 'bg-white text-black'
+                decision === RevisionMatchDecision.CREATE_NEW ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Create as New"
             >
@@ -112,9 +113,9 @@ export function ReconciliationCard({
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => onDecision(match.id, 'keep')}
+              onClick={() => onDecision(match.id, RevisionMatchDecision.KEEP)}
               className={`px-3 py-1 text-sm ${
-                decision === 'keep' ? 'bg-black text-white' : 'bg-white text-black'
+                decision === RevisionMatchDecision.KEEP ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Keep"
             >
@@ -122,9 +123,9 @@ export function ReconciliationCard({
             </button>
             <button
               type="button"
-              onClick={() => onDecision(match.id, 'archive')}
+              onClick={() => onDecision(match.id, RevisionMatchDecision.ARCHIVE)}
               className={`px-3 py-1 text-sm ${
-                decision === 'archive' ? 'bg-black text-white' : 'bg-white text-black'
+                decision === RevisionMatchDecision.ARCHIVE ? 'bg-black text-white' : 'bg-white text-black'
               }`}
               aria-label="Archive"
             >

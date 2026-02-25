@@ -1,14 +1,15 @@
-import type {
-  Production,
-  ProductionMember,
-  Department,
-  Script,
-  Element,
-  Option,
-  OptionAsset,
-  Approval,
-  RevisionMatch,
-  Notification,
+import {
+  type Production,
+  type ProductionMember,
+  type Department,
+  type Script,
+  type Element,
+  type Option,
+  type OptionAsset,
+  type Approval,
+  type RevisionMatch,
+  type Notification,
+  RevisionMatchDecision,
 } from '@backbone/shared/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000';
@@ -596,7 +597,7 @@ export const revisionMatchesApi = {
     scriptId: string,
     decisions: Array<{
       matchId: string;
-      decision: 'map' | 'create_new' | 'keep' | 'archive';
+      decision: RevisionMatchDecision;
       departmentId?: string | null;
     }>,
   ): Promise<{ message: string }> {

@@ -8,6 +8,7 @@ import {
   type RevisionMatchResponse,
   type DepartmentResponse,
 } from '../../../../../../lib/api';
+import { RevisionMatchDecision } from '@backbone/shared/types';
 import { ReconciliationCard } from '../../../../../../components/reconciliation-card';
 import { ELEMENT_TYPE_DEPARTMENT_MAP } from '@backbone/shared/constants/departments';
 import { SkeletonCard } from '../../../../../../components/skeleton';
@@ -77,7 +78,7 @@ export default function ReconcilePage() {
     try {
       const decisionList = matches.map((m) => ({
         matchId: m.id,
-        decision: decisions[m.id] as 'map' | 'create_new' | 'keep' | 'archive',
+        decision: decisions[m.id] as RevisionMatchDecision,
         departmentId: departmentChoices[m.id] ?? undefined,
       }));
 
