@@ -1,21 +1,23 @@
 import type { Metadata } from 'next';
-import { VT323, Courier_Prime } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { Providers } from './providers';
 import { AppHeader } from '../components/app-header';
 import { AppFooter } from '../components/app-footer';
 import { ToastContainer } from '../components/toast-container';
 
-const vt323 = VT323({
-  weight: '400',
+const vt323 = localFont({
+  src: '../fonts/VT323-Regular.woff2',
   variable: '--font-vt323',
-  subsets: ['latin'],
+  weight: '400',
 });
 
-const courierPrime = Courier_Prime({
-  weight: ['400', '700'],
+const courierPrime = localFont({
+  src: [
+    { path: '../fonts/CourierPrime-Regular.woff2', weight: '400', style: 'normal' },
+    { path: '../fonts/CourierPrime-Bold.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-courier-prime',
-  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {

@@ -1,9 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 
-// Mock next/font/google since fonts aren't available in test
-vi.mock('next/font/google', () => ({
-  VT323: () => ({ variable: '--font-vt323' }),
-  Courier_Prime: () => ({ variable: '--font-courier-prime' }),
+// Mock next/font/local since font files aren't loaded in test
+vi.mock('next/font/local', () => ({
+  default: () => ({ variable: '--font-mock' }),
 }));
 
 import { metadata } from '../app/layout';
