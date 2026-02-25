@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
-import { ElementStatus, ElementSource, OptionStatus, ScriptStatus } from '@backbone/shared/types';
+import { ElementStatus, ElementSource, OptionStatus, ScriptStatus, RevisionMatchDecision } from '@backbone/shared/types';
 
 const revisionMatchesRouter = Router();
 
-const VALID_DECISIONS = ['map', 'create_new', 'keep', 'archive'];
+const VALID_DECISIONS = Object.values(RevisionMatchDecision);
 
 // Get revision matches for a script
 revisionMatchesRouter.get(
@@ -151,7 +151,7 @@ revisionMatchesRouter.post(
           const match = matchMap.get(matchId)!;
 
           switch (decision) {
-            case 'map':
+            case RevisionMatchDecision.MAP:
               // Update old element's scriptId, name, and highlight data to new script
               if (match.oldElementId) {
                 await tx.element.update({
@@ -167,7 +167,7 @@ revisionMatchesRouter.post(
               }
               break;
 
-            case 'create_new':
+            case RevisionMatchDecision.CREATE_NEW:
               // Create a new element on the new script
               await tx.element.createMany({
                 data: [
@@ -185,7 +185,7 @@ revisionMatchesRouter.post(
               });
               break;
 
-            case 'keep':
+            case RevisionMatchDecision.KEEP:
               // Migrate old element to new script (keep its data)
               if (match.oldElementId) {
                 await tx.element.update({
@@ -198,7 +198,7 @@ revisionMatchesRouter.post(
               }
               break;
 
-            case 'archive':
+            case RevisionMatchDecision.ARCHIVE:
               // Set old element status to ARCHIVED
               if (match.oldElementId) {
                 await tx.element.update({
