@@ -1,7 +1,7 @@
 # Current Plan
 
 ## Active Task
-None — CI Build Fix complete.
+None — CI Build Fix Check complete.
 
 ## CI Build Fix Results
 
@@ -55,6 +55,14 @@ None — CI Build Fix complete.
 - E2E workflow hardened: NODE_ENV=test, AWS env vars, log capture, curl timeouts
 - `EXTERNAL-SETUP.md` — Cloud infrastructure setup checklists
 - Roadmap test counts updated: 427 frontend + 370 backend = 797 total
+
+## CI Build Fix Check Results
+
+| # | Finding | Action | Status |
+|---|---------|--------|--------|
+| 1 | Stale test counts in roadmap (792 → 797) | Updated roadmap.md | Done |
+| 2 | Backend `.js` imports in ~90 source files (pre-existing) | Added to roadmap backlog | Done |
+| 3 | All other areas verified correct (fonts, Turbopack, shared imports, build prereq tests, docs, CI workflows, builds) | No action needed | Done |
 
 ## Next Up
 Sprint 14 remaining: AWS SES, S3/CloudFront CDN, Performance audit, Final QA pass (all deferred — require external cloud access).
