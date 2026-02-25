@@ -16,7 +16,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | AWS S3             | Running        | slugmax-uploads bucket                                                            |
 | AWS SES            | Sandbox        | Domain verified (DKIM SUCCESS). Production access pending (case #177205820000226) |
 | Cloudflare DNS     | Configured     | Frontend, API, DKIM, SPF, DMARC records all set                                   |
-| GitHub CI/CD       | Tier 1 passing | E2E fixed in Sprint 23 (port conflict resolved)                                   |
+| GitHub CI/CD       | Tier 1 passing | E2E port conflict fixed (Sprint 23), tests still failing (Sprint 24)              |
 
 ---
 
@@ -31,7 +31,23 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 24: Production Security
+## Sprint 24: Fix E2E Tests (URGENT)
+
+**Goal:** Green E2E pipeline in GitHub Actions. All Playwright tests pass.
+
+**Root cause:** The `signupAndLogin()` helper in E2E tests was written before Sprint 10 added forced email verification. After signup, the app now redirects to "check your email" instead of auto-logging in. Every E2E test that calls `signupAndLogin()` fails because the expected home page heading never appears.
+
+- [ ] Fix `signupAndLogin()` E2E helper to handle email verification flow
+  - Option A: Auto-verify users in test/CI environment (backend skips email verification when `NODE_ENV=test`)
+  - Option B: Call verify endpoint directly after signup in E2E helper
+  - Whichever approach, all 6 E2E tests must pass
+- [ ] Audit all E2E test files for other assumptions broken by Sprints 10-22
+  - Check auth.spec.ts, home.spec.ts, productions.spec.ts for stale selectors/flows
+- [ ] Verify green E2E run in GitHub Actions after push
+
+---
+
+## Sprint 25: Production Security (was 24)
 
 **Goal:** Close the 4 remaining medium-priority security gaps identified in the security audit.
 
@@ -53,7 +69,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 25: QA & Performance
+## Sprint 26: QA & Performance (was 25)
 
 **Goal:** Confidence that everything works end-to-end in production.
 
