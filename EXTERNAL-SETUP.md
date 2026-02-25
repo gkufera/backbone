@@ -126,6 +126,46 @@ Complete reference of env vars needed per service.
 
 ---
 
+## GitHub CLI Authentication (for CI Log Access)
+
+Programmatic access to GitHub for reading CI logs, PR status, and workflow runs.
+
+### Steps
+
+1. **Generate a personal access token**
+   - Go to https://github.com/settings/tokens
+   - Generate new token (classic) with `repo` and `workflow` scopes
+   - Copy the token (starts with `ghp_`)
+
+2. **Set in your development environment**
+   ```bash
+   export GH_TOKEN=ghp_your_token_here
+   ```
+
+3. **Verify**
+   ```bash
+   gh auth status
+   ```
+
+### For Claude Code
+
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
+```bash
+export GH_TOKEN=ghp_your_token_here
+```
+
+Or create a `.env` file in the workspace root (already in `.gitignore`).
+
+### Usage
+
+```bash
+gh run list                          # List recent workflow runs
+gh run view <run-id> --log-failed    # View failed job logs
+gh pr checks <pr-number>             # Check CI status on a PR
+```
+
+---
+
 ## GitHub Actions Secrets
 
 Secrets needed for CI workflows (Settings > Secrets and variables > Actions).
