@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/notify.sh 'Slug Max' 'Task complete' 'default' 'white_check_mark'"
+            "command": "notify=$(command -v notify.sh || echo ~/.claude/notify.sh) && $notify 'Slug Max' 'Task complete' 'default' 'white_check_mark'"
           }
         ]
       }
