@@ -259,12 +259,12 @@ function ElementRow({
         {productionId && scriptId ? (
           <Link
             href={`/productions/${productionId}/scripts/${scriptId}/elements/${elem.id}`}
-            className={`font-medium font-mono underline ${isActive ? '' : 'text-black'}`}
+            className={`font-mono underline ${isActive ? '' : 'text-black'}`}
           >
             {elem.name}
           </Link>
         ) : (
-          <span className="font-medium font-mono">{elem.name}</span>
+          <span className="font-mono">{elem.name}</span>
         )}
         {elem.highlightPage != null && (
           <span className={`ml-2 text-xs font-mono ${isActive ? '' : 'text-black'}`}>

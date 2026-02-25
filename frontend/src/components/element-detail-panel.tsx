@@ -209,7 +209,7 @@ export function ElementDetailPanel({
   }
 
   if (error && !element) {
-    return <div className="p-6 text-black font-bold">{error}</div>;
+    return <div className="p-6 text-black font-bold font-mono">{error}</div>;
   }
 
   if (!element) {

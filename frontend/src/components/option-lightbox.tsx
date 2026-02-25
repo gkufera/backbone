@@ -81,12 +81,12 @@ export function OptionLightbox({
     }
 
     if (!asset) {
-      return <span className="text-lg font-bold">{option.mediaType}</span>;
+      return <span className="text-lg">{option.mediaType}</span>;
     }
 
     // Loading state
     if (!url) {
-      return <span className="text-lg font-bold">{asset.mediaType}</span>;
+      return <span className="text-lg">{asset.mediaType}</span>;
     }
 
     switch (asset.mediaType) {
@@ -123,7 +123,7 @@ export function OptionLightbox({
           </a>
         );
       default:
-        return <span className="text-lg font-bold">{asset.mediaType}</span>;
+        return <span className="text-lg">{asset.mediaType}</span>;
     }
   }
 
