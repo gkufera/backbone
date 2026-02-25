@@ -73,6 +73,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 **Goal:** Confidence that everything works end-to-end in production.
 
+- [ ] Custom MAIL FROM domain for full DMARC alignment
 - [ ] Performance audit
   - Run Lighthouse on key pages (home, production, script viewer)
   - Measure API response times for critical endpoints
@@ -85,7 +86,6 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Following sprints - once you get here, first investigate these issues and split them into sprints.
 
-- [ ] Custom MAIL FROM domain for full DMARC alignment
 - [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, and then generate a PDF of that FDX file so that everything works better. Note in the software in a tooltip that this works better, and that the AI that pulls tags is very inaccurate.
 - [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department as well as a director and a production coordinator.
 
