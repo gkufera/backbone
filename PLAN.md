@@ -1,7 +1,7 @@
 # Current Plan
 
 ## Active Task
-Security Hardening & Best Practices Audit — Sprints 15-16 complete.
+Security Hardening & Best Practices Audit — Sprints 15-17 complete.
 
 ## Completed: Sprint 15 (Critical Security Hardening) ✅
 
@@ -25,17 +25,22 @@ Added defense-in-depth measures:
 - JWT algorithm (HS256), issuer (slugmax), audience (slugmax-api) claims
 - Expanded security headers tests (6 tests, up from 2)
 
+## Completed: Sprint 17 (Immutability & Soft-Delete) ✅
+
+Replaced all hard-deletes with soft-deletes:
+- Added `deletedAt DateTime?` to Element, ProductionMember, Department in Prisma schema
+- Replaced `prisma.element.delete()` with `prisma.element.update({ data: { deletedAt } })` in elements.ts
+- Replaced `prisma.productionMember.delete()` with soft-delete in productions.ts
+- Replaced `prisma.department.delete()` with soft-delete in departments.ts
+- Updated all list queries to filter `deletedAt: null` (elements, members, departments, notifications)
+- Updated 4 existing tests and added 6 new soft-delete tests
+
 ## Test Counts
 - **Frontend**: 427 tests
-- **Backend**: 405 tests (+34 new security tests)
-- **Total**: 832 tests
+- **Backend**: 411 tests (+40 new tests from Sprints 15-17)
+- **Total**: 838 tests
 
 ## Next Sprints
-
-### Sprint 17: Immutability & Soft-Delete
-- Add deletedAt fields to Element, ProductionMember, Department
-- Replace all hard-deletes with soft-deletes
-- Update queries to filter deletedAt: null
 
 ### Sprint 18: Design System Compliance
 - Replace color violations with 1-bit patterns

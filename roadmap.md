@@ -2,7 +2,7 @@
 
 Current priorities and upcoming work. Completed sprint history (Sprints 0–8) is archived in `roadmap-archive.md`.
 
-**Test counts:** 427 frontend + 405 backend = 832 total
+**Test counts:** 427 frontend + 411 backend = 838 total
 
 ---
 
@@ -339,22 +339,23 @@ Items identified during QA but requiring schema migrations or cross-cutting back
 
 ---
 
-## Sprint 17: Immutability & Soft-Delete (~500 LOC)
+## Sprint 17: Immutability & Soft-Delete ✅
 
 **Goal:** Fix all hard-delete violations. Add deletedAt fields. Replace prisma.delete() with soft-delete.
 
 ### Tasks
 
-- [ ] Schema migration — add `deletedAt DateTime?` to Element, ProductionMember, Department
-- [ ] Replace element hard-delete with soft-delete (elements.ts)
-- [ ] Replace productionMember hard-delete with soft-delete (productions.ts)
-- [ ] Replace department hard-delete with soft-delete (departments.ts)
-- [ ] Update all queries on these models to filter `deletedAt: null`
+- [x] Schema migration — add `deletedAt DateTime?` to Element, ProductionMember, Department
+- [x] Replace element hard-delete with soft-delete (elements.ts)
+- [x] Replace productionMember hard-delete with soft-delete (productions.ts)
+- [x] Replace department hard-delete with soft-delete (departments.ts)
+- [x] Update all queries on these models to filter `deletedAt: null`
+- [x] Update notification-service queries to filter deletedAt: null
+- [x] Update existing tests to match soft-delete behavior
 
 ### Tests
-- Schema has deletedAt on required models
-- DELETE endpoints set deletedAt instead of removing records
-- Queries exclude soft-deleted records
+- 6 new soft-delete tests: schema validation, element/member/department soft-delete verification
+- 4 existing tests updated: scripts, departments, notification-service, approvals
 
 ---
 
