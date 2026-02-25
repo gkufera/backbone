@@ -87,7 +87,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Sprint 27: Lock down production server so that people pay us in order to create a production
 
-- [ ] Make it so that only users who have a verified email address of the form _@kufera.com or carsonmell_@gmail.com can create a production - all other users can only be added to a production. If a user tries to create a production and they do not have this format of an email address, display an error that says "Contact Greg Kufera or Carson Mell if you want to use Slug Max on your production". Then make it easy for us to create a production for other users.
+- [ ] Make it so that only users who have a verified email address of the form *@kufera.com or carsonmell*@gmail.com can create a production - all other users can only be added to a production. If a user tries to create a production and they do not have this format of an email address, display an error that says "Contact Greg Kufera or Carson Mell if you want to use Slug Max on your production". Then make it easy for us to create a production for other users.
 
 ---
 
