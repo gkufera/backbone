@@ -95,6 +95,33 @@ describe('Design System Compliance', () => {
     expect(violations).toEqual([]);
   });
 
+  it('globals.css contains only #000 and #fff hex colors', () => {
+    const globalsPath = join(__dirname, '..', 'app', 'globals.css');
+    const content = readFileSync(globalsPath, 'utf-8');
+    const lines = content.split('\n');
+    const violations: string[] = [];
+
+    // Match hex colors: #RGB, #RRGGBB, #RGBA, #RRGGBBAA
+    const hexColorPattern = /#(?:[0-9a-fA-F]{3,8})\b/g;
+    const allowedColors = new Set(['#000', '#000000', '#fff', '#ffffff']);
+
+    lines.forEach((line, i) => {
+      // Skip CSS comments
+      if (line.trim().startsWith('//') || line.trim().startsWith('/*') || line.trim().startsWith('*')) return;
+
+      let match;
+      hexColorPattern.lastIndex = 0;
+      while ((match = hexColorPattern.exec(line)) !== null) {
+        const color = match[0].toLowerCase();
+        if (!allowedColors.has(color)) {
+          violations.push(`globals.css:${i + 1}: ${match[0]} in "${line.trim()}"`);
+        }
+      }
+    });
+
+    expect(violations).toEqual([]);
+  });
+
   it('no dark mode variants', () => {
     const violations: string[] = [];
     for (const file of tsxFiles) {
