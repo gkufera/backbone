@@ -62,12 +62,12 @@ test.describe('Auth flow', () => {
     // Click logout
     await page.getByRole('button', { name: /log out/i }).click();
 
+    // Wait for logout to complete — user should be redirected or log out button disappears
+    await expect(page.getByRole('button', { name: /log out/i })).not.toBeVisible({ timeout: 5000 });
+
     // Verify token is cleared from localStorage
     const token = await page.evaluate(() => localStorage.getItem('token'));
     expect(token).toBeNull();
-
-    // Log out button should no longer be visible (user state cleared)
-    await expect(page.getByRole('button', { name: /log out/i })).not.toBeVisible({ timeout: 5000 });
   });
 
   test('forgot password form → shows success message', async ({ page }) => {

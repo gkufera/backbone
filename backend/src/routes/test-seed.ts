@@ -128,4 +128,28 @@ testSeedRouter.post('/api/test/seed-production', requireAuth, async (req, res) =
   }
 });
 
+testSeedRouter.post(
+  '/api/test/activate-production/:id',
+  requireAuth,
+  async (req, res) => {
+    if (process.env.NODE_ENV !== 'test') {
+      res.status(403).json({ error: 'Test endpoints are only available in test environment' });
+      return;
+    }
+
+    try {
+      const production = await prisma.production.update({
+        where: { id: req.params.id },
+        data: { status: 'ACTIVE' },
+      });
+      res.json({ id: production.id, status: production.status });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error),
+      });
+    }
+  },
+);
+
 export { testSeedRouter };

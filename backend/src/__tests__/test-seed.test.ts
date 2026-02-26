@@ -14,6 +14,7 @@ vi.mock('../lib/prisma', () => ({
   prisma: {
     production: {
       create: vi.fn(),
+      update: vi.fn(),
     },
     productionMember: {
       create: vi.fn(),
@@ -181,5 +182,51 @@ describe('POST /api/test/seed-production', () => {
     expect(res.status).toBe(500);
     expect(res.body.error).toBe('Internal server error');
     expect(res.body.details).toBe('DB connection failed');
+  });
+});
+
+describe('POST /api/test/activate-production/:id', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+  });
+
+  it('returns 401 without auth token', async () => {
+    const res = await request(app).post('/api/test/activate-production/prod-1').send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('activates a PENDING production', async () => {
+    mockedPrisma.production.update.mockResolvedValue({
+      id: 'prod-1',
+      title: 'Test',
+      status: 'ACTIVE',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/test/activate-production/prod-1')
+      .set(authHeader())
+      .send({});
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ACTIVE');
+    expect(mockedPrisma.production.update).toHaveBeenCalledWith({
+      where: { id: 'prod-1' },
+      data: { status: 'ACTIVE' },
+    });
+  });
+
+  it('returns 403 when NODE_ENV is not test', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const res = await request(app)
+        .post('/api/test/activate-production/prod-1')
+        .set(authHeader())
+        .send({});
+      expect(res.status).toBe(403);
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
   });
 });

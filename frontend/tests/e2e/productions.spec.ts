@@ -1,34 +1,49 @@
 import { test, expect } from '@playwright/test';
-import { signupAndLogin, apiSignup, TEST_PASSWORD, API_BASE } from './helpers';
-
-const uniqueEmail = () =>
-  `test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`;
+import {
+  signupAndLogin,
+  apiSignup,
+  getAuthToken,
+  loginAs,
+  createActiveProduction,
+  API_BASE,
+} from './helpers';
 
 test.describe('Production flow', () => {
-  test('create production → see dashboard with title', async ({ page }) => {
+  test('request production form → shows success message', async ({ page }) => {
     await signupAndLogin(page);
 
     await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('My Test Production');
-    await page.getByRole('button', { name: /create/i }).click();
+    await page.getByLabel(/production title/i).fill('My Test Production');
+    await page.getByLabel(/studio name/i).fill('Test Studio');
+    await page.getByRole('button', { name: /submit request/i }).click();
 
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    // After submission, shows success message (no redirect — production is PENDING)
+    await expect(page.getByText(/request.*submitted/i)).toBeVisible({ timeout: 10000 });
+  });
+
+  test('active production dashboard shows title', async ({ page, request }) => {
+    const email = await apiSignup(request);
+    const token = await getAuthToken(request, email);
+    const productionId = await createActiveProduction(request, token, 'My Test Production');
+
+    await loginAs(page, email);
+    await page.goto(`/productions/${productionId}`);
+
     await expect(page.getByRole('heading', { name: 'My Test Production' })).toBeVisible({
       timeout: 10000,
     });
   });
 
-  test('create production → add team member → see in member list', async ({ page, request }) => {
-    await signupAndLogin(page);
+  test('add team member → see in member list', async ({ page, request }) => {
+    const email = await apiSignup(request);
+    const token = await getAuthToken(request, email);
+    const productionId = await createActiveProduction(request, token, 'Team Production');
 
-    // Create a second user via API
+    // Create a second user to invite
     const memberEmail = await apiSignup(request);
 
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Team Production');
-    await page.getByRole('button', { name: /create/i }).click();
-
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    await loginAs(page, email);
+    await page.goto(`/productions/${productionId}`);
     await expect(page.getByRole('heading', { name: 'Team Production' })).toBeVisible({
       timeout: 10000,
     });
@@ -41,14 +56,13 @@ test.describe('Production flow', () => {
     await expect(page.getByText(memberEmail)).toBeVisible({ timeout: 5000 });
   });
 
-  test('dashboard sections render — Scripts, Team, Departments', async ({ page }) => {
-    await signupAndLogin(page);
+  test('dashboard sections render — Scripts, Team, Departments', async ({ page, request }) => {
+    const email = await apiSignup(request);
+    const token = await getAuthToken(request, email);
+    const productionId = await createActiveProduction(request, token, 'Section Test');
 
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Section Test');
-    await page.getByRole('button', { name: /create/i }).click();
-
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    await loginAs(page, email);
+    await page.goto(`/productions/${productionId}`);
 
     // Verify key sections are visible
     await expect(page.getByText(/scripts/i).first()).toBeVisible({ timeout: 5000 });
@@ -56,28 +70,23 @@ test.describe('Production flow', () => {
     await expect(page.getByText(/departments/i).first()).toBeVisible({ timeout: 5000 });
   });
 
-  test('production list — created production appears in list', async ({ page }) => {
-    await signupAndLogin(page);
+  test('production list — created production appears in list', async ({ page, request }) => {
+    const email = await apiSignup(request);
+    const token = await getAuthToken(request, email);
+    await createActiveProduction(request, token, 'Listed Production');
 
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Listed Production');
-    await page.getByRole('button', { name: /create/i }).click();
-
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
-
-    // Navigate back to productions list
+    await loginAs(page, email);
     await page.goto('/productions');
     await expect(page.getByText('Listed Production')).toBeVisible({ timeout: 5000 });
   });
 
-  test('create department → appears in department list', async ({ page }) => {
-    await signupAndLogin(page);
+  test('create department → appears in department list', async ({ page, request }) => {
+    const email = await apiSignup(request);
+    const token = await getAuthToken(request, email);
+    const productionId = await createActiveProduction(request, token, 'Dept Test');
 
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Dept Test');
-    await page.getByRole('button', { name: /create/i }).click();
-
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    await loginAs(page, email);
+    await page.goto(`/productions/${productionId}`);
 
     // Fill new department name and add
     const deptInput = page.getByPlaceholder(/department/i);
@@ -86,24 +95,25 @@ test.describe('Production flow', () => {
 
     // Scope to the Departments section to avoid matching member row <option> elements
     const deptSection = page.locator('section', { hasText: 'Departments' }).first();
-    await expect(deptSection.locator('li', { hasText: 'Custom Department' })).toBeVisible({ timeout: 5000 });
+    await expect(deptSection.locator('li', { hasText: 'Custom Department' })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test('delete department → removed from list', async ({ page }) => {
-    await signupAndLogin(page);
+  test('delete department → removed from list', async ({ page, request }) => {
+    const email = await apiSignup(request);
+    const token = await getAuthToken(request, email);
+    const productionId = await createActiveProduction(request, token, 'Dept Delete Test');
 
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Dept Delete Test');
-    await page.getByRole('button', { name: /create/i }).click();
-
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    await loginAs(page, email);
+    await page.goto(`/productions/${productionId}`);
 
     // Add a custom department first
     const deptInput = page.getByPlaceholder(/department/i);
     await deptInput.fill('Temp Department');
     await page.getByRole('button', { name: /add department/i }).click();
 
-    // Scope to the Departments section to avoid matching member row <option> elements
+    // Scope to the Departments section
     const deptSection = page.locator('section', { hasText: 'Departments' }).first();
     const deptRow = deptSection.locator('li', { hasText: 'Temp Department' });
     await expect(deptRow).toBeVisible({ timeout: 5000 });
@@ -119,15 +129,14 @@ test.describe('Production flow', () => {
   });
 
   test('change member role via dropdown', async ({ page, request }) => {
-    await signupAndLogin(page);
+    const email = await apiSignup(request, undefined, 'Admin User');
+    const token = await getAuthToken(request, email);
+    const productionId = await createActiveProduction(request, token, 'Role Test');
 
     const memberEmail = await apiSignup(request, undefined, 'Role Test Member');
 
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Role Test');
-    await page.getByRole('button', { name: /create/i }).click();
-
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    await loginAs(page, email);
+    await page.goto(`/productions/${productionId}`);
 
     // Add team member
     const emailInput = page.getByPlaceholder(/email/i);
@@ -144,15 +153,14 @@ test.describe('Production flow', () => {
   });
 
   test('assign member to department via dropdown', async ({ page, request }) => {
-    await signupAndLogin(page);
+    const email = await apiSignup(request, undefined, 'Admin User');
+    const token = await getAuthToken(request, email);
+    const productionId = await createActiveProduction(request, token, 'Dept Assign Test');
 
     const memberEmail = await apiSignup(request, undefined, 'Dept Test Member');
 
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Dept Assign Test');
-    await page.getByRole('button', { name: /create/i }).click();
-
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    await loginAs(page, email);
+    await page.goto(`/productions/${productionId}`);
 
     // Add team member
     const emailInput = page.getByPlaceholder(/email/i);

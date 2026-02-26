@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { apiSignup, getAuthToken, loginAs, API_BASE } from './helpers';
+import { apiSignup, getAuthToken, loginAs, createActiveProduction, API_BASE } from './helpers';
 
 test.describe('Notifications', () => {
   /**
@@ -13,13 +13,8 @@ test.describe('Notifications', () => {
     // Create User B (will be invited)
     const emailB = await apiSignup(request, undefined, 'Invited User');
 
-    // User A creates a production
-    const prodRes = await request.post(`${API_BASE}/api/productions`, {
-      headers: { Authorization: `Bearer ${tokenA}` },
-      data: { title: 'Notification Test Production' },
-    });
-    const prodBody = await prodRes.json();
-    const productionId = prodBody.production.id;
+    // User A creates an ACTIVE production
+    const productionId = await createActiveProduction(request, tokenA, 'Notification Test Production');
 
     // User A adds User B as member → triggers MEMBER_INVITED notification
     await request.post(`${API_BASE}/api/productions/${productionId}/members`, {
@@ -87,17 +82,10 @@ test.describe('Notifications', () => {
   });
 
   test('notifications page — empty state shows message', async ({ page, request }) => {
-    // Create a fresh user and production via API (no notifications generated)
+    // Create a fresh user and ACTIVE production via API (no notifications generated)
     const email = await apiSignup(request, undefined, 'Empty Notif User');
     const token = await getAuthToken(request, email);
-
-    // Create production via API
-    const prodRes = await request.post(`${API_BASE}/api/productions`, {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: 'Empty Notif Test Production' },
-    });
-    const prodBody = await prodRes.json();
-    const productionId = prodBody.production.id;
+    const productionId = await createActiveProduction(request, token, 'Empty Notif Test Production');
 
     // Login via browser and navigate to notifications
     await loginAs(page, email);

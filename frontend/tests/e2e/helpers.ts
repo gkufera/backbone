@@ -118,3 +118,44 @@ export async function setToken(page: Page, token: string): Promise<void> {
   await page.goto('/login');
   await page.evaluate((t) => localStorage.setItem('token', t), token);
 }
+
+/**
+ * Activate a PENDING production (test-only endpoint).
+ * Must be called after creating a production via the API or UI form.
+ */
+export async function activateProduction(
+  request: APIRequestContext,
+  token: string,
+  productionId: string,
+): Promise<void> {
+  const res = await request.post(`${API_BASE}/api/test/activate-production/${productionId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok()) {
+    throw new Error(`activateProduction failed (${res.status()})`);
+  }
+}
+
+/**
+ * Create a production via API and activate it (for E2E tests that need an ACTIVE production).
+ * Returns the production ID.
+ */
+export async function createActiveProduction(
+  request: APIRequestContext,
+  token: string,
+  title: string,
+): Promise<string> {
+  const prodRes = await request.post(`${API_BASE}/api/productions`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      title,
+      studioName: 'Test Studio',
+      contactName: 'Test User',
+      contactEmail: 'test@example.com',
+    },
+  });
+  const prodBody = await prodRes.json();
+  const productionId = prodBody.production.id;
+  await activateProduction(request, token, productionId);
+  return productionId;
+}
