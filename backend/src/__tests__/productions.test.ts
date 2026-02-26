@@ -590,6 +590,25 @@ describe('PATCH /api/productions/:id', () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/title/i);
   });
+
+  it('returns 404 when production does not exist (not 403)', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+    // requireActiveProduction: production not found
+    mockedPrisma.production.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .patch('/api/productions/nonexistent')
+      .set(authHeader())
+      .send({ title: 'New Title' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/not found/i);
+  });
 });
 
 describe('POST /api/productions/:id/members — notification', () => {

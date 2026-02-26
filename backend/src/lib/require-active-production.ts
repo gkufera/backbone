@@ -15,7 +15,14 @@ export async function requireActiveProduction(
     select: { status: true },
   });
 
-  if (!production || production.status !== 'ACTIVE') {
+  if (!production) {
+    res.status(404).json({
+      error: 'Production not found',
+    });
+    return false;
+  }
+
+  if (production.status !== 'ACTIVE') {
     res.status(403).json({
       error: 'This production is pending approval and cannot be modified',
     });
