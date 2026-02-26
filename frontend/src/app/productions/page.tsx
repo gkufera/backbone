@@ -20,7 +20,7 @@ export default function ProductionsPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-2xl p-6">
+      <div className="mx-auto max-w-3xl p-6">
         <SkeletonCard />
       </div>
     );
@@ -31,8 +31,8 @@ export default function ProductionsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-3xl p-6">
+      <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl">Productions</h1>
         <Link href="/productions/new" className="mac-btn-primary">
           New Production
