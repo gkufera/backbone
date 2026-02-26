@@ -115,14 +115,30 @@ describe('POST /api/scripts/upload-url', () => {
     expect(res.body.error).toMatch(/fileName/i);
   });
 
-  it('returns 400 when contentType is not application/pdf', async () => {
+  it('returns 400 when contentType is not allowed', async () => {
     const res = await request(app)
       .post('/api/scripts/upload-url')
       .set(authHeader())
       .send({ fileName: 'test.doc', contentType: 'application/msword' });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/pdf/i);
+    expect(res.body.error).toMatch(/pdf|fdx/i);
+  });
+
+  it('accepts application/xml contentType for FDX files', async () => {
+    mockedGenerateUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.amazonaws.com/bucket/scripts/uuid/test.fdx?signed',
+      s3Key: 'scripts/uuid/test.fdx',
+    });
+
+    const res = await request(app)
+      .post('/api/scripts/upload-url')
+      .set(authHeader())
+      .send({ fileName: 'test.fdx', contentType: 'application/xml' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('uploadUrl');
+    expect(res.body).toHaveProperty('s3Key');
   });
 
   it('returns 401 when not authenticated', async () => {
@@ -205,6 +221,80 @@ describe('POST /api/productions/:id/scripts', () => {
     });
 
     expect(res.status).toBe(403);
+  });
+
+  it('stores format=FDX for .fdx fileName', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'My Script',
+      fileName: 'script.fdx',
+      s3Key: 'scripts/uuid/script.fdx',
+      status: 'PROCESSING',
+      format: 'FDX',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'My Script',
+      fileName: 'script.fdx',
+      s3Key: 'scripts/uuid/script.fdx',
+    });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.script.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          format: 'FDX',
+        }),
+      }),
+    );
+  });
+
+  it('stores format=PDF for .pdf fileName', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      status: 'PROCESSING',
+      format: 'PDF',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+    });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.script.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          format: 'PDF',
+        }),
+      }),
+    );
   });
 });
 

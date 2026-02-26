@@ -7,7 +7,7 @@ import { processScript } from '../services/script-processor';
 import { processRevision } from '../services/revision-processor';
 import { getProgress } from '../services/processing-progress';
 import { SCRIPT_ALLOWED_MIME_TYPES } from '@backbone/shared/constants';
-import { ScriptStatus, ElementStatus, NotificationType, OptionStatus, ApprovalDecision } from '@backbone/shared/types';
+import { ScriptStatus, ScriptFormat, ElementStatus, NotificationType, OptionStatus, ApprovalDecision } from '@backbone/shared/types';
 import type { SceneInfo } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
 import { generateImpliedElements } from '../services/implied-elements';
@@ -26,7 +26,7 @@ scriptsRouter.post('/api/scripts/upload-url', requireAuth, async (req, res) => {
     }
 
     if (!contentType || !(SCRIPT_ALLOWED_MIME_TYPES as readonly string[]).includes(contentType)) {
-      res.status(400).json({ error: 'Only PDF files are allowed' });
+      res.status(400).json({ error: 'Only PDF and FDX files are allowed' });
       return;
     }
 
@@ -73,6 +73,8 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
       return;
     }
 
+    const format = fileName.toLowerCase().endsWith('.fdx') ? ScriptFormat.FDX : ScriptFormat.PDF;
+
     const script = await prisma.script.create({
       data: {
         productionId: id,
@@ -80,6 +82,7 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
         fileName,
         s3Key,
         status: ScriptStatus.PROCESSING,
+        format,
         uploadedById: authReq.user.userId,
       },
     });
@@ -273,6 +276,8 @@ scriptsRouter.post(
         return;
       }
 
+      const revisionFormat = fileName.toLowerCase().endsWith('.fdx') ? ScriptFormat.FDX : ScriptFormat.PDF;
+
       const script = await prisma.script.create({
         data: {
           productionId: id,
@@ -280,6 +285,7 @@ scriptsRouter.post(
           fileName,
           s3Key,
           status: ScriptStatus.PROCESSING,
+          format: revisionFormat,
           version: parentScript.version + 1,
           parentScriptId: scriptId,
           uploadedById: authReq.user.userId,
