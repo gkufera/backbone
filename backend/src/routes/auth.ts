@@ -358,6 +358,8 @@ authRouter.post('/api/auth/forgot-password', async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
+    let emailSent = true;
+
     if (user) {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(
@@ -369,15 +371,21 @@ authRouter.post('/api/auth/forgot-password', async (req, res) => {
       });
 
       const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
-      sendEmail(
-        user.email,
-        'Reset your Slug Max password',
-        `<p>Click the link below to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link expires in ${VALIDATION.PASSWORD_RESET_TOKEN_EXPIRY_HOURS} hour(s).</p>`,
-      ).catch((err) => console.error('Failed to send password reset email:', err));
+      try {
+        await sendEmail(
+          user.email,
+          'Reset your Slug Max password',
+          `<p>Click the link below to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link expires in ${VALIDATION.PASSWORD_RESET_TOKEN_EXPIRY_HOURS} hour(s).</p>`,
+        );
+      } catch (err) {
+        console.error('Failed to send password reset email:', err);
+        emailSent = false;
+      }
     }
 
     // Always return 200 to not leak whether email exists
-    res.status(200).json({ message: 'If that email exists, check your email for a reset link' });
+    // emailSent is true for unknown emails (no info leak)
+    res.status(200).json({ message: 'If that email exists, check your email for a reset link', emailSent });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ error: 'Internal server error' });

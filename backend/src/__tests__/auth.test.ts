@@ -401,6 +401,7 @@ describe('POST /api/auth/forgot-password', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/check your email/i);
+    expect(res.body.emailSent).toBe(true);
     expect(mockedPrisma.passwordResetToken.create).toHaveBeenCalled();
     expect(mockedSendEmail).toHaveBeenCalled();
   });
@@ -414,8 +415,40 @@ describe('POST /api/auth/forgot-password', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/check your email/i);
+    expect(res.body.emailSent).toBe(true);
     expect(mockedPrisma.passwordResetToken.create).not.toHaveBeenCalled();
     expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('returns emailSent false when sendEmail rejects', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.passwordResetToken.create.mockResolvedValue({
+      id: 'token-1',
+      userId: 'user-1',
+      token: 'reset-token-abc',
+      expiresAt: new Date(Date.now() + 3600000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
+    mockedSendEmail.mockRejectedValue(new Error('SES rejected'));
+
+    const res = await request(app).post('/api/auth/forgot-password').send({
+      email: 'test@example.com',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/check your email/i);
+    expect(res.body.emailSent).toBe(false);
   });
 
   it('returns 400 when email is missing', async () => {
@@ -652,6 +685,7 @@ describe('POST /api/auth/resend-verification', () => {
     };
 
     mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedSendEmail.mockResolvedValue(undefined);
     mockedPrisma.emailVerificationToken.create.mockResolvedValue({
       id: 'vtoken-2',
       userId: 'user-1',
