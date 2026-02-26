@@ -205,7 +205,7 @@ export default function SettingsPage() {
             <span className="font-mono text-sm">Email Notifications</span>
           </label>
           <p className="font-mono text-xs">
-            When enabled, you will receive email notifications for approvals, script uploads, and team invites.
+            Master on/off for all email notifications. For granular control per production, visit the production dashboard.
           </p>
         </div>
       </div>

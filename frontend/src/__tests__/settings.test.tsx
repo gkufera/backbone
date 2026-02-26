@@ -191,6 +191,14 @@ describe('Settings page', () => {
     });
   });
 
+  it('references per-production preferences in notification description', () => {
+    render(<SettingsPage />);
+
+    expect(
+      screen.getByText(/per production, visit the production dashboard/i),
+    ).toBeInTheDocument();
+  });
+
   it('calls updateMe with emailNotificationsEnabled when toggled', async () => {
     const user = userEvent.setup();
 

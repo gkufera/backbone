@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 460 frontend + 430 backend = 890 unit/integration, 57 E2E
+**Test counts:** 465 frontend + 454 backend = 919 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -105,29 +105,28 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 28: Granular Email Notifications
+## Sprint 28: Granular Email Notifications (DONE)
 
 **Goal:** Directors get actionable, non-spammy email notifications with per-type preferences and batched delivery.
 
-- [ ] Add `NotificationPreference` Prisma model
+- [x] Add `NotificationPreference` Prisma model
   - Per-user, per-production preferences
   - Boolean fields: `optionEmails`, `noteEmails`, `approvalEmails`, `scriptEmails`, `memberEmails` (default all true)
-  - Enum field: `scopeFilter` — `ALL` | `MY_DEPARTMENT` (default ALL)
+  - Enum field: `scopeFilter` — `ALL` | `MY_DEPARTMENT` (default ALL, logic deferred to Sprint 28b)
   - Migration + generate
-- [ ] Add `OPTION_ADDED` to `NotificationType` enum
-  - Trigger notification to deciders when a new option is created/uploaded (not just when marked ready for review)
-  - `backend/src/routes/options.ts` — create endpoint
-- [ ] Implement 1-minute email batching
-  - Don't send email immediately in `createNotification()`
-  - Add `emailSentAt` nullable field to Notification model
-  - Background interval (every 60s) collects notifications where `emailSentAt IS NULL`, groups by user
-  - Sends one digest email per user: "X new updates on [Production Name]" with bulleted notification list
-  - `backend/src/services/notification-service.ts`
-  - `backend/src/services/email-service.ts` — add `sendDigestEmail()` template
-- [ ] API: `GET /api/productions/:id/notification-preferences` + `PATCH` to update
-- [ ] Settings UI: per-production notification preference checkboxes + scope selector
-  - In production settings or dedicated notification settings section
-- [ ] Deprecate global `emailNotificationsEnabled` — keep as master on/off fallback, but granular preferences take priority when they exist
+- [x] Add `OPTION_ADDED` to `NotificationType` enum
+  - Trigger notification to deciders when a new option is created/uploaded
+  - `backend/src/routes/options.ts` — create endpoint fires `notifyDeciders`
+- [x] Implement 1-minute email batching
+  - Removed immediate email from `createNotification()`
+  - Added `emailSentAt` nullable field to Notification model
+  - Background interval (every 60s) collects notifications where `emailSentAt IS NULL`, groups by user+production
+  - Sends one digest email per group with bulleted notification list
+  - `backend/src/services/email-batch-processor.ts` — new batch processor
+  - `backend/src/services/email-service.ts` — added `sendDigestEmail()` template
+- [x] API: `GET /api/productions/:id/notification-preferences` + `PATCH` to update (with upsert)
+- [x] Production dashboard UI: per-production notification preference checkboxes (5 categories)
+- [x] Settings page updated: global toggle now says "Master on/off" and references per-production dashboard for granular control
 
 ---
 
