@@ -14,6 +14,9 @@ export const DEFAULT_DEPARTMENTS = [
   'AD',
   'Cinematographer',
   'Stunt Coordinator',
+  'Director',
+  'Producer',
+  'Production Office',
 ] as const;
 
 export const DEFAULT_DEPARTMENT_COLORS: Record<string, string> = {
@@ -30,6 +33,9 @@ export const DEFAULT_DEPARTMENT_COLORS: Record<string, string> = {
   AD: '#EF476F',
   Cinematographer: '#FFD166',
   'Stunt Coordinator': '#F77F00',
+  Director: '#1D3557',
+  Producer: '#A8DADC',
+  'Production Office': '#457B9D',
 };
 
 export const ELEMENT_TYPE_DEPARTMENT_MAP: Record<string, string> = {

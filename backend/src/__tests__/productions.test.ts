@@ -104,8 +104,8 @@ describe('POST /api/productions', () => {
     expect(res.status).toBe(201);
     expect(res.body.production.title).toBe('My Film');
     expect(res.body.member.role).toBe('ADMIN');
-    // Verify default departments were seeded (13 default departments)
-    expect(mockDepartmentCreate).toHaveBeenCalledTimes(13);
+    // Verify default departments were seeded (16 default departments)
+    expect(mockDepartmentCreate).toHaveBeenCalledTimes(16);
   });
 
   it('returns 201 with production including description', async () => {
