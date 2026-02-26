@@ -1,8 +1,9 @@
 import { prisma } from '../lib/prisma';
-import { getFileBuffer } from '../lib/s3';
+import { getFileBuffer, putFileBuffer } from '../lib/s3';
 import { parseAndDetect } from './script-processor';
+import { generateScreenplayPdf } from './screenplay-pdf-generator';
 import { matchElements } from './element-matcher';
-import { ElementType, ElementStatus, ElementSource, RevisionMatchStatus, ScriptStatus } from '@backbone/shared/types';
+import { ElementType, ElementStatus, ElementSource, RevisionMatchStatus, ScriptStatus, ScriptFormat } from '@backbone/shared/types';
 
 export async function processRevision(
   newScriptId: string,
@@ -12,8 +13,22 @@ export async function processRevision(
   try {
     // Step 1: Fetch file from S3 and parse (format-aware)
     const buffer = await getFileBuffer(s3Key);
-    const { result, pageCount } = await parseAndDetect(buffer, s3Key, newScriptId);
-    const { elements: detectedElements } = result;
+    const { result, pageCount, fdxParagraphs } = await parseAndDetect(buffer, s3Key, newScriptId);
+    const { elements: detectedElements, sceneData } = result;
+
+    // Step 2: For FDX files, generate PDF and upload to S3
+    let finalS3Key = s3Key;
+    let sourceS3Key: string | undefined;
+    let format: ScriptFormat | undefined;
+
+    if (s3Key.toLowerCase().endsWith('.fdx') && fdxParagraphs) {
+      const pdfBuffer = await generateScreenplayPdf(fdxParagraphs);
+      const pdfS3Key = s3Key.replace(/\.fdx$/i, '.pdf');
+      await putFileBuffer(pdfS3Key, pdfBuffer, 'application/pdf');
+      finalS3Key = pdfS3Key;
+      sourceS3Key = s3Key;
+      format = ScriptFormat.FDX;
+    }
 
     // Step 3: Load existing elements from parent script
     const existingElements = await prisma.element.findMany({
@@ -108,13 +123,27 @@ export async function processRevision(
         // Set script to RECONCILING
         await tx.script.update({
           where: { id: newScriptId },
-          data: { status: ScriptStatus.RECONCILING, pageCount },
+          data: {
+            status: ScriptStatus.RECONCILING,
+            pageCount,
+            sceneData: sceneData.length > 0 ? sceneData : undefined,
+            ...(finalS3Key !== s3Key ? { s3Key: finalS3Key } : {}),
+            ...(sourceS3Key ? { sourceS3Key } : {}),
+            ...(format ? { format } : {}),
+          },
         });
       } else {
         // No reconciliation needed — script is READY
         await tx.script.update({
           where: { id: newScriptId },
-          data: { status: ScriptStatus.READY, pageCount },
+          data: {
+            status: ScriptStatus.READY,
+            pageCount,
+            sceneData: sceneData.length > 0 ? sceneData : undefined,
+            ...(finalS3Key !== s3Key ? { s3Key: finalS3Key } : {}),
+            ...(sourceS3Key ? { sourceS3Key } : {}),
+            ...(format ? { format } : {}),
+          },
         });
       }
     });

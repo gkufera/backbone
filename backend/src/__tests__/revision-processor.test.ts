@@ -45,17 +45,20 @@ vi.mock('../services/processing-progress', () => ({
 }));
 
 import { prisma } from '../lib/prisma';
-import { getFileBuffer } from '../lib/s3';
+import { getFileBuffer, putFileBuffer } from '../lib/s3';
 import { parsePdf } from '../services/pdf-parser';
 import { parseFdx } from '../services/fdx-parser';
 import { detectFdxElements } from '../services/fdx-element-detector';
+import { generateScreenplayPdf } from '../services/screenplay-pdf-generator';
 import { processRevision } from '../services/revision-processor';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGetFileBuffer = vi.mocked(getFileBuffer);
+const mockedPutFileBuffer = vi.mocked(putFileBuffer);
 const mockedParsePdf = vi.mocked(parsePdf);
 const mockedParseFdx = vi.mocked(parseFdx);
 const mockedDetectFdxElements = vi.mocked(detectFdxElements);
+const mockedGenerateScreenplayPdf = vi.mocked(generateScreenplayPdf);
 
 describe('Revision Processor', () => {
   beforeEach(() => {
@@ -421,6 +424,164 @@ describe('Revision Processor', () => {
       expect.objectContaining({
         where: { id: 'new-script' },
         data: expect.objectContaining({ status: 'READY' }),
+      }),
+    );
+  });
+
+  it('FDX revision generates PDF and uploads to S3', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Character', text: 'JOHN', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'JOHN', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JOHN', suggestedDepartment: 'Cast' },
+      ],
+      sceneData: [],
+    });
+    const fakePdfBuffer = Buffer.from('fake-pdf-content');
+    mockedGenerateScreenplayPdf.mockResolvedValue(fakePdfBuffer);
+    mockedPutFileBuffer.mockResolvedValue();
+
+    mockedPrisma.element.findMany.mockResolvedValue([
+      { id: 'elem-1', name: 'JOHN', type: 'CHARACTER', status: 'ACTIVE', source: 'AUTO', highlightPage: 1, highlightText: 'JOHN', scriptId: 'parent-script', createdAt: new Date(), updatedAt: new Date() },
+    ] as any);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.fdx');
+
+    // Should generate PDF from FDX paragraphs
+    expect(mockedGenerateScreenplayPdf).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'Scene Heading', text: 'INT. OFFICE - DAY' }),
+      ]),
+    );
+
+    // Should upload generated PDF to S3
+    expect(mockedPutFileBuffer).toHaveBeenCalledWith(
+      'scripts/uuid/v2.pdf',
+      fakePdfBuffer,
+      'application/pdf',
+    );
+  });
+
+  it('FDX revision stores sourceS3Key, format, and s3Key', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Character', text: 'JOHN', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'JOHN', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JOHN', suggestedDepartment: 'Cast' },
+      ],
+      sceneData: [],
+    });
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('pdf'));
+    mockedPutFileBuffer.mockResolvedValue();
+
+    mockedPrisma.element.findMany.mockResolvedValue([
+      { id: 'elem-1', name: 'JOHN', type: 'CHARACTER', status: 'ACTIVE', source: 'AUTO', highlightPage: 1, highlightText: 'JOHN', scriptId: 'parent-script', createdAt: new Date(), updatedAt: new Date() },
+    ] as any);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.fdx');
+
+    // Script update should include FDX metadata
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'new-script' },
+        data: expect.objectContaining({
+          status: 'READY',
+          sourceS3Key: 'scripts/uuid/v2.fdx',
+          format: 'FDX',
+          s3Key: 'scripts/uuid/v2.pdf',
+        }),
+      }),
+    );
+  });
+
+  it('FDX revision stores sceneData', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Character', text: 'JOHN', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    const sceneData = [{ sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] }];
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'JOHN', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JOHN', suggestedDepartment: 'Cast' },
+      ],
+      sceneData,
+    });
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('pdf'));
+    mockedPutFileBuffer.mockResolvedValue();
+
+    mockedPrisma.element.findMany.mockResolvedValue([
+      { id: 'elem-1', name: 'JOHN', type: 'CHARACTER', status: 'ACTIVE', source: 'AUTO', highlightPage: 1, highlightText: 'JOHN', scriptId: 'parent-script', createdAt: new Date(), updatedAt: new Date() },
+    ] as any);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.fdx');
+
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'new-script' },
+        data: expect.objectContaining({
+          sceneData,
+        }),
+      }),
+    );
+  });
+
+  it('FDX revision with RECONCILING status stores FDX metadata', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Character', text: 'JOHN SMITHE', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'JOHN SMITHE', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JOHN SMITHE', suggestedDepartment: 'Cast' },
+      ],
+      sceneData: [],
+    });
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('pdf'));
+    mockedPutFileBuffer.mockResolvedValue();
+
+    // Existing element triggers fuzzy match → RECONCILING
+    mockedPrisma.element.findMany.mockResolvedValue([
+      { id: 'elem-1', name: 'JOHN SMITH', type: 'CHARACTER', status: 'ACTIVE', source: 'AUTO', highlightPage: 1, highlightText: 'JOHN SMITH', scriptId: 'parent-script', createdAt: new Date(), updatedAt: new Date() },
+    ] as any);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.fdx');
+
+    // Even in RECONCILING branch, FDX metadata should be stored
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'new-script' },
+        data: expect.objectContaining({
+          status: 'RECONCILING',
+          sourceS3Key: 'scripts/uuid/v2.fdx',
+          format: 'FDX',
+          s3Key: 'scripts/uuid/v2.pdf',
+        }),
       }),
     );
   });
