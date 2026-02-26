@@ -90,6 +90,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export type ProductionResponse = JsonSerialized<Production> & {
   memberRole?: string;
+  status?: string;
+  studioName?: string | null;
+  budget?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
 };
 
 export interface ProductionDetailResponse extends ProductionResponse {
@@ -113,10 +118,21 @@ export const productionsApi = {
   create(data: {
     title: string;
     description?: string;
+    studioName: string;
+    contactName: string;
+    contactEmail: string;
+    budget?: string;
   }): Promise<{ production: ProductionResponse; member: MemberResponse }> {
     return request('/api/productions', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  },
+
+  approve(token: string): Promise<{ message: string; productionTitle: string }> {
+    return request('/api/productions/approve', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     });
   },
 
