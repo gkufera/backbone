@@ -237,7 +237,7 @@ export default function ScriptViewerPage() {
 
   // READY state: split-view layout
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
+    <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
       {/* Left panel: PDF viewer */}
       <div className="order-2 h-1/2 border-b-2 border-black lg:order-1 lg:h-full lg:w-1/2 lg:border-b-0 lg:border-r-2">
         {pdfUrl ? (
