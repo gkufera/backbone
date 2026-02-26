@@ -75,6 +75,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 - [ ] Make sure no text on the frontend is over a busy background (eg "Please verify your email before logging in" - too hard to read)
 - [ ] Fix all tooltips to conform to the 1-bit Macintosh design system (no rounded corners, no shadows, no grays, no colors — black/white only with sharp corners and 2px borders)
+- [ ] Hide the mobile menu hamburger button when the menu has no items
 - [ ] Custom MAIL FROM domain for full DMARC alignment
 - [ ] Performance audit
   - Run Lighthouse on key pages (home, production, script viewer)
