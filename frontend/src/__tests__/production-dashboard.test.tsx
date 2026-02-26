@@ -46,13 +46,18 @@ vi.mock('../lib/api', () => ({
   feedApi: {
     list: vi.fn(),
   },
+  notificationPreferencesApi: {
+    get: vi.fn(),
+    update: vi.fn(),
+  },
 }));
 
-import { productionsApi, departmentsApi, notificationsApi, feedApi } from '../lib/api';
+import { productionsApi, departmentsApi, notificationsApi, feedApi, notificationPreferencesApi } from '../lib/api';
 const mockedProductionsApi = vi.mocked(productionsApi);
 const mockedDepartmentsApi = vi.mocked(departmentsApi);
 const mockedNotificationsApi = vi.mocked(notificationsApi);
 const mockedFeedApi = vi.mocked(feedApi);
+const mockedNotificationPreferencesApi = vi.mocked(notificationPreferencesApi);
 
 // Import after mocks
 import ProductionDashboard from '../app/productions/[id]/page';
@@ -121,6 +126,16 @@ function setupMocks() {
   mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
   mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
   mockedFeedApi.list.mockResolvedValue({ elements: [] });
+  mockedNotificationPreferencesApi.get.mockResolvedValue({
+    preferences: {
+      optionEmails: true,
+      noteEmails: true,
+      approvalEmails: true,
+      scriptEmails: true,
+      memberEmails: true,
+      scopeFilter: 'ALL',
+    },
+  });
 }
 
 describe('Production dashboard', () => {

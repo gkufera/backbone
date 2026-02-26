@@ -651,6 +651,31 @@ export const directorNotesApi = {
 
 export type NotificationResponse = JsonSerialized<Notification>;
 
+export interface NotificationPreferenceResponse {
+  optionEmails: boolean;
+  noteEmails: boolean;
+  approvalEmails: boolean;
+  scriptEmails: boolean;
+  memberEmails: boolean;
+  scopeFilter: string;
+}
+
+export const notificationPreferencesApi = {
+  get(productionId: string): Promise<{ preferences: NotificationPreferenceResponse }> {
+    return request(`/api/productions/${productionId}/notification-preferences`);
+  },
+
+  update(
+    productionId: string,
+    data: Partial<NotificationPreferenceResponse>,
+  ): Promise<{ preferences: NotificationPreferenceResponse }> {
+    return request(`/api/productions/${productionId}/notification-preferences`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export const notificationsApi = {
   list(productionId: string): Promise<{ notifications: NotificationResponse[] }> {
     return request(`/api/productions/${productionId}/notifications`);

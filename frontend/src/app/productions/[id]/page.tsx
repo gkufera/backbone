@@ -11,6 +11,7 @@ import {
   type DepartmentResponse,
 } from '../../../lib/api';
 import { PermissionsTooltip } from '../../../components/permissions-tooltip';
+import { NotificationPreferences } from '../../../components/notification-preferences';
 import { SkeletonCard } from '../../../components/skeleton';
 import { useToast } from '../../../lib/toast-context';
 
@@ -432,6 +433,9 @@ export default function ProductionDashboard() {
           </form>
         </div>
       </section>
+
+      {/* Email Notification Preferences */}
+      <NotificationPreferences productionId={id} />
     </div>
   );
 }
