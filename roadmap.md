@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 434 frontend + 420 backend = 854 total
+**Test counts:** 434 frontend + 421 backend = 855 total
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -16,7 +16,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | AWS S3             | Running        | slugmax-uploads bucket                                                            |
 | AWS SES            | Sandbox        | Domain verified (DKIM SUCCESS). Production access pending (case #177205820000226) |
 | Cloudflare DNS     | Configured     | Frontend, API, DKIM, SPF, DMARC records all set                                   |
-| GitHub CI/CD       | Tier 1 passing | E2E port conflict fixed (Sprint 23), tests still failing (Sprint 24)              |
+| GitHub CI/CD       | All green      | Tier 1 + E2E passing (Sprint 24)                                                 |
 
 ---
 
@@ -37,13 +37,17 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 **Root cause:** The `signupAndLogin()` helper in E2E tests was written before Sprint 10 added forced email verification. After signup, the app now redirects to "check your email" instead of auto-logging in. Every E2E test that calls `signupAndLogin()` fails because the expected home page heading never appears.
 
-- [ ] Fix `signupAndLogin()` E2E helper to handle email verification flow
-  - Option A: Auto-verify users in test/CI environment (backend skips email verification when `NODE_ENV=test`)
-  - Option B: Call verify endpoint directly after signup in E2E helper
-  - Whichever approach, all 6 E2E tests must pass
-- [ ] Audit all E2E test files for other assumptions broken by Sprints 10-22
-  - Check auth.spec.ts, home.spec.ts, productions.spec.ts for stale selectors/flows
-- [ ] Verify green E2E run in GitHub Actions after push
+- [x] Fix `signupAndLogin()` E2E helper to handle email verification flow
+  - Used Option A: Auto-verify users when `NODE_ENV=test` (backend sets `emailVerified: true` on signup)
+  - All 6 E2E tests pass
+- [x] Audit all E2E test files for other assumptions broken by Sprints 10-22
+  - Fixed home.spec.ts: heading selector → getByText (Slug Max is a `<span>`, not heading)
+  - Fixed auth.spec.ts: expect verify-email-sent redirect, use exact text/role selectors
+  - Fixed productions.spec.ts: signupAndLogin does signup→login, use getByRole for titles, exact button names
+- [x] Fix missing `deleted_at` columns (production_members, elements, departments)
+  - Prisma schema had soft-delete fields but no migration created the columns
+  - Added migration `20260225100000_add_soft_delete_columns`
+- [x] Verify green E2E run in GitHub Actions after push
 
 ---
 

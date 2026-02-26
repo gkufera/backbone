@@ -1,49 +1,21 @@
 # Current Plan
 
-## Active Task
-Sprint 23 complete. CI/CD fixed, roadmap rebuilt, stale files cleaned up.
+## Completed: Sprint 24 — Fix E2E Tests
 
-## Completed: Sprint 23 (CI/CD Fix & Housekeeping) ✅
+**Goal:** All 6 Playwright E2E tests pass in GitHub Actions. **DONE.**
 
-- Fixed E2E workflow port conflict (PORT env var was job-level, Next.js picked it up → EADDRINUSE)
-- Archived old roadmap (Sprints 0-22) as `roadmap-archive-v1.md`
-- Deleted stale `EXTERNAL-SETUP.md` (all setup complete, SES pending AWS review)
-- Created fresh `roadmap.md` with remaining work: Sprint 24 (security), Sprint 25 (QA), backlog
+### What was done
 
-## Next Up: Sprint 24 (Production Security)
+1. **Auto-verify in test mode** — When `NODE_ENV=test`, signup sets `emailVerified: true` directly, skipping token generation and email sending (TDD: failing test first, then implementation)
+2. **E2E test rewrites** — Fixed all 3 test files:
+   - `home.spec.ts`: `getByText` instead of `getByRole('heading')` for Slug Max title
+   - `auth.spec.ts`: URL-based waits after login, exact text selectors, verify-email-sent redirect
+   - `productions.spec.ts`: signup→login flow, `getByRole('heading')` for production titles, exact button names
+3. **Missing migration** — Added `deleted_at` columns to `production_members`, `elements`, and `departments` tables (Prisma schema had them but no migration existed)
+4. **Strict mode fixes** — Used `getByRole` and exact text matches to avoid Playwright strict mode violations from duplicate text
 
-Four remaining medium-priority security items:
-- S14: Token revocation / logout endpoint
-- S19: Invalidate JWTs on password reset (tokenVersion)
-- S17: Persistent rate limiting (evaluate need)
-- S20: Per-user upload URL rate limiting
-
-## Test Counts
+### Test Counts
 - **Frontend**: 434 tests
-- **Backend**: 420 tests
-- **Total**: 854 tests
-
-## Security Audit Summary
-
-### Fixed (Sprints 15-16)
-S1-S13, S15-S16, S18 — all 16 items resolved.
-
-### Remaining (Medium Priority — Sprint 24)
-| # | Issue | Notes |
-|---|-------|-------|
-| S14 | No token revocation / logout endpoint | Medium |
-| S17 | In-memory rate limiter resets on restart | Medium |
-| S19 | Password reset doesn't invalidate JWT tokens | Medium |
-| S20 | No per-user upload URL rate limiting | Medium |
-
-### Already Secure (No Action Needed)
-- SQL injection: 0 vulnerabilities (Prisma parameterized queries)
-- Mass assignment: 0 vulnerabilities (all fields whitelisted)
-- XSS: 0 vulnerabilities (React auto-escapes, no dangerouslySetInnerHTML)
-- CSRF: Not applicable (JWT in Authorization header)
-- Auth coverage: All 40+ data endpoints require requireAuth
-- IDOR: All endpoints check production membership
-- RBAC: ADMIN/DECIDER roles properly enforced
-- Password hashing: bcrypt with 10 rounds
-- Token generation: crypto.randomBytes(32) for all tokens
-- Dependencies: 0 known vulnerabilities
+- **Backend**: 421 tests
+- **E2E**: 6 tests (all passing in CI)
+- **Total**: 861
