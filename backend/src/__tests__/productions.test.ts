@@ -1010,6 +1010,55 @@ describe('POST /api/productions/approve', () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/token.*required/i);
   });
+
+  it('sends only one confirmation email when contactEmail matches an approval address', async () => {
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + 86400000);
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        productionApprovalToken: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: 'token-1',
+            token: 'valid-token',
+            productionId: 'prod-1',
+            expiresAt: futureDate,
+            usedAt: null,
+            production: {
+              id: 'prod-1',
+              title: 'My Film',
+              contactEmail: 'slugmax@kufera.com', // same as an approval email
+              status: 'PENDING',
+            },
+          }),
+          update: vi.fn().mockResolvedValue({}),
+        },
+        production: {
+          update: vi.fn().mockResolvedValue({
+            id: 'prod-1',
+            title: 'My Film',
+            status: 'ACTIVE',
+          }),
+        },
+      });
+    });
+
+    mockedSendApprovedEmail.mockResolvedValue(undefined);
+
+    const res = await request(app)
+      .post('/api/productions/approve')
+      .send({ token: 'valid-token' });
+
+    expect(res.status).toBe(200);
+
+    // Wait for fire-and-forget promises to settle
+    await new Promise((r) => setTimeout(r, 50));
+
+    // slugmax@kufera.com should only get ONE email, not two
+    const calls = mockedSendApprovedEmail.mock.calls.map((c) => c[0]);
+    const slugmaxCalls = calls.filter((email) => email === 'slugmax@kufera.com');
+    expect(slugmaxCalls).toHaveLength(1);
+  });
 });
 
 describe('Mutation blocking on PENDING productions', () => {

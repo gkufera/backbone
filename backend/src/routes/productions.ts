@@ -210,15 +210,14 @@ productionsRouter.post('/api/productions/approve', async (req, res) => {
       return;
     }
 
-    // Fire-and-forget: send confirmation emails
-    for (const email of PRODUCTION_APPROVAL_EMAILS) {
+    // Fire-and-forget: send confirmation emails (deduplicate if contactEmail is an approval address)
+    const approvedRecipients = new Set(PRODUCTION_APPROVAL_EMAILS);
+    if (result.contactEmail) {
+      approvedRecipients.add(result.contactEmail);
+    }
+    for (const email of approvedRecipients) {
       sendProductionApprovedEmail(email, result.productionTitle).catch((err) =>
         console.error('Failed to send approved email:', err),
-      );
-    }
-    if (result.contactEmail) {
-      sendProductionApprovedEmail(result.contactEmail, result.productionTitle).catch((err) =>
-        console.error('Failed to send approved email to requester:', err),
       );
     }
 
