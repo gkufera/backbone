@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { UserNav } from './user-nav';
 import { NotificationBell } from './notification-bell';
 import { productionsApi } from '../lib/api';
+import { useAuth } from '../lib/auth-context';
 
 function useProductionFromPath() {
   const pathname = usePathname();
@@ -32,7 +33,9 @@ function useProductionFromPath() {
 export function AppHeader() {
   const { productionId, productionName } = useProductionFromPath();
   const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const hasMobileMenuContent = isAuthenticated || !!productionId;
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -73,19 +76,21 @@ export function AppHeader() {
           {productionId && <NotificationBell productionId={productionId} />}
           <UserNav />
         </div>
-        <button
-          aria-label="Menu"
-          className="lg:hidden px-2 py-1"
-          onClick={() => setMobileNavOpen((prev) => !prev)}
-        >
-          <div className="flex flex-col gap-1">
-            <span className="block h-0 w-5 border-t-2 border-black" />
-            <span className="block h-0 w-5 border-t-2 border-black" />
-            <span className="block h-0 w-5 border-t-2 border-black" />
-          </div>
-        </button>
+        {hasMobileMenuContent && (
+          <button
+            aria-label="Menu"
+            className="lg:hidden px-2 py-1"
+            onClick={() => setMobileNavOpen((prev) => !prev)}
+          >
+            <div className="flex flex-col gap-1">
+              <span className="block h-0 w-5 border-t-2 border-black" />
+              <span className="block h-0 w-5 border-t-2 border-black" />
+              <span className="block h-0 w-5 border-t-2 border-black" />
+            </div>
+          </button>
+        )}
       </div>
-      {mobileNavOpen && (
+      {mobileNavOpen && hasMobileMenuContent && (
         <div data-testid="mobile-nav" className="lg:hidden border-t-2 border-black px-4 py-3">
           <div className="flex items-center gap-2">
             {productionId && <NotificationBell productionId={productionId} />}

@@ -16,6 +16,7 @@ vi.mock('../lib/api', () => ({
   authApi: {
     signup: vi.fn(),
     login: vi.fn(),
+    logout: vi.fn(),
     me: vi.fn().mockRejectedValue(new Error('No token')),
   },
   productionsApi: {
@@ -28,7 +29,8 @@ vi.mock('../lib/api', () => ({
   },
 }));
 
-import { productionsApi, notificationsApi } from '../lib/api';
+import { authApi, productionsApi, notificationsApi } from '../lib/api';
+const mockedAuthApi = vi.mocked(authApi);
 const mockedProductionsApi = vi.mocked(productionsApi);
 const mockedNotificationsApi = vi.mocked(notificationsApi);
 
@@ -39,6 +41,8 @@ describe('AppHeader', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUsePathname.mockReturnValue('/');
+    // Default: unauthenticated
+    mockedAuthApi.me.mockRejectedValue(new Error('No token'));
   });
 
   it('renders logo image linking to / on non-homepage routes', () => {
@@ -142,7 +146,8 @@ describe('AppHeader', () => {
     });
   });
 
-  it('hamburger menu button exists with aria-label "Menu"', () => {
+  it('hides hamburger when unauthenticated and no productionId', async () => {
+    // authApi.me rejects (unauthenticated), pathname has no productionId
     mockUsePathname.mockReturnValue('/settings');
 
     render(
@@ -151,10 +156,82 @@ describe('AppHeader', () => {
       </AuthProvider>,
     );
 
-    expect(screen.getByLabelText('Menu')).toBeInTheDocument();
+    // Wait for auth check to complete
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Menu')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows hamburger when user is authenticated', async () => {
+    localStorage.setItem('token', 'valid-token');
+    mockedAuthApi.me.mockResolvedValueOnce({
+      user: {
+        id: 'u1',
+        email: 'test@test.com',
+        name: 'Test',
+        emailVerified: true,
+        emailNotificationsEnabled: true,
+        phone: null,
+        phoneVerified: false,
+        createdAt: new Date().toISOString(),
+      },
+    });
+    mockUsePathname.mockReturnValue('/settings');
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Menu')).toBeInTheDocument();
+    });
+  });
+
+  it('shows hamburger on production pages even when unauthenticated', async () => {
+    mockUsePathname.mockReturnValue('/productions/prod-1');
+    mockedProductionsApi.get.mockResolvedValue({
+      production: {
+        id: 'prod-1',
+        title: 'My Film',
+        description: null,
+        createdById: 'user-1',
+        memberRole: 'ADMIN',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        members: [],
+        scripts: [],
+      },
+    });
+    mockedNotificationsApi.unreadCount.mockResolvedValue({ count: 0 });
+    mockedNotificationsApi.list.mockResolvedValue({ notifications: [] });
+
+    render(
+      <AuthProvider>
+        <AppHeader />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Menu')).toBeInTheDocument();
+    });
   });
 
   it('clicking hamburger opens mobile nav', async () => {
+    localStorage.setItem('token', 'valid-token');
+    mockedAuthApi.me.mockResolvedValueOnce({
+      user: {
+        id: 'u1',
+        email: 'test@test.com',
+        name: 'Test',
+        emailVerified: true,
+        emailNotificationsEnabled: true,
+        phone: null,
+        phoneVerified: false,
+        createdAt: new Date().toISOString(),
+      },
+    });
     mockUsePathname.mockReturnValue('/settings');
     const { default: userEvent } = await import('@testing-library/user-event');
     const user = userEvent.setup();
@@ -165,12 +242,28 @@ describe('AppHeader', () => {
       </AuthProvider>,
     );
 
+    await waitFor(() => {
+      expect(screen.getByLabelText('Menu')).toBeInTheDocument();
+    });
     await user.click(screen.getByLabelText('Menu'));
     expect(screen.getByTestId('mobile-nav')).toBeInTheDocument();
   });
 
-  it('mobile nav closes when pathname changes', () => {
+  it('mobile nav closes when pathname changes', async () => {
     const { fireEvent } = require('@testing-library/react');
+    localStorage.setItem('token', 'valid-token');
+    mockedAuthApi.me.mockResolvedValueOnce({
+      user: {
+        id: 'u1',
+        email: 'test@test.com',
+        name: 'Test',
+        emailVerified: true,
+        emailNotificationsEnabled: true,
+        phone: null,
+        phoneVerified: false,
+        createdAt: new Date().toISOString(),
+      },
+    });
 
     mockUsePathname.mockReturnValue('/settings');
 
@@ -179,6 +272,10 @@ describe('AppHeader', () => {
         <AppHeader />
       </AuthProvider>,
     );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Menu')).toBeInTheDocument();
+    });
 
     // Open the mobile nav
     fireEvent.click(screen.getByLabelText('Menu'));
