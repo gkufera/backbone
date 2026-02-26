@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 459 frontend + 429 backend = 888 unit/integration, 57 E2E
+**Test counts:** 460 frontend + 430 backend = 890 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -99,6 +99,8 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Verify SES sandbox status — carsonmell@gmail.com now verified in SES
 - [x] Fix the root cause — await sendEmail in resend-verification route, return `emailSent: true/false`
 - [x] Add error logging/response when SES send fails so users aren't told "sent" when it wasn't
+- [x] Fix forgot-password route — same fire-and-forget bug, now awaits sendEmail and returns `emailSent`
+- [x] Frontend forgot-password page shows warning when email delivery fails
 - [ ] Test end-to-end email delivery for carsonmell@gmail.com (requires deploy)
 
 ---
