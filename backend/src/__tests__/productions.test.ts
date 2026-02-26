@@ -10,6 +10,14 @@ vi.mock('../services/notification-service', () => ({
   notifyDeciders: vi.fn().mockResolvedValue([]),
 }));
 
+// Mock email service
+vi.mock('../services/email-service', () => ({
+  sendEmail: vi.fn().mockResolvedValue(undefined),
+  sendDigestEmail: vi.fn().mockResolvedValue(undefined),
+  sendProductionApprovalEmail: vi.fn().mockResolvedValue(undefined),
+  sendProductionApprovedEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Mock Prisma client
 vi.mock('../lib/prisma', () => ({
   prisma: {
@@ -30,6 +38,11 @@ vi.mock('../lib/prisma', () => ({
       delete: vi.fn(),
       count: vi.fn(),
     },
+    productionApprovalToken: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
     element: {
       groupBy: vi.fn(),
     },
@@ -42,9 +55,12 @@ vi.mock('../lib/prisma', () => ({
 
 import { prisma } from '../lib/prisma';
 import { createNotification } from '../services/notification-service';
+import { sendProductionApprovalEmail, sendProductionApprovedEmail } from '../services/email-service';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedCreateNotification = vi.mocked(createNotification);
+const mockedSendApprovalEmail = vi.mocked(sendProductionApprovalEmail);
+const mockedSendApprovedEmail = vi.mocked(sendProductionApprovedEmail);
 
 const testUser = {
   userId: 'user-1',
@@ -96,13 +112,16 @@ describe('POST /api/productions', () => {
           create: mockDepartmentCreate,
           findFirst: vi.fn().mockResolvedValue({ id: 'dept-po', name: 'Production Office', productionId: 'prod-1' }),
         },
+        productionApprovalToken: {
+          create: vi.fn().mockResolvedValue({ id: 'token-1', token: 'abc', productionId: 'prod-1' }),
+        },
       });
     });
 
     const res = await request(app)
       .post('/api/productions')
       .set(authHeader())
-      .send({ title: 'My Film' });
+      .send({ title: 'My Film', studioName: 'Studio', contactName: 'Test', contactEmail: 'test@example.com' });
 
     expect(res.status).toBe(201);
     expect(res.body.production.title).toBe('My Film');
@@ -157,13 +176,16 @@ describe('POST /api/productions', () => {
           create: mockDeptCreate,
           findFirst: mockDeptFindFirst,
         },
+        productionApprovalToken: {
+          create: vi.fn().mockResolvedValue({ id: 'token-1', token: 'abc', productionId: 'prod-1' }),
+        },
       });
     });
 
     const res = await request(app)
       .post('/api/productions')
       .set(authHeader())
-      .send({ title: 'My Film' });
+      .send({ title: 'My Film', studioName: 'Studio', contactName: 'Test', contactEmail: 'test@example.com' });
 
     expect(res.status).toBe(201);
 
@@ -213,13 +235,16 @@ describe('POST /api/productions', () => {
           create: vi.fn(),
           findFirst: vi.fn().mockResolvedValue(null),
         },
+        productionApprovalToken: {
+          create: vi.fn().mockResolvedValue({ id: 'token-1', token: 'abc', productionId: 'prod-1' }),
+        },
       });
     });
 
     const res = await request(app)
       .post('/api/productions')
       .set(authHeader())
-      .send({ title: 'My Film' });
+      .send({ title: 'My Film', studioName: 'Studio', contactName: 'Test', contactEmail: 'test@example.com' });
 
     expect(res.status).toBe(201);
     expect(res.body.production.title).toBe('My Film');
@@ -259,13 +284,16 @@ describe('POST /api/productions', () => {
           create: vi.fn(),
           findFirst: vi.fn().mockResolvedValue({ id: 'dept-po', name: 'Production Office', productionId: 'prod-1' }),
         },
+        productionApprovalToken: {
+          create: vi.fn().mockResolvedValue({ id: 'token-1', token: 'abc', productionId: 'prod-1' }),
+        },
       });
     });
 
     const res = await request(app)
       .post('/api/productions')
       .set(authHeader())
-      .send({ title: 'My Film', description: 'A great film' });
+      .send({ title: 'My Film', description: 'A great film', studioName: 'Studio', contactName: 'Test', contactEmail: 'test@example.com' });
 
     expect(res.status).toBe(201);
     expect(res.body.production.description).toBe('A great film');
@@ -667,5 +695,297 @@ describe('GET /api/productions/:id/element-stats', () => {
       .set(authHeader());
 
     expect(res.status).toBe(403);
+  });
+});
+
+describe('POST /api/productions — production gating', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+  });
+
+  function setupTransactionMock(overrides: Record<string, any> = {}) {
+    const mockProduction = {
+      id: 'prod-1',
+      title: 'My Film',
+      description: null,
+      status: 'PENDING',
+      studioName: 'Big Studio',
+      budget: '$1M',
+      contactName: 'John Doe',
+      contactEmail: 'john@example.com',
+      createdById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    };
+
+    const mockMember = {
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        production: {
+          create: vi.fn().mockResolvedValue(mockProduction),
+        },
+        productionMember: {
+          create: vi.fn().mockResolvedValue(mockMember),
+          update: vi.fn().mockResolvedValue(mockMember),
+        },
+        department: {
+          create: vi.fn(),
+          findFirst: vi.fn().mockResolvedValue({
+            id: 'dept-po',
+            name: 'Production Office',
+            productionId: 'prod-1',
+          }),
+        },
+        productionApprovalToken: {
+          create: vi.fn().mockResolvedValue({
+            id: 'token-1',
+            token: 'abc123',
+            productionId: 'prod-1',
+          }),
+        },
+      });
+    });
+
+    return { mockProduction, mockMember };
+  }
+
+  it('returns 201 with status PENDING and new fields', async () => {
+    setupTransactionMock();
+
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({
+        title: 'My Film',
+        studioName: 'Big Studio',
+        contactName: 'John Doe',
+        contactEmail: 'john@example.com',
+        budget: '$1M',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.production.status).toBe('PENDING');
+    expect(res.body.production.studioName).toBe('Big Studio');
+    expect(res.body.production.contactName).toBe('John Doe');
+    expect(res.body.production.contactEmail).toBe('john@example.com');
+    expect(res.body.production.budget).toBe('$1M');
+  });
+
+  it('returns 400 without studioName', async () => {
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({
+        title: 'My Film',
+        contactName: 'John Doe',
+        contactEmail: 'john@example.com',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/studio name/i);
+  });
+
+  it('returns 400 without contactName', async () => {
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({
+        title: 'My Film',
+        studioName: 'Big Studio',
+        contactEmail: 'john@example.com',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/contact name/i);
+  });
+
+  it('returns 400 without contactEmail', async () => {
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({
+        title: 'My Film',
+        studioName: 'Big Studio',
+        contactName: 'John Doe',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/contact email/i);
+  });
+
+  it('returns 400 with invalid contactEmail', async () => {
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({
+        title: 'My Film',
+        studioName: 'Big Studio',
+        contactName: 'John Doe',
+        contactEmail: 'not-an-email',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/valid email/i);
+  });
+
+  it('stores optional budget field', async () => {
+    setupTransactionMock({ budget: '$5M' });
+
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({
+        title: 'My Film',
+        studioName: 'Big Studio',
+        contactName: 'John Doe',
+        contactEmail: 'john@example.com',
+        budget: '$5M',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.production.budget).toBe('$5M');
+  });
+});
+
+describe('POST /api/productions/approve', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns 200 and activates production with valid token', async () => {
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + 86400000); // +1 day
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        productionApprovalToken: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: 'token-1',
+            token: 'valid-token',
+            productionId: 'prod-1',
+            expiresAt: futureDate,
+            usedAt: null,
+            production: {
+              id: 'prod-1',
+              title: 'My Film',
+              contactEmail: 'john@example.com',
+              status: 'PENDING',
+            },
+          }),
+          update: vi.fn().mockResolvedValue({}),
+        },
+        production: {
+          update: vi.fn().mockResolvedValue({
+            id: 'prod-1',
+            title: 'My Film',
+            status: 'ACTIVE',
+          }),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .post('/api/productions/approve')
+      .send({ token: 'valid-token' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/approved/i);
+    expect(res.body.productionTitle).toBe('My Film');
+  });
+
+  it('returns 400 with used token', async () => {
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        productionApprovalToken: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: 'token-1',
+            token: 'used-token',
+            productionId: 'prod-1',
+            expiresAt: new Date(Date.now() + 86400000),
+            usedAt: new Date(),
+            production: {
+              id: 'prod-1',
+              title: 'My Film',
+              contactEmail: 'john@example.com',
+              status: 'ACTIVE',
+            },
+          }),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .post('/api/productions/approve')
+      .send({ token: 'used-token' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/already been used/i);
+  });
+
+  it('returns 400 with expired token', async () => {
+    const pastDate = new Date(Date.now() - 86400000); // -1 day
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        productionApprovalToken: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: 'token-1',
+            token: 'expired-token',
+            productionId: 'prod-1',
+            expiresAt: pastDate,
+            usedAt: null,
+            production: {
+              id: 'prod-1',
+              title: 'My Film',
+              contactEmail: 'john@example.com',
+              status: 'PENDING',
+            },
+          }),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .post('/api/productions/approve')
+      .send({ token: 'expired-token' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/expired/i);
+  });
+
+  it('returns 400 with invalid token', async () => {
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        productionApprovalToken: {
+          findUnique: vi.fn().mockResolvedValue(null),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .post('/api/productions/approve')
+      .send({ token: 'nonexistent-token' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/invalid/i);
+  });
+
+  it('returns 400 when no token provided', async () => {
+    const res = await request(app)
+      .post('/api/productions/approve')
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/token.*required/i);
   });
 });

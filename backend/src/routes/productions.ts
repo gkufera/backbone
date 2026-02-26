@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
@@ -7,17 +8,22 @@ import {
   MEMBER_TITLE_MAX_LENGTH,
   DEFAULT_DEPARTMENTS,
   DEFAULT_DEPARTMENT_COLORS,
+  PRODUCTION_APPROVAL_EMAILS,
+  PRODUCTION_APPROVAL_TOKEN_EXPIRY_DAYS,
+  STUDIO_NAME_MAX_LENGTH,
+  CONTACT_NAME_MAX_LENGTH,
 } from '@backbone/shared/constants';
 import { MemberRole, NotificationType, ElementStatus, ElementWorkflowState } from '@backbone/shared/types';
 import { createNotification } from '../services/notification-service';
+import { sendProductionApprovalEmail, sendProductionApprovedEmail } from '../services/email-service';
 
 const productionsRouter = Router();
 
-// Create a production
+// Create a production (request — starts in PENDING status)
 productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
   try {
     const authReq = req as AuthenticatedRequest;
-    const { title, description } = req.body;
+    const { title, description, studioName, contactName, contactEmail, budget } = req.body;
 
     if (!title || !String(title).trim()) {
       res.status(400).json({ error: 'Title is required' });
@@ -33,11 +39,52 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
       return;
     }
 
+    if (!studioName || !String(studioName).trim()) {
+      res.status(400).json({ error: 'Studio name is required' });
+      return;
+    }
+
+    const trimmedStudioName = String(studioName).trim();
+    if (trimmedStudioName.length > STUDIO_NAME_MAX_LENGTH) {
+      res.status(400).json({ error: `Studio name must be ${STUDIO_NAME_MAX_LENGTH} characters or fewer` });
+      return;
+    }
+
+    if (!contactName || !String(contactName).trim()) {
+      res.status(400).json({ error: 'Contact name is required' });
+      return;
+    }
+
+    const trimmedContactName = String(contactName).trim();
+    if (trimmedContactName.length > CONTACT_NAME_MAX_LENGTH) {
+      res.status(400).json({ error: `Contact name must be ${CONTACT_NAME_MAX_LENGTH} characters or fewer` });
+      return;
+    }
+
+    if (!contactEmail || !String(contactEmail).trim()) {
+      res.status(400).json({ error: 'Contact email is required' });
+      return;
+    }
+
+    const trimmedContactEmail = String(contactEmail).trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedContactEmail)) {
+      res.status(400).json({ error: 'Please provide a valid email address' });
+      return;
+    }
+
+    const trimmedBudget = budget ? String(budget).trim() || null : null;
+
     const result = await prisma.$transaction(async (tx) => {
       const production = await tx.production.create({
         data: {
           title: trimmedTitle,
           description: description || null,
+          status: 'PENDING',
+          studioName: trimmedStudioName,
+          budget: trimmedBudget,
+          contactName: trimmedContactName,
+          contactEmail: trimmedContactEmail,
           createdById: authReq.user.userId,
         },
       });
@@ -72,12 +119,111 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
         });
       }
 
-      return { production, member };
+      // Generate approval token
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + PRODUCTION_APPROVAL_TOKEN_EXPIRY_DAYS);
+
+      await tx.productionApprovalToken.create({
+        data: {
+          productionId: production.id,
+          token,
+          expiresAt,
+        },
+      });
+
+      return { production, member, approvalToken: token };
     });
 
-    res.status(201).json(result);
+    // Fire-and-forget: send approval emails
+    const frontendUrl = process.env.FRONTEND_URL ?? 'https://slugmax.com';
+    const approveUrl = `${frontendUrl}/approve-production?token=${result.approvalToken}`;
+
+    for (const email of PRODUCTION_APPROVAL_EMAILS) {
+      sendProductionApprovalEmail(
+        email,
+        result.production.title,
+        trimmedStudioName,
+        trimmedContactName,
+        trimmedContactEmail,
+        trimmedBudget,
+        approveUrl,
+      ).catch((err) => console.error('Failed to send approval email:', err));
+    }
+
+    res.status(201).json({ production: result.production, member: result.member });
   } catch (error) {
     console.error('Create production error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Approve a production (public token endpoint — no auth required)
+productionsRouter.post('/api/productions/approve', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token || !String(token).trim()) {
+      res.status(400).json({ error: 'Token is required' });
+      return;
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const approvalToken = await tx.productionApprovalToken.findUnique({
+        where: { token: String(token) },
+        include: { production: true },
+      });
+
+      if (!approvalToken) {
+        return { error: 'Invalid approval token', status: 400 };
+      }
+
+      if (approvalToken.usedAt) {
+        return { error: 'This approval token has already been used', status: 400 };
+      }
+
+      if (approvalToken.expiresAt < new Date()) {
+        return { error: 'This approval token has expired', status: 400 };
+      }
+
+      // Mark token as used
+      await tx.productionApprovalToken.update({
+        where: { id: approvalToken.id },
+        data: { usedAt: new Date() },
+      });
+
+      // Activate production
+      await tx.production.update({
+        where: { id: approvalToken.productionId },
+        data: { status: 'ACTIVE' },
+      });
+
+      return {
+        productionTitle: approvalToken.production.title,
+        contactEmail: approvalToken.production.contactEmail,
+      };
+    });
+
+    if ('error' in result) {
+      res.status(result.status).json({ error: result.error });
+      return;
+    }
+
+    // Fire-and-forget: send confirmation emails
+    for (const email of PRODUCTION_APPROVAL_EMAILS) {
+      sendProductionApprovedEmail(email, result.productionTitle).catch((err) =>
+        console.error('Failed to send approved email:', err),
+      );
+    }
+    if (result.contactEmail) {
+      sendProductionApprovedEmail(result.contactEmail, result.productionTitle).catch((err) =>
+        console.error('Failed to send approved email to requester:', err),
+      );
+    }
+
+    res.json({ message: 'Production approved successfully', productionTitle: result.productionTitle });
+  } catch (error) {
+    console.error('Approve production error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

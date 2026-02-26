@@ -42,6 +42,53 @@ export async function sendEmail(
   );
 }
 
+export async function sendProductionApprovalEmail(
+  to: string,
+  productionTitle: string,
+  studioName: string,
+  contactName: string,
+  contactEmail: string,
+  budget: string | null,
+  approveUrl: string,
+): Promise<void> {
+  const safeTitle = escapeHtml(productionTitle);
+  const safeStudio = escapeHtml(studioName);
+  const safeName = escapeHtml(contactName);
+  const safeEmail = escapeHtml(contactEmail);
+  const safeBudget = budget ? escapeHtml(budget) : 'Not specified';
+
+  const subject = `Slug Max: New production request — ${productionTitle}`;
+  const html = `
+<h2>New Production Request</h2>
+<table>
+  <tr><td><strong>Production:</strong></td><td>${safeTitle}</td></tr>
+  <tr><td><strong>Studio:</strong></td><td>${safeStudio}</td></tr>
+  <tr><td><strong>Contact:</strong></td><td>${safeName} (${safeEmail})</td></tr>
+  <tr><td><strong>Budget:</strong></td><td>${safeBudget}</td></tr>
+</table>
+<p><a href="${approveUrl}">Approve Production</a></p>
+`.trim();
+
+  await sendEmail(to, subject, html);
+}
+
+export async function sendProductionApprovedEmail(
+  to: string,
+  productionTitle: string,
+): Promise<void> {
+  const safeTitle = escapeHtml(productionTitle);
+  const frontendUrl = process.env.FRONTEND_URL ?? 'https://slugmax.com';
+
+  const subject = `Slug Max: "${productionTitle}" has been approved`;
+  const html = `
+<h2>Production Approved</h2>
+<p>The production <strong>${safeTitle}</strong> has been approved and is now active.</p>
+<p><a href="${frontendUrl}">View on Slug Max</a></p>
+`.trim();
+
+  await sendEmail(to, subject, html);
+}
+
 export async function sendDigestEmail(
   to: string,
   productionName: string,
