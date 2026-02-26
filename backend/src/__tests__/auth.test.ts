@@ -60,6 +60,7 @@ describe('POST /api/auth/signup', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -130,6 +131,7 @@ describe('POST /api/auth/signup', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -228,6 +230,7 @@ describe('POST /api/auth/login', () => {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -390,6 +393,7 @@ describe('POST /api/auth/forgot-password', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -436,6 +440,7 @@ describe('POST /api/auth/forgot-password', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -604,6 +609,7 @@ describe('Login with email verification', () => {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       emailVerified: false,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -630,6 +636,7 @@ describe('Login with email verification', () => {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -725,6 +732,7 @@ describe('POST /api/auth/resend-verification', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: false,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -770,6 +778,7 @@ describe('POST /api/auth/resend-verification', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: false,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -803,6 +812,7 @@ describe('POST /api/auth/resend-verification', () => {
       email: 'verified@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1055,6 +1065,7 @@ describe('Signup auto-verify in test mode', () => {
       email: 'autoverify@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
