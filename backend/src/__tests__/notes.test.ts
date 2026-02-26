@@ -533,6 +533,98 @@ describe('GET /api/options/:optionId/notes', () => {
   });
 });
 
+// Mock S3 service
+vi.mock('../lib/s3', () => ({
+  generateDownloadUrl: vi.fn().mockResolvedValue('https://s3.example.com/presigned-url'),
+  generateUploadUrl: vi.fn(),
+  generateMediaUploadUrl: vi.fn(),
+}));
+
+// ── GET /api/notes/attachment-download-url ───────────────────────────
+
+describe('GET /api/notes/attachment-download-url', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
+  });
+
+  it('returns download URL for valid s3Key with membership', async () => {
+    mockedPrisma.noteAttachment.findFirst.mockResolvedValue({
+      id: 'att-1',
+      noteId: 'note-1',
+      s3Key: 'uploads/img.jpg',
+      fileName: 'img.jpg',
+      mediaType: 'IMAGE',
+      createdAt: new Date(),
+      note: {
+        option: {
+          element: {
+            script: { productionId: 'prod-1' },
+          },
+        },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+    } as any);
+
+    const res = await request(app)
+      .get('/api/notes/attachment-download-url?s3Key=uploads/img.jpg')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.downloadUrl).toBe('https://s3.example.com/presigned-url');
+  });
+
+  it('returns 400 when s3Key missing', async () => {
+    const res = await request(app)
+      .get('/api/notes/attachment-download-url')
+      .set(authHeader());
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/s3Key/i);
+  });
+
+  it('returns 404 when attachment not found', async () => {
+    mockedPrisma.noteAttachment.findFirst.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get('/api/notes/attachment-download-url?s3Key=uploads/missing.jpg')
+      .set(authHeader());
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/not found/i);
+  });
+
+  it('returns 403 for non-member', async () => {
+    mockedPrisma.noteAttachment.findFirst.mockResolvedValue({
+      id: 'att-1',
+      noteId: 'note-1',
+      s3Key: 'uploads/img.jpg',
+      fileName: 'img.jpg',
+      mediaType: 'IMAGE',
+      createdAt: new Date(),
+      note: {
+        option: {
+          element: {
+            script: { productionId: 'prod-1' },
+          },
+        },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get('/api/notes/attachment-download-url?s3Key=uploads/img.jpg')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/member/i);
+  });
+});
+
 // ── GET notes includes attachments ───────────────────────────────────
 
 describe('GET /api/options/:optionId/notes includes attachments', () => {

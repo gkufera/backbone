@@ -7,6 +7,7 @@ import type { NoteAttachmentInput } from '@backbone/shared/types';
 import { NotificationType } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
 import { requireActiveProduction } from '../lib/require-active-production';
+import { generateDownloadUrl } from '../lib/s3';
 
 const notesRouter = Router();
 
@@ -335,6 +336,70 @@ notesRouter.get('/api/options/:optionId/notes', requireAuth, async (req, res) =>
     res.json({ notes: enrichedNotes });
   } catch (error) {
     console.error('List option notes error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Download URL for a note attachment
+notesRouter.get('/api/notes/attachment-download-url', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const s3Key = req.query.s3Key as string;
+
+    if (!s3Key) {
+      res.status(400).json({ error: 's3Key is required' });
+      return;
+    }
+
+    const attachment = await prisma.noteAttachment.findFirst({
+      where: { s3Key },
+      include: {
+        note: {
+          include: {
+            option: {
+              include: {
+                element: {
+                  include: {
+                    script: { select: { productionId: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!attachment) {
+      res.status(404).json({ error: 'Attachment not found' });
+      return;
+    }
+
+    // Walk note → option → element → script → production for membership check
+    const productionId = attachment.note.option?.element.script.productionId;
+    if (!productionId) {
+      res.status(404).json({ error: 'Attachment not found' });
+      return;
+    }
+
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
+
+    const downloadUrl = await generateDownloadUrl(s3Key);
+    res.json({ downloadUrl });
+  } catch (error) {
+    console.error('Note attachment download URL error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
