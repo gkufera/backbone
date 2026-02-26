@@ -134,16 +134,16 @@ export function ElementList({
         <span className="text-xs">Sort by:</span>
         <button
           onClick={() => setViewMode('appearance')}
-          className={`px-3 py-1 text-sm ${
-            viewMode === 'appearance' ? 'bg-black text-white' : 'bg-white text-black border-2 border-black'
+          className={`px-3 py-1 text-sm border-2 border-black ${
+            viewMode === 'appearance' ? 'bg-black text-white' : 'bg-white text-black'
           }`}
         >
           By Appearance
         </button>
         <button
           onClick={() => setViewMode('department')}
-          className={`px-3 py-1 text-sm ${
-            viewMode === 'department' ? 'bg-black text-white' : 'bg-white text-black border-2 border-black'
+          className={`px-3 py-1 text-sm border-2 border-black ${
+            viewMode === 'department' ? 'bg-black text-white' : 'bg-white text-black'
           }`}
         >
           By Department

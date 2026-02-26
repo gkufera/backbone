@@ -280,6 +280,30 @@ describe('Element list', () => {
     expect(link).toHaveClass('text-white');
   });
 
+  it('active sort button includes border-2 class for visual consistency', () => {
+    render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
+
+    const appearanceBtn = screen.getByRole('button', { name: /by appearance/i });
+    expect(appearanceBtn.className).toContain('bg-black');
+    expect(appearanceBtn.className).toContain('border-2');
+  });
+
+  it('active department filter chip includes border-2 class', () => {
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    // "All" button is active by default
+    const allBtn = screen.getByRole('button', { name: /all/i });
+    expect(allBtn.className).toContain('bg-black');
+    expect(allBtn.className).toContain('border-2');
+  });
+
   it('clicking department chip filters elements to that department', async () => {
     const user = userEvent.setup();
     const elementsWithDepts = [
