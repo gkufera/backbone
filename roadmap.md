@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 496 frontend + 501 backend = 997 unit/integration, 57 E2E
+**Test counts:** 492 frontend + 487 backend = 979 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -158,25 +158,22 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 30: Production Security
+## Sprint 30: Production Security (DONE)
 
 **Goal:** Close the 4 medium-priority security gaps from the security audit.
 
-- [ ] S14: Token revocation / logout endpoint
-  - Add `POST /api/auth/logout` endpoint
-  - Options: in-memory deny set or DB-backed token invalidation
-  - Middleware checks deny list before accepting JWT
-- [ ] S19: Invalidate JWTs on password reset
-  - Add `tokenVersion` field to User model
+- [x] S14: Token revocation / logout endpoint
+  - Added `POST /api/auth/logout` endpoint
+  - Increments `tokenVersion` to invalidate all existing JWTs
+- [x] S19: Invalidate JWTs on password reset
+  - Added `tokenVersion` field to User model
   - JWT includes tokenVersion; middleware rejects mismatched versions
-  - Pairs with S14 — logout can increment tokenVersion
-- [ ] S17: Persistent rate limiting
-  - Current: in-memory rate limiter resets on restart/deploy
-  - Evaluate if this is a real problem or acceptable for now
-  - Options: accept as-is, add DB-backed store, or add Redis
-- [ ] S20: Per-user upload URL rate limiting
-  - Per-user throttle on `POST /api/options/:id/upload-url`
-  - Prevent abuse of presigned S3 URL generation
+  - Pairs with S14 — logout increments tokenVersion
+- [x] S17: Persistent rate limiting
+  - In-memory rate limiter acceptable for current scale
+  - Redis option tracked in backlog for v2+
+- [x] S20: Per-user upload URL rate limiting
+  - Per-user throttle on upload URL generation endpoints
 
 ---
 
@@ -222,6 +219,21 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
+## Sprint 32: Prune SMS/Phone Verification (DONE)
+
+**Goal:** Remove all unused SMS/phone verification code. Feature put on ice.
+
+- [x] Remove `PhoneVerificationCode` model and `phone`/`phoneVerified` fields from User (schema + migration)
+- [x] Delete `sms-service.ts` and its tests
+- [x] Remove `send-phone-code` and `verify-phone` auth routes
+- [x] Remove phone fields from all API responses (login, me, patch)
+- [x] Remove `sendPhoneCode`/`verifyPhone` frontend API methods
+- [x] Remove phone verification UI from settings page
+- [x] Remove `PHONE_REGEX` and related constants
+- [x] Delete `settings-phone.test.tsx`, clean up `settings.test.tsx` and `auth.test.ts`
+
+---
+
 ## Sprint 33: Discussion Media Attachments
 
 **Goal:** Allow directors and crew to attach media in option discussion threads.
@@ -235,7 +247,6 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 ## Following sprints
 
 - [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, then generate a PDF. Note in a tooltip that FDX works better and that AI tag pulling is inaccurate.
-- [ ] Phone Verification in Signup — Make phone verification mandatory during signup, with real SMS delivery (Twilio or Amazon SNS). Move phone verification from settings to signup flow. Multi-step form: email/password → phone verification.
 - [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department, a director, and a production coordinator.
 
 ---
@@ -253,6 +264,7 @@ Explicitly deferred. Do not work on these during current sprints.
 
 ### Features
 
+- [ ] SMS/Phone Verification — Make phone verification mandatory during signup, with real SMS delivery (Twilio or Amazon SNS). Move phone verification from settings to signup flow. Multi-step form: email/password → phone verification. (On ice — code pruned in Sprint 32)
 - [ ] Compose setting/actor/character options into collage/moodboard visual
 - [ ] React Native iOS/Android apps with offline sync
 - [ ] Tinder-like swipe interface for mobile approval
