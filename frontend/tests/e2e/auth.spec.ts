@@ -38,7 +38,7 @@ test.describe('Auth flow', () => {
 
     // Login redirects to /productions
     await expect(page).toHaveURL(/\/productions$/, { timeout: 10000 });
-    await expect(page.getByText('Productions')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Productions' })).toBeVisible({ timeout: 5000 });
   });
 
   test('invalid login shows error', async ({ page }) => {

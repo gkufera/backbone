@@ -40,7 +40,7 @@ test.describe('Production flow', () => {
 
     // Should redirect to production dashboard and show the title
     await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
-    await expect(page.getByText('My Test Production')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'My Test Production' })).toBeVisible({ timeout: 10000 });
   });
 
   test('create production → add team member → see in member list', async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe('Production flow', () => {
 
     // Wait for dashboard
     await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
-    await expect(page.getByText('Team Production')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Team Production' })).toBeVisible({ timeout: 10000 });
 
     // Add team member by email
     const emailInput = page.getByPlaceholder(/email/i);
