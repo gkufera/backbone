@@ -9,27 +9,23 @@
 ---
 
 ### Step 1: Backend — await sendEmail and return failure indicator
-- [ ] Write failing tests: `emailSent: false` when sendEmail rejects, `emailSent: true` when it succeeds
-- [ ] Fix resend-verification route to await sendEmail, return emailSent boolean
-- [ ] Also fix signup route to await sendEmail (log result, don't surface failure)
-- [ ] Run Tier 1 tests
-- [ ] COMMIT
+- [x] Write failing tests: `emailSent: false` when sendEmail rejects, `emailSent: true` when it succeeds
+- [x] Fix resend-verification route to await sendEmail, return emailSent boolean
+- [x] Also fix signup route to await sendEmail (log result, don't surface failure)
+- [x] Run Tier 1 tests (429 backend pass)
+- [x] COMMIT (f2672a8)
 
 ### Step 2: Frontend — show warning when emailSent is false
-- [ ] Write failing tests for verify-email-sent page and login page
-- [ ] Update authApi.resendVerification return type to include emailSent
-- [ ] Update handleResend in both pages to check emailSent
-- [ ] Run Tier 1 tests
-- [ ] COMMIT
+- [x] Write failing tests for verify-email-sent page and login page
+- [x] Update authApi.resendVerification return type to include emailSent
+- [x] Update handleResend in both pages to check emailSent
+- [x] Run Tier 1 tests (459 frontend + 429 backend = 888 pass)
+- [x] COMMIT (52e783f)
 
 ### Step 3: Update roadmap infra status + PLAN.md
-- [ ] Update carsonmell@gmail.com status in roadmap.md
-- [ ] Update test counts
-- [ ] COMMIT
-
-### Step 4: Run full Tier 1 suite + final verification
-- [ ] All tests pass
-- [ ] COMMIT
+- [x] Update carsonmell@gmail.com status in roadmap.md
+- [x] Update test counts (888 total)
+- [x] COMMIT
 
 ---
 

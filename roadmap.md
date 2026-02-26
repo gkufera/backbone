@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 450 frontend + 428 backend = 878 unit/integration, 57 E2E
+**Test counts:** 459 frontend + 429 backend = 888 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access under review (case #177205820000226). Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com (pending click). |
+| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access under review (case #177205820000226). Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com (verified). |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
@@ -89,17 +89,17 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 27: Fix Email Verification (URGENT)
+## Sprint 27: Fix Email Verification (DONE)
 
 **Goal:** Diagnose and fix email verification delivery failure. User carsonmell@gmail.com clicked "resend verification email", got "verification email sent" confirmation, but never received the email (checked spam).
 
-- [ ] Check Railway backend logs for SES send errors around the time of the failed delivery
-- [ ] Verify SES sandbox status — carsonmell@gmail.com may need to be verified as a recipient (SES sandbox restricts to verified addresses only)
-  - Current sandbox-verified addresses: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com (was "pending click" per infra status)
-  - If carsonmell@gmail.com verification never completed, SES will silently reject sends to that address
-- [ ] Fix the root cause (likely: SES sandbox + unverified recipient, or SES production access still pending)
-- [ ] Add error logging/response when SES send fails so users aren't told "sent" when it wasn't
-- [ ] Test end-to-end email delivery for carsonmell@gmail.com
+**Root cause:** SES sandbox rejected send because carsonmell@gmail.com was not yet verified. He has since verified. Code-level fix: backend now awaits sendEmail and returns `emailSent` boolean; frontend shows "Email could not be sent" when delivery fails.
+
+- [x] Check Railway backend logs for SES send errors around the time of the failed delivery
+- [x] Verify SES sandbox status — carsonmell@gmail.com now verified in SES
+- [x] Fix the root cause — await sendEmail in resend-verification route, return `emailSent: true/false`
+- [x] Add error logging/response when SES send fails so users aren't told "sent" when it wasn't
+- [ ] Test end-to-end email delivery for carsonmell@gmail.com (requires deploy)
 
 ---
 
