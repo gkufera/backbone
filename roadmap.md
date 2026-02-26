@@ -98,7 +98,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 **Goal:** Allow directors and crew to attach media (images, videos, files) in option discussion threads for inspiration and guidance.
 
 - [ ] Add media attachment support to option discussions — users can upload images, reference videos, or other files directly in the discussion thread for an option
-- [ ] Directors can provide visual guidance (mood boards, reference photos, video clips) that crew members see alongside the conversation
+- [ ] DECIDERS can provide visual guidance (mood boards, reference photos, video clips) that crew members see alongside the conversation
 - [ ] Attachments use the existing S3 upload infrastructure (presigned URLs)
 
 ---
