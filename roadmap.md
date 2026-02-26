@@ -107,14 +107,15 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 **Goal:** Make phone verification actually work by integrating a real SMS provider.
 
-- [ ] Integrate a real SMS provider (e.g., Twilio) into `sms-service.ts` (currently stubbed — logs but doesn't send)
-- [ ] Set up Twilio account and add credentials to Railway env vars and `~/.config/cm/env`
+- [ ] Integrate a real SMS provider (e.g., Twilio or Amazon SNS) into `sms-service.ts` (currently stubbed — logs but doesn't send)
+- [ ] Set up appropriate accounts and add credentials to Railway env vars and `~/.config/cm/env`
 - [ ] Ensure `SMS_ENABLED=true` activates real SMS sending on production
 - [ ] Test full phone verification flow end-to-end: enter phone → receive code → verify
 
 ---
 
 ## Following sprints - once you get here, first investigate these issues and split them into sprints.
+
 - [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, and then generate a PDF of that FDX file so that everything works better. Note in the software in a tooltip that this works better, and that the AI that pulls tags is very inaccurate.
 - [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department as well as a director and a production coordinator.
 
