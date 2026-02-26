@@ -88,7 +88,6 @@ export function NotificationPreferences({ productionId }: NotificationPreference
       <div className="mac-window-body space-y-3">
         <p className="font-mono text-xs">
           Choose which email notifications you receive for this production.
-          Emails are sent as a digest every minute.
         </p>
         {error && <p className="font-mono text-xs font-bold">{error}</p>}
         {CATEGORIES.map(({ field, label }) => (
