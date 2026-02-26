@@ -1,5 +1,14 @@
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function isEmailEnabled(): boolean {
   return process.env.EMAIL_ENABLED === 'true';
 }
@@ -45,15 +54,18 @@ export async function sendDigestEmail(
 
   const listItems = notifications
     .map((n) => {
+      const safeMessage = escapeHtml(n.message);
       if (n.link) {
-        return `<li><a href="${frontendUrl}${n.link}">${n.message}</a></li>`;
+        return `<li><a href="${frontendUrl}${n.link}">${safeMessage}</a></li>`;
       }
-      return `<li>${n.message}</li>`;
+      return `<li>${safeMessage}</li>`;
     })
     .join('\n');
 
+  const safeProductionName = escapeHtml(productionName);
+
   const html = `
-<h2>Updates on ${productionName}</h2>
+<h2>Updates on ${safeProductionName}</h2>
 <ul>
 ${listItems}
 </ul>

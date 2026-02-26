@@ -108,6 +108,22 @@ describe('sendDigestEmail', () => {
     expect(htmlArg).toContain('Script uploaded: Draft 2');
   });
 
+  it('escapes HTML in messages and production name', async () => {
+    await sendDigestEmail('user@example.com', '<script>alert("xss")</script>', [
+      { message: '<img src=x onerror=alert(1)>', link: null },
+      { message: 'Normal message & "quotes"', link: '/productions/p1/feed' },
+    ]);
+
+    const htmlArg = mockSend.mock.calls[0][0].input.Content.Simple.Body.Html.Data as string;
+    // Should NOT contain raw HTML tags from user input
+    expect(htmlArg).not.toContain('<script>');
+    expect(htmlArg).not.toContain('<img');
+    // Should contain escaped versions
+    expect(htmlArg).toContain('&lt;script&gt;');
+    expect(htmlArg).toContain('&lt;img src=x onerror=alert(1)&gt;');
+    expect(htmlArg).toContain('Normal message &amp; &quot;quotes&quot;');
+  });
+
   it('calls sendEmail with formatted HTML', async () => {
     await sendDigestEmail('user@example.com', 'My Film', [
       { message: 'Approval on LOCATION A', link: '/productions/p1/feed' },
