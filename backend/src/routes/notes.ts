@@ -5,6 +5,7 @@ import { parsePagination } from '../lib/pagination';
 import { NOTE_CONTENT_MAX_LENGTH } from '@backbone/shared/constants';
 import { NotificationType } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const notesRouter = Router();
 
@@ -60,6 +61,9 @@ notesRouter.post('/api/elements/:elementId/notes', requireAuth, async (req, res)
       res.status(404).json({ error: 'Element not found' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(element.script.productionId, res))) return;
 
     const membership = await prisma.productionMember.findUnique({
       where: {
@@ -183,6 +187,9 @@ notesRouter.post('/api/options/:optionId/notes', requireAuth, async (req, res) =
       res.status(404).json({ error: 'Option not found' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(option.element.script.productionId, res))) return;
 
     const membership = await prisma.productionMember.findUnique({
       where: {

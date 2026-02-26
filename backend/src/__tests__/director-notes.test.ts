@@ -38,6 +38,9 @@ vi.mock('../lib/prisma', () => ({
     script: {
       findUnique: vi.fn(),
     },
+    production: {
+      findUnique: vi.fn(),
+    },
     productionMember: {
       findUnique: vi.fn(),
     },
@@ -67,6 +70,8 @@ function mockScriptAndMembership(role: string, userId: string) {
     id: 'script-1',
     productionId: 'prod-1',
   } as any);
+
+  mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
   mockedPrisma.productionMember.findUnique.mockResolvedValue({
     id: 'member-1',
@@ -170,6 +175,22 @@ describe('POST /api/scripts/:scriptId/director-notes', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('returns 403 when production is PENDING', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'PENDING' } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/director-notes')
+      .set(authHeaderFor(deciderUser))
+      .send({ sceneNumber: 1, note: 'My note' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
+  });
 });
 
 describe('PATCH /api/director-notes/:noteId', () => {
@@ -188,6 +209,8 @@ describe('PATCH /api/director-notes/:noteId', () => {
       deletedAt: null,
       script: { productionId: 'prod-1' },
     } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -227,6 +250,8 @@ describe('PATCH /api/director-notes/:noteId', () => {
       script: { productionId: 'prod-1' },
     } as any);
 
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-2',
       productionId: 'prod-1',
@@ -240,6 +265,27 @@ describe('PATCH /api/director-notes/:noteId', () => {
       .send({ note: 'Hacked note' });
 
     expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when production is PENDING', async () => {
+    mockedPrisma.directorNote.findUnique.mockResolvedValue({
+      id: 'note-1',
+      scriptId: 'script-1',
+      sceneNumber: 1,
+      note: 'Old note',
+      createdById: 'user-decider',
+      deletedAt: null,
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'PENDING' } as any);
+
+    const res = await request(app)
+      .patch('/api/director-notes/note-1')
+      .set(authHeaderFor(deciderUser))
+      .send({ note: 'Updated note' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
   });
 });
 
@@ -259,6 +305,8 @@ describe('DELETE /api/director-notes/:noteId', () => {
       deletedAt: null,
       script: { productionId: 'prod-1' },
     } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -281,5 +329,25 @@ describe('DELETE /api/director-notes/:noteId', () => {
       where: { id: 'note-1' },
       data: { deletedAt: expect.any(Date) },
     });
+  });
+
+  it('returns 403 when production is PENDING', async () => {
+    mockedPrisma.directorNote.findUnique.mockResolvedValue({
+      id: 'note-1',
+      scriptId: 'script-1',
+      sceneNumber: 1,
+      note: 'To delete',
+      createdById: 'user-decider',
+      deletedAt: null,
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'PENDING' } as any);
+
+    const res = await request(app)
+      .delete('/api/director-notes/note-1')
+      .set(authHeaderFor(deciderUser));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
   });
 });

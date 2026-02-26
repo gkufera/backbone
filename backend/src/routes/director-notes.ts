@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { parsePagination } from '../lib/pagination';
 import { MemberRole } from '@backbone/shared/types';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const directorNotesRouter = Router();
 
@@ -78,6 +79,9 @@ directorNotesRouter.post(
         return;
       }
 
+      // Block mutations on PENDING productions
+      if (!(await requireActiveProduction(script.productionId, res))) return;
+
       const membership = await prisma.productionMember.findUnique({
         where: {
           productionId_userId: {
@@ -130,6 +134,9 @@ directorNotesRouter.patch('/api/director-notes/:noteId', requireAuth, async (req
       res.status(404).json({ error: 'Note not found' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(existingNote.script.productionId, res))) return;
 
     // Verify membership
     const membership = await prisma.productionMember.findUnique({
@@ -184,6 +191,9 @@ directorNotesRouter.delete('/api/director-notes/:noteId', requireAuth, async (re
       res.status(404).json({ error: 'Note not found' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(existingNote.script.productionId, res))) return;
 
     // Verify membership
     const membership = await prisma.productionMember.findUnique({

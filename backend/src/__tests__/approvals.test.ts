@@ -9,6 +9,9 @@ vi.mock('../lib/prisma', () => ({
     option: {
       findUnique: vi.fn(),
     },
+    production: {
+      findUnique: vi.fn(),
+    },
     productionMember: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -59,6 +62,8 @@ function mockOptionWithMembership() {
       script: { productionId: 'prod-1' },
     },
   } as any);
+
+  mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
   mockedPrisma.productionMember.findUnique.mockResolvedValue({
     id: 'member-1',
@@ -260,6 +265,29 @@ describe('POST /api/options/:optionId/approvals', () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/archived/i);
   });
+
+  it('returns 403 when production is PENDING', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      uploadedById: 'user-2',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'PENDING' } as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
+  });
 });
 
 // ── Tentative approval logic ──────────────────────────────────────
@@ -285,6 +313,8 @@ describe('Tentative approval logic', () => {
         script: { productionId: 'prod-1' },
       },
     } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -344,6 +374,8 @@ describe('Tentative approval logic', () => {
         script: { productionId: 'prod-1' },
       },
     } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -420,6 +452,8 @@ describe('Tentative approval logic', () => {
         script: { productionId: 'prod-1' },
       },
     } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -507,6 +541,8 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
       },
     } as any);
 
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
       productionId: 'prod-1',
@@ -559,6 +595,8 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
       },
     } as any);
 
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
       productionId: 'prod-1',
@@ -600,6 +638,8 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
       },
     } as any);
 
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
       productionId: 'prod-1',
@@ -631,6 +671,8 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
         },
       },
     } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
@@ -674,6 +716,8 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
       },
     } as any);
 
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
       id: 'member-1',
       productionId: 'prod-1',
@@ -687,6 +731,33 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/already confirmed/i);
+  });
+
+  it('returns 403 when production is PENDING', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: true,
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        element: {
+          id: 'elem-1',
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'PENDING' } as any);
+
+    const res = await request(app)
+      .patch('/api/approvals/appr-1/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
   });
 });
 

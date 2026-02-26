@@ -5,6 +5,7 @@ import { parsePagination } from '../lib/pagination';
 import { APPROVAL_NOTE_MAX_LENGTH } from '@backbone/shared/constants';
 import { ApprovalDecision, ElementStatus, MemberRole, NotificationType, OptionStatus } from '@backbone/shared/types';
 import { createNotification, notifyDeciders } from '../services/notification-service';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const DECISION_TO_NOTIFICATION_TYPE: Record<ApprovalDecision, NotificationType> = {
   [ApprovalDecision.APPROVED]: NotificationType.OPTION_APPROVED,
@@ -45,6 +46,9 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
       res.status(404).json({ error: 'Option not found' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(option.element.script.productionId, res))) return;
 
     // Validate option and element are not archived
     if (option.status === OptionStatus.ARCHIVED) {
@@ -145,6 +149,9 @@ approvalsRouter.patch('/api/approvals/:approvalId/confirm', requireAuth, async (
       res.status(404).json({ error: 'Approval not found' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(approval.option.element.script.productionId, res))) return;
 
     // Check membership
     const membership = await prisma.productionMember.findUnique({

@@ -12,6 +12,9 @@ vi.mock('../lib/prisma', () => ({
     option: {
       findUnique: vi.fn(),
     },
+    production: {
+      findUnique: vi.fn(),
+    },
     productionMember: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -52,6 +55,8 @@ function mockElementWithMembership() {
     script: { productionId: 'prod-1' },
   } as any);
 
+  mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
   mockedPrisma.productionMember.findUnique.mockResolvedValue({
     id: 'member-1',
     productionId: 'prod-1',
@@ -71,6 +76,8 @@ function mockOptionWithMembership() {
       script: { productionId: 'prod-1' },
     },
   } as any);
+
+  mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
   mockedPrisma.productionMember.findUnique.mockResolvedValue({
     id: 'member-1',
@@ -357,6 +364,25 @@ describe('POST /api/elements/:elementId/notes', () => {
 
     expect(res.status).toBe(404);
   });
+
+  it('returns 403 when production is PENDING', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      status: 'ACTIVE',
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'PENDING' } as any);
+
+    const res = await request(app)
+      .post('/api/elements/elem-1/notes')
+      .set(authHeader())
+      .send({ content: 'test' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
+  });
 });
 
 // ── GET /api/elements/:elementId/notes ──────────────────────────
@@ -446,6 +472,28 @@ describe('POST /api/options/:optionId/notes', () => {
       .send({ content: 'test' });
 
     expect(res.status).toBe(404);
+  });
+
+  it('returns 403 when production is PENDING', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      element: {
+        id: 'elem-1',
+        scriptId: 'script-1',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'PENDING' } as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({ content: 'test' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
   });
 });
 
