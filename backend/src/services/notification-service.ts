@@ -1,5 +1,4 @@
 import { prisma } from '../lib/prisma';
-import { sendNotificationEmail } from './email-service';
 import { MemberRole, NotificationType } from '@backbone/shared/types';
 
 export async function createNotification(
@@ -18,19 +17,6 @@ export async function createNotification(
       link: link ?? null,
     },
   });
-
-  // Send email notification (non-blocking)
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true, emailNotificationsEnabled: true },
-    });
-    if (user?.email && user.emailNotificationsEnabled !== false) {
-      await sendNotificationEmail(user.email, { type, message });
-    }
-  } catch (error) {
-    console.error('Failed to send notification email:', error instanceof Error ? error.message : 'Unknown error');
-  }
 
   return notification;
 }
