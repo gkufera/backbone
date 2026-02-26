@@ -103,7 +103,7 @@ test.describe('Production flow', () => {
     await expect(page.getByText('Temp Department')).toBeVisible({ timeout: 5000 });
 
     // Find and click the delete button for the newly created department
-    const deptRow = page.getByText('Temp Department').locator('..');
+    const deptRow = page.locator('li', { hasText: 'Temp Department' });
     await deptRow.getByRole('button', { name: /delete/i }).click();
 
     // Verify it's gone

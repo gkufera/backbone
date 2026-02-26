@@ -79,8 +79,8 @@ test.describe('Notifications', () => {
     await notification.click();
 
     // After clicking, the notification style should change (no longer bold/unread)
-    // Wait for potential navigation or state change
-    await page.waitForTimeout(1000);
+    // Wait for the click action to complete (navigation or state change)
+    await page.waitForLoadState('networkidle');
 
     // Navigate back to notifications to verify read state
     await page.goto(`/productions/${productionId}/notifications`);

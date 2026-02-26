@@ -62,6 +62,10 @@ test.describe('Auth flow', () => {
     // Should be redirected to login or home
     await expect(page).toHaveURL(/\/(login|$)/, { timeout: 10000 });
 
+    // Verify token is cleared from localStorage
+    const token = await page.evaluate(() => localStorage.getItem('token'));
+    expect(token).toBeNull();
+
     // Trying to access /productions should redirect to login
     await page.goto('/productions');
     await expect(page).toHaveURL(/\/login/, { timeout: 10000 });

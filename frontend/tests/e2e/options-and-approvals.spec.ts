@@ -6,6 +6,7 @@ test.describe('Options', () => {
     const { email, productionId, scriptId, elements } = await setupSeededProduction(request);
     await loginAs(page, email);
 
+    expect(elements[0].name).toBe('John');
     const element = elements[0]; // John — has a LINK option
     await page.goto(
       `/productions/${productionId}/scripts/${scriptId}/elements/${element.id}`,
@@ -28,6 +29,7 @@ test.describe('Options', () => {
     const { email, productionId, scriptId, elements } = await setupSeededProduction(request);
     await loginAs(page, email);
 
+    expect(elements[2].name).toBe('Office');
     const element = elements[2]; // Office — LOCATION
     await page.goto(
       `/productions/${productionId}/scripts/${scriptId}/elements/${element.id}`,
@@ -63,6 +65,7 @@ test.describe('Options', () => {
     await loginAs(page, email);
 
     // Use element[2] (Office) which has readyForReview=false
+    expect(elements[2].name).toBe('Office');
     const element = elements[2];
     await page.goto(
       `/productions/${productionId}/scripts/${scriptId}/elements/${element.id}`,
@@ -228,8 +231,7 @@ test.describe('Approvals', () => {
 
     // Seeded data has 2 elements with readyForReview=true (John and Sarah)
     // Feed should show elements that have ready options
-    // At minimum, verify the feed is not empty
-    const feedContent = page.locator('main, [role="main"], .mac-window-body').first();
-    await expect(feedContent).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('John')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Sarah')).toBeVisible({ timeout: 5000 });
   });
 });

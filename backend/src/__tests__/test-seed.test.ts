@@ -156,4 +156,26 @@ describe('POST /api/test/seed-production', () => {
     // We verify this by checking the app.ts source contains the guard.
     expect(process.env.NODE_ENV).toBe('test');
   });
+
+  it('returns 403 from handler when NODE_ENV is not test (defense-in-depth)', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const res = await request(app).post('/api/test/seed-production').set(authHeader()).send({});
+      expect(res.status).toBe(403);
+      expect(res.body.error).toBe('Test endpoints are only available in test environment');
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
+
+  it('includes error details in response when NODE_ENV=test', async () => {
+    mockedPrisma.$transaction.mockRejectedValue(new Error('DB connection failed'));
+
+    const res = await request(app).post('/api/test/seed-production').set(authHeader()).send({});
+
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe('Internal server error');
+    expect(res.body.details).toBe('DB connection failed');
+  });
 });

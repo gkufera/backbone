@@ -75,7 +75,12 @@ export async function seedProduction(request: APIRequestContext, token: string) 
     headers: { Authorization: `Bearer ${token}` },
     data: {},
   });
-  expect(res.ok()).toBeTruthy();
+  if (!res.ok()) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      `seedProduction failed (${res.status()}): ${body.error ?? 'unknown error'}${body.details ? ` — ${body.details}` : ''}`,
+    );
+  }
   return res.json() as Promise<{
     productionId: string;
     scriptId: string;

@@ -5,6 +5,11 @@ import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 const testSeedRouter = Router();
 
 testSeedRouter.post('/api/test/seed-production', requireAuth, async (req, res) => {
+  if (process.env.NODE_ENV !== 'test') {
+    res.status(403).json({ error: 'Test endpoints are only available in test environment' });
+    return;
+  }
+
   try {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.userId;
@@ -115,7 +120,10 @@ testSeedRouter.post('/api/test/seed-production', requireAuth, async (req, res) =
     });
   } catch (error) {
     console.error('Test seed error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 });
 
