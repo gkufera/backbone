@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { parsePagination } from '../lib/pagination';
 import { ElementType, ElementStatus, ElementSource, OptionStatus, ScriptStatus } from '@backbone/shared/types';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const elementsRouter = Router();
 
@@ -37,6 +38,9 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(script.productionId, res))) return;
 
     if (!name || !String(name).trim()) {
       res.status(400).json({ error: 'Name is required' });
@@ -166,6 +170,9 @@ elementsRouter.patch('/api/elements/:id', requireAuth, async (req, res) => {
       return;
     }
 
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(element.script.productionId, res))) return;
+
     // Validate type and status against enums if provided
     if (type !== undefined && !Object.values(ElementType).includes(type)) {
       res.status(400).json({ error: 'Invalid element type' });
@@ -236,6 +243,9 @@ elementsRouter.delete('/api/elements/:id', requireAuth, async (req, res) => {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(element.script.productionId, res))) return;
 
     if (element.script.status !== ScriptStatus.REVIEWING) {
       res.status(403).json({ error: 'Elements can only be deleted when script is in REVIEWING status' });

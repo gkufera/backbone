@@ -96,6 +96,7 @@ describe('POST /api/scripts/:scriptId/elements', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 201 with element (source: MANUAL)', async () => {
@@ -160,6 +161,7 @@ describe('PATCH /api/elements/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 200 with updated element', async () => {
@@ -317,6 +319,7 @@ describe('DELETE /api/elements/:id (safety check)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 409 when element has options', async () => {
@@ -348,6 +351,7 @@ describe('PATCH /api/elements/:id (archive/soft-delete)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('archives element via status change (never hard-deletes)', async () => {

@@ -27,6 +27,9 @@ vi.mock('../lib/prisma', () => ({
     user: {
       findUnique: vi.fn(),
     },
+    production: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -232,6 +235,7 @@ describe('Workflow state on readyForReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('sets element workflowState to OUTSTANDING when option marked readyForReview', async () => {
@@ -475,6 +479,7 @@ describe('Notification triggers on readyForReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('creates notifications for production members when option marked ready with link', async () => {

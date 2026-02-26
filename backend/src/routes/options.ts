@@ -11,6 +11,7 @@ import {
 } from '@backbone/shared/constants';
 import { ElementWorkflowState, MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
 import { notifyProductionMembers, notifyDeciders } from '../services/notification-service';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const optionsRouter = Router();
 const uploadLimiter = createUploadLimiter();
@@ -135,6 +136,9 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(element.script.productionId, res))) return;
 
     // Validate mediaType
     if (!mediaType || !Object.values(MediaType).includes(mediaType)) {
@@ -339,6 +343,9 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
       return;
     }
 
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(option.element.script.productionId, res))) return;
+
     // Validate description length
     if (description !== undefined && description.length > OPTION_DESCRIPTION_MAX_LENGTH) {
       res.status(400).json({
@@ -429,6 +436,9 @@ optionsRouter.post('/api/options/:id/assets', requireAuth, async (req, res) => {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(option.element.script.productionId, res))) return;
 
     // Determine next sortOrder
     const lastAsset = await prisma.optionAsset.findFirst({

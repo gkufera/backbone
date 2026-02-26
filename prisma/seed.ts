@@ -31,6 +31,7 @@ async function main() {
     data: {
       title: DEMO_PRODUCTION.title,
       description: DEMO_PRODUCTION.description,
+      status: 'ACTIVE',
       createdById: users[0].id,
     },
   });

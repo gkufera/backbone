@@ -102,6 +102,7 @@ describe('Element soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('DELETE /api/elements/:id sets deletedAt instead of hard-deleting', async () => {

@@ -272,6 +272,7 @@ describe('POST /api/elements/:elementId/options', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 201 when creating IMAGE option with assets', async () => {
@@ -551,6 +552,7 @@ describe('PATCH /api/options/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 200 when toggling readyForReview', async () => {
@@ -638,6 +640,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('creates option with assets array', async () => {

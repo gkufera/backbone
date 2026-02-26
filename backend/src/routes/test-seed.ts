@@ -19,6 +19,7 @@ testSeedRouter.post('/api/test/seed-production', requireAuth, async (req, res) =
       const production = await tx.production.create({
         data: {
           title: 'Test Production',
+          status: 'ACTIVE',
           createdById: userId,
         },
       });

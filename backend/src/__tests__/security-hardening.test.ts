@@ -10,6 +10,7 @@ vi.mock('../lib/prisma', () => ({
     option: { findUnique: vi.fn() },
     optionAsset: { findFirst: vi.fn() },
     notification: { create: vi.fn() },
+    production: { findUnique: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -185,6 +186,7 @@ describe('ElementType/ElementStatus enum validation (S5)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 400 when creating element with invalid type', async () => {
