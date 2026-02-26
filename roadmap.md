@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access DENIED (case #177205820000226) — API blocks resubmission after denial, must refile via AWS Console with stronger justification. Backup plan: Resend.com if SES denied again. Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com. |
+| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access DENIED (case #177205820000226) — API blocks resubmission after denial, must refile via AWS Console with stronger justification. Backup plan: Resend.com if SES denied again. Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell+slugmax@gmail.com. |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
@@ -130,29 +130,49 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 29: Production Security (DONE)
+## Sprint 29: Switch Email from SES to Resend (URGENT)
 
-**Goal:** Close the 4 medium-priority security gaps from the security audit.
+**Goal:** Replace AWS SES with Resend for all transactional email. SES production access was rejected.
 
-- [x] S14: Token revocation / logout endpoint
-  - Added `POST /api/auth/logout` endpoint that increments `tokenVersion`
-  - `requireAuth` middleware now async — queries DB to verify JWT `tokenVersion` matches user record
-  - Frontend `logout()` calls API before clearing localStorage
-- [x] S19: Invalidate JWTs on password reset
-  - Added `tokenVersion Int @default(0)` to User model
-  - JWT payload includes `tokenVersion`; `requireAuth` rejects mismatched versions
-  - Password reset (`POST /api/auth/reset-password`) and password change (`PATCH /api/auth/me`) both increment `tokenVersion`
-- [x] S17: Persistent rate limiting — decision: accept in-memory for MVP
-  - In-memory rate limiting is acceptable for single-instance Railway deployment
-  - Limits reset on deploy but deploys are infrequent
-  - Redis can be added later if needed (tracked in backlog)
-- [x] S20: Per-user upload URL rate limiting
-  - `createUploadLimiter()` keyed by `req.user.userId` (30 requests/minute/user)
-  - Applied to `POST /api/options/upload-url` after `requireAuth`
+**Infrastructure done:**
+- [x] Resend API key added to Railway backend env vars (`RESEND_API_KEY`)
+- [x] Resend API key added to server container env (`~/.config/cm/env`)
+- [x] `api.resend.com` added to container firewall allowed domains
+
+**Code changes needed:**
+- [ ] `npm install resend` in backend, `npm uninstall @aws-sdk/client-sesv2`
+- [ ] Rewrite `email-service.ts` — replace SES client with Resend client (`new Resend(process.env.RESEND_API_KEY)`, call `resend.emails.send()`)
+- [ ] Update `.env.example` — add `RESEND_API_KEY`, keep AWS creds (still needed for S3)
+- [ ] Update tests that mock `@aws-sdk/client-sesv2` to mock `resend` instead
+- [ ] Update roadmap infrastructure table status to Running after deploy
+- [x] Verify domain `slugmax.com` in Resend dashboard (DNS records added in Cloudflare, status: verified)
+- [ ] Deploy and test end-to-end email delivery
 
 ---
 
-## Sprint 30: QA & Polish (DONE)
+## Sprint 30: Production Security
+
+**Goal:** Close the 4 medium-priority security gaps from the security audit.
+
+- [ ] S14: Token revocation / logout endpoint
+  - Add `POST /api/auth/logout` endpoint
+  - Options: in-memory deny set or DB-backed token invalidation
+  - Middleware checks deny list before accepting JWT
+- [ ] S19: Invalidate JWTs on password reset
+  - Add `tokenVersion` field to User model
+  - JWT includes tokenVersion; middleware rejects mismatched versions
+  - Pairs with S14 — logout can increment tokenVersion
+- [ ] S17: Persistent rate limiting
+  - Current: in-memory rate limiter resets on restart/deploy
+  - Evaluate if this is a real problem or acceptable for now
+  - Options: accept as-is, add DB-backed store, or add Redis
+- [ ] S20: Per-user upload URL rate limiting
+  - Per-user throttle on `POST /api/options/:id/upload-url`
+  - Prevent abuse of presigned S3 URL generation
+
+---
+
+## Sprint 31: QA & Performance
 
 **Goal:** Fix UI polish issues affecting usability. 949 Tier 1 tests passing (481 frontend + 468 backend).
 
@@ -194,7 +214,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 32: Discussion Media Attachments
+## Sprint 33: Discussion Media Attachments
 
 **Goal:** Allow directors and crew to attach media in option discussion threads.
 
