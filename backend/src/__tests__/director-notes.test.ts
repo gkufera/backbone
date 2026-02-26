@@ -6,7 +6,6 @@ import { signToken } from '../lib/jwt';
 // Mock email service (required by auth router)
 vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn(),
-  sendNotificationEmail: vi.fn(),
 }));
 
 // Mock notification service (required by productions router)

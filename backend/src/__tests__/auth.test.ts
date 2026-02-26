@@ -6,7 +6,6 @@ import { signToken } from '../lib/jwt';
 // Mock email service
 vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
-  sendNotificationEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock SMS service

@@ -29,7 +29,6 @@ vi.mock('../lib/s3', () => ({
 
 vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn(),
-  sendNotificationEmail: vi.fn(),
 }));
 
 vi.mock('../services/sms-service', () => ({

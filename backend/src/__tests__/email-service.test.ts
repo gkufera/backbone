@@ -9,7 +9,7 @@ vi.mock('@aws-sdk/client-sesv2', () => ({
   SendEmailCommand: vi.fn((input: unknown) => ({ input })),
 }));
 
-import { sendEmail, sendNotificationEmail, sendDigestEmail } from '../services/email-service';
+import { sendEmail, sendDigestEmail } from '../services/email-service';
 
 describe('Email Service', () => {
   const originalEnv = process.env;
@@ -59,32 +59,6 @@ describe('Email Service', () => {
     consoleSpy.mockRestore();
   });
 
-  it('formats notification email correctly', async () => {
-    process.env.EMAIL_ENABLED = 'true';
-    process.env.EMAIL_FROM = 'noreply@slugmax.com';
-    mockSend.mockResolvedValue({ MessageId: 'msg-2' });
-
-    await sendNotificationEmail('user@example.com', {
-      type: 'OPTION_APPROVED',
-      message: 'Your option on JOHN was approved',
-    });
-
-    expect(mockSend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        input: expect.objectContaining({
-          Destination: { ToAddresses: ['user@example.com'] },
-          Content: {
-            Simple: {
-              Subject: { Data: expect.stringContaining('Slug Max') },
-              Body: {
-                Html: { Data: expect.stringContaining('Your option on JOHN was approved') },
-              },
-            },
-          },
-        }),
-      }),
-    );
-  });
 });
 
 describe('sendDigestEmail', () => {

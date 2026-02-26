@@ -33,15 +33,6 @@ export async function sendEmail(
   );
 }
 
-export async function sendNotificationEmail(
-  to: string,
-  notification: { type: string; message: string },
-): Promise<void> {
-  const subject = `Slug Max: ${notification.type.replace(/_/g, ' ').toLowerCase()}`;
-  const html = `<p>${notification.message}</p>`;
-  await sendEmail(to, subject, html);
-}
-
 export async function sendDigestEmail(
   to: string,
   productionName: string,
