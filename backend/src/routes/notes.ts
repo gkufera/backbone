@@ -89,7 +89,10 @@ notesRouter.post('/api/elements/:elementId/notes', requireAuth, async (req, res)
         userId: authReq.user.userId,
         elementId,
       },
-      include: { user: { select: { id: true, name: true } } },
+      include: {
+        user: { select: { id: true, name: true } },
+        attachments: { orderBy: { createdAt: 'asc' } },
+      },
     });
 
     // Notify other production members
@@ -145,7 +148,10 @@ notesRouter.get('/api/elements/:elementId/notes', requireAuth, async (req, res) 
     const { take, skip } = parsePagination(req);
     const notes = await prisma.note.findMany({
       where: { elementId },
-      include: { user: { select: { id: true, name: true } } },
+      include: {
+        user: { select: { id: true, name: true } },
+        attachments: { orderBy: { createdAt: 'asc' } },
+      },
       orderBy: { createdAt: 'asc' },
       take,
       skip,
@@ -313,7 +319,10 @@ notesRouter.get('/api/options/:optionId/notes', requireAuth, async (req, res) =>
     const { take, skip } = parsePagination(req);
     const notes = await prisma.note.findMany({
       where: { optionId },
-      include: { user: { select: { id: true, name: true } } },
+      include: {
+        user: { select: { id: true, name: true } },
+        attachments: { orderBy: { createdAt: 'asc' } },
+      },
       orderBy: { createdAt: 'asc' },
       take,
       skip,

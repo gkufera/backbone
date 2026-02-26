@@ -533,6 +533,79 @@ describe('GET /api/options/:optionId/notes', () => {
   });
 });
 
+// ── GET notes includes attachments ───────────────────────────────────
+
+describe('GET /api/options/:optionId/notes includes attachments', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
+  });
+
+  it('returns notes with nested attachments array', async () => {
+    mockOptionWithMembership();
+    mockedPrisma.note.findMany.mockResolvedValue([
+      {
+        id: 'note-1',
+        content: 'Check this',
+        userId: 'user-1',
+        elementId: null,
+        optionId: 'opt-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: { id: 'user-1', name: 'Test User' },
+        attachments: [
+          {
+            id: 'att-1',
+            noteId: 'note-1',
+            s3Key: 'uploads/img.jpg',
+            fileName: 'img.jpg',
+            mediaType: 'IMAGE',
+            createdAt: new Date(),
+          },
+        ],
+      },
+    ] as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-1', department: null },
+    ] as any);
+
+    const res = await request(app)
+      .get('/api/options/opt-1/notes')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.notes[0].attachments).toHaveLength(1);
+    expect(res.body.notes[0].attachments[0].fileName).toBe('img.jpg');
+  });
+
+  it('returns empty attachments array for text-only notes', async () => {
+    mockOptionWithMembership();
+    mockedPrisma.note.findMany.mockResolvedValue([
+      {
+        id: 'note-2',
+        content: 'Text only',
+        userId: 'user-1',
+        elementId: null,
+        optionId: 'opt-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        user: { id: 'user-1', name: 'Test User' },
+        attachments: [],
+      },
+    ] as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([
+      { userId: 'user-1', department: null },
+    ] as any);
+
+    const res = await request(app)
+      .get('/api/options/opt-1/notes')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.notes[0].attachments).toHaveLength(0);
+  });
+});
+
 // ── POST /api/options/:optionId/notes with attachments ──────────────
 
 describe('POST /api/options/:optionId/notes — attachments', () => {
