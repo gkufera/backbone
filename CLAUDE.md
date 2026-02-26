@@ -635,6 +635,7 @@ Badges display workflow state. Always use both `.badge` (base) and a modifier cl
 | Ready for review | `.badge .badge-ready` | Inverted: black bg, white text |
 | Fuzzy match | `.badge .badge-fuzzy` | Diagonal stripe pattern bg |
 | Missing element | `.badge .badge-missing` | Inverted, dashed border |
+| Outstanding review | `.badge .badge-outstanding-review` | Horizontal stripe pattern bg, white text |
 
 If you need a new status, define a new `.badge-*` class in `globals.css` using only `#000`, `#fff`, and CSS patterns (repeating-linear-gradient, repeating-conic-gradient). Never use color.
 

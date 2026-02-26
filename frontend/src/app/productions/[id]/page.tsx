@@ -260,7 +260,7 @@ export default function ProductionDashboard() {
                 <span className="font-mono text-sm">{elementStats.pending}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="badge badge-ready">OUTSTANDING</span>
+                <span className="badge badge-outstanding-review">OUTSTANDING</span>
                 <span className="font-mono text-sm">{elementStats.outstanding}</span>
               </div>
               <div className="flex items-center gap-2">

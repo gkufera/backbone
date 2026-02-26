@@ -742,6 +742,16 @@ describe('Production dashboard', () => {
     expect(screen.getByText('2 of 10 elements approved')).toBeInTheDocument();
   });
 
+  it('OUTSTANDING badge uses badge-outstanding-review class, not badge-ready', async () => {
+    setupMocks();
+
+    render(<ProductionDashboard />);
+
+    const outstandingBadge = await screen.findByText('OUTSTANDING');
+    expect(outstandingBadge).toHaveClass('badge-outstanding-review');
+    expect(outstandingBadge).not.toHaveClass('badge-ready');
+  });
+
   it('shows toast on member add error', async () => {
     const user = userEvent.setup();
     setupMocks();
