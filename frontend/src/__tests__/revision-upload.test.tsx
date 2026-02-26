@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -124,6 +124,68 @@ describe('Revision upload page', () => {
         s3Key: 'scripts/uuid/script-v2.pdf',
       });
     });
+  });
+
+  it('file input accepts .fdx files', async () => {
+    render(<RevisionUploadPage />);
+
+    const fileInput = await screen.findByLabelText(/script file/i);
+    expect(fileInput).toHaveAttribute('accept', '.pdf,.fdx');
+  });
+
+  it('sends application/xml contentType for FDX revision', async () => {
+    const user = userEvent.setup();
+
+    mockedScriptsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'scripts/uuid/script-v2.fdx',
+    });
+
+    mockedScriptsApi.uploadRevision.mockResolvedValue({
+      script: {
+        id: 'script-2',
+        productionId: 'prod-1',
+        title: 'My Script',
+        fileName: 'script-v2.fdx',
+        s3Key: 'scripts/uuid/script-v2.fdx',
+        pageCount: null,
+        status: 'PROCESSING',
+        version: 2,
+        parentScriptId: 'script-1',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<RevisionUploadPage />);
+
+    await screen.findByText(/uploading revision of/i);
+
+    const file = new File(['<FinalDraft/>'], 'script-v2.fdx', { type: 'application/xml' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await user.click(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(mockedScriptsApi.getUploadUrl).toHaveBeenCalledWith(
+        'script-v2.fdx',
+        'application/xml',
+      );
+    });
+  });
+
+  it('shows FDX accuracy tooltip when FDX revision selected', async () => {
+    render(<RevisionUploadPage />);
+
+    await screen.findByText(/uploading revision of/i);
+
+    const file = new File(['<FinalDraft/>'], 'script-v2.fdx', { type: 'application/xml' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    expect(screen.getByText(/significantly more accurate/i)).toBeInTheDocument();
   });
 
   it('shows error on failure', async () => {
