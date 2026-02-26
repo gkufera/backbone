@@ -1,56 +1,37 @@
 # Current Plan
 
-## Completed: Sprint 25 — Exhaustive E2E Tests
+## Next: Sprint 26 — UI Fixes & Polish
 
-**Goal:** Write comprehensive Playwright E2E tests covering every user-facing flow.
+**Goal:** Fix every user-reported UI bug and polish issue. Make the app feel solid for real users.
 
-**Result: 57 E2E tests across 9 spec files. All Tier 1 tests passing (858 total).**
+**Context:** User tested production app at slugmax.com and reported multiple UI bugs and workflow improvements. Email infrastructure now working (switched from nodemailer SMTP to `@aws-sdk/client-sesv2` SES API because Railway blocks port 587). These user-reported issues take priority over the security sprint.
 
-### Phase 0: Test Infrastructure — DONE
-- Created `POST /api/test/seed-production` (NODE_ENV=test guard)
-- Created `frontend/tests/e2e/helpers.ts` with shared utilities
-- Refactored existing auth/productions specs to use helpers
+### Items (11 tasks)
 
-### Phase 1: Auth Flows — DONE (8 tests)
-- signup, login, invalid login, logout, forgot-password, reset-password, verify-email, signup validation
+1. Fix element name invisible on active row (`element-list.tsx`)
+2. Fix element list click to open side panel instead of full page (`element-list.tsx`)
+3. Fix PDF highlight bugs — specificity, substring matching, "element not found" (`pdf-highlights.ts`, `element-detail-panel.tsx`)
+4. Fix OUTSTANDING badge visually distinct from APPROVED (`globals.css`, production dashboard)
+5. Fix productions page spacing — `gap-4`, `max-w-3xl` (`productions/page.tsx`)
+6. Fix footer sticking to bottom of viewport (`layout.tsx`)
+7. Fix sort/filter button active state — consistent borders (`element-list.tsx`)
+8. Change DECIDER tooltip text + fix lowercase "i" button (`permissions-tooltip.tsx`)
+9. Remove title field from invite form, support multi-email invite (`productions/[id]/page.tsx`)
+10. Add default departments: Director, Producer, Production Office (`shared/constants/departments.ts`)
+11. Auto-assign production creator to Production Office department (`backend/routes/productions.ts`)
 
-### Phase 2: Production Management — DONE (8 tests)
-- create production, add member, dashboard sections, production list, create/delete department, change role, assign dept
+### TDD Approach
 
-### Phase 3: Script Workflow — DONE (5 tests)
-- upload page, script viewer with elements, version history, revision upload, element list with types
-
-### Phase 4: Element Management — DONE (5 tests)
-- element detail, department assignment, create element, navigation, Add Option button
-
-### Phase 5: Options & Approvals — DONE (10 tests)
-- option gallery, create link, mark/unmark ready, file upload form, Y/N/M approvals, note, feed
-
-### Phase 6: Notifications — DONE (4 tests)
-- bell count, notifications page, mark as read, empty state
-
-### Phase 7: Settings — DONE (6 tests)
-- sections render, update name, change password, wrong password, mismatch, email toggle
-
-### Phase 8: Responsive Layouts — DONE (10 tests)
-- 5 pages x 2 viewports (mobile 375x667, desktop 1280x720)
-
-### Phase 9: CI Verification — DONE
-- Tier 1 tests: 434 frontend + 424 backend = 858 passing
-- TypeScript compilation: clean (no errors)
-- E2E tests: 57 total, require running backend+DB for Tier 2 execution
-- Roadmap updated
-
-### Sprint 25 QA Review Fixes — DONE
-- Added handler-level NODE_ENV guard in test-seed.ts (defense-in-depth)
-- Added error details in test-seed.ts error responses
-- Replaced `waitForTimeout` with `waitForLoadState` in notifications.spec.ts
-- Added localStorage token assertion in auth.spec.ts logout test
-- Replaced fragile `locator('..')` with `locator('li')` filter in productions.spec.ts
-- Added element name validation assertions in options-and-approvals.spec.ts
-- Strengthened feed test to check actual element names (John, Sarah)
-- Improved seedProduction error messages in helpers.ts
+Each item follows: write failing test → verify failure → implement fix → verify pass → commit.
 
 ---
 
-**Next step:** Sprint 26 — Production Security
+## Previously Completed
+
+### Sprint 25 — Exhaustive E2E Tests (DONE)
+
+**Result: 57 E2E tests across 9 spec files. All Tier 1 tests passing (862 total).**
+
+- Auth flows (8 tests), Production management (8 tests), Script workflow (5 tests)
+- Element management (5 tests), Options & Approvals (10 tests), Notifications (4 tests)
+- Settings (6 tests), Responsive layouts (10 tests), Test seeder endpoint

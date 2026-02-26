@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 434 frontend + 424 backend = 858 unit/integration, 57 E2E
+**Test counts:** 435 frontend + 427 backend = 862 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). SMTP configured in Railway. Production access under review (case #177205820000226). Sandbox sends to verified emails only. |
+| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access under review (case #177205820000226). Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com (pending click). |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
@@ -71,9 +71,86 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 26: Production Security
+## Sprint 26: UI Fixes & Polish ← NEXT
 
-**Goal:** Close the 4 remaining medium-priority security gaps identified in the security audit.
+**Goal:** Fix every user-reported UI bug and polish issue. Make the app feel solid for real users.
+
+- [ ] Fix element name invisible on active row — add explicit `text-white` to Link when `isActive`
+  - `frontend/src/components/element-list.tsx:263`
+- [ ] Fix element list click to open side panel, not full page — use `onElementClick` callback instead of `<Link>` when handler prop is provided
+  - `frontend/src/components/element-list.tsx:261-266`
+- [ ] Fix PDF highlight bugs:
+  - Improve `findTextInLayer()` to match most specific (smallest) span, not first match
+  - Use exact text matching before substring fallback
+  - Handle "element not found" gracefully (show refresh prompt instead of error)
+  - `frontend/src/lib/pdf-highlights.ts:36-53`
+  - `frontend/src/components/element-detail-panel.tsx:69-79`
+- [ ] Fix OUTSTANDING badge to be visually distinct from APPROVED — create hatched/striped pattern badge (different from rejected's diagonal stripes)
+  - `frontend/src/app/globals.css` — new pattern for `.badge-ready` or rename to use distinct class
+  - `frontend/src/app/productions/[id]/page.tsx:263`
+- [ ] Fix productions page spacing — add `gap-4` between heading and button, use `max-w-3xl`
+  - `frontend/src/app/productions/page.tsx:34-35`
+- [ ] Fix footer sticking — prevent full-height pages from pushing footer below viewport
+  - `frontend/src/app/layout.tsx:38-41`
+- [ ] Fix sort/filter button active state — always include `border-2 border-black` on active buttons
+  - `frontend/src/components/element-list.tsx:137-150`
+- [ ] Change DECIDER tooltip: "You make approvals based on options other users present to you." + fix "i" button rendering as uppercase "I" (add `lowercase` class override)
+  - `frontend/src/components/permissions-tooltip.tsx:11, 34`
+- [ ] Remove "Title (optional)" from invite form, support comma/whitespace-separated multi-email invite
+  - `frontend/src/app/productions/[id]/page.tsx:343-362`
+- [ ] Add default departments: "Director", "Producer", "Production Office" with colors
+  - `shared/constants/departments.ts:3-33`
+  - Update test: `backend/src/__tests__/productions.test.ts:108` (expects 13 → 16 departments)
+- [ ] Auto-assign production creator to "Production Office" department
+  - `backend/src/routes/productions.ts:36-65` — after seeding depts, find Production Office dept, update member's departmentId
+
+---
+
+## Sprint 27: Granular Email Notifications
+
+**Goal:** Directors get actionable, non-spammy email notifications with per-type preferences and batched delivery.
+
+- [ ] Add `NotificationPreference` Prisma model
+  - Per-user, per-production preferences
+  - Boolean fields: `optionEmails`, `noteEmails`, `approvalEmails`, `scriptEmails`, `memberEmails` (default all true)
+  - Enum field: `scopeFilter` — `ALL` | `MY_DEPARTMENT` (default ALL)
+  - Migration + generate
+- [ ] Add `OPTION_ADDED` to `NotificationType` enum
+  - Trigger notification to deciders when a new option is created/uploaded (not just when marked ready for review)
+  - `backend/src/routes/options.ts` — create endpoint
+- [ ] Implement 1-minute email batching
+  - Don't send email immediately in `createNotification()`
+  - Add `emailSentAt` nullable field to Notification model
+  - Background interval (every 60s) collects notifications where `emailSentAt IS NULL`, groups by user
+  - Sends one digest email per user: "X new updates on [Production Name]" with bulleted notification list
+  - `backend/src/services/notification-service.ts`
+  - `backend/src/services/email-service.ts` — add `sendDigestEmail()` template
+- [ ] API: `GET /api/productions/:id/notification-preferences` + `PATCH` to update
+- [ ] Settings UI: per-production notification preference checkboxes + scope selector
+  - In production settings or dedicated notification settings section
+- [ ] Deprecate global `emailNotificationsEnabled` — keep as master on/off fallback, but granular preferences take priority when they exist
+
+---
+
+## Sprint 28: Phone Verification in Signup
+
+**Goal:** Make phone verification mandatory during signup, with real SMS delivery.
+
+- [ ] Integrate real SMS provider (Twilio or Amazon SNS) into `sms-service.ts` (currently stubbed)
+- [ ] Set up accounts, add credentials to Railway env vars
+- [ ] Move phone verification from settings to signup flow
+  - After email/password, require phone number entry + SMS code verification
+  - Account not created until phone is verified
+- [ ] Update `POST /api/auth/signup` to accept and require `phone` field
+- [ ] Update frontend signup page with multi-step form (email/password → phone verification)
+- [ ] Production config: `SMS_ENABLED=true` with real credentials
+- [ ] Test full flow end-to-end
+
+---
+
+## Sprint 29: Production Security
+
+**Goal:** Close the 4 medium-priority security gaps from the security audit.
 
 - [ ] S14: Token revocation / logout endpoint
   - Add `POST /api/auth/logout` endpoint
@@ -82,23 +159,23 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [ ] S19: Invalidate JWTs on password reset
   - Add `tokenVersion` field to User model
   - JWT includes tokenVersion; middleware rejects mismatched versions
-  - This pairs with S14 — logout can increment tokenVersion
+  - Pairs with S14 — logout can increment tokenVersion
 - [ ] S17: Persistent rate limiting
   - Current: in-memory rate limiter resets on restart/deploy
-  - Evaluate if this is a real production problem or acceptable for now
+  - Evaluate if this is a real problem or acceptable for now
   - Options: accept as-is, add DB-backed store, or add Redis
 - [ ] S20: Per-user upload URL rate limiting
-  - Add per-user throttle on `POST /api/options/:id/upload-url`
+  - Per-user throttle on `POST /api/options/:id/upload-url`
   - Prevent abuse of presigned S3 URL generation
 
 ---
 
-## Sprint 27: QA & Performance
+## Sprint 30: QA & Performance
 
-**Goal:** Confidence that everything works end-to-end in production.
+**Goal:** Full confidence that everything works end-to-end in production.
 
-- [ ] Make sure no text on the frontend is over a busy background (eg "Please verify your email before logging in" - too hard to read)
-- [ ] Fix all tooltips to conform to the 1-bit Macintosh design system (no rounded corners, no shadows, no grays, no colors — black/white only with sharp corners and 2px borders)
+- [ ] Make sure no text is over a busy background (e.g., "Please verify your email before logging in" — too hard to read)
+- [ ] Fix all tooltips to conform to 1-bit Macintosh design system (no rounded corners, no shadows, no grays — black/white only with sharp corners and 2px borders)
 - [ ] Hide the mobile menu hamburger button when the menu has no items
 - [ ] Custom MAIL FROM domain for full DMARC alignment
 - [ ] Performance audit
@@ -107,41 +184,35 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
   - Optimize any endpoints > 500ms
 - [ ] Full QA pass
   - All Tier 1 tests pass
-  - All Tier 2 E2E tests pass (Playwright on desktop + mobile viewports) - this runs in Github Actions
+  - All Tier 2 E2E tests pass (Playwright on desktop + mobile viewports) in GitHub Actions
 
 ---
 
-## Sprint 28: Lock down production server so that people pay us in order to create a production
+## Sprint 31: Production Gating
 
-- [ ] Make it so that if a user tries to create a production, they have to request to create one and we have to approve it. Once they request a production (make it clear that the prioduction name, studio name, budget, and their name and contact details will be sent to our sales team before they submit), that production is in PENDING stage. An email gets sent to slugmax@kufera.com and carsonmell+slugmax@gmail.com that says we need to approve that production. There is a simple link in the email that, when clicked, approves the production on the backend.
+**Goal:** Lock down production creation so users must request approval.
 
----
-
-## Sprint 29: Discussion Media Attachments
-
-**Goal:** Allow directors and crew to attach media (images, videos, files) in option discussion threads for inspiration and guidance.
-
-- [ ] Add media attachment support to option discussions — users can upload images, reference videos, or other files directly in the discussion thread for an option
-- [ ] DECIDERS can provide visual guidance (mood boards, reference photos, video clips) that crew members see alongside the conversation
-- [ ] Attachments use the existing S3 upload infrastructure (presigned URLs)
+- [ ] When a user tries to create a production, they submit a request (production name, studio name, budget, name, contact details — make clear this goes to sales team)
+- [ ] Production starts in PENDING stage
+- [ ] Email sent to slugmax@kufera.com and carsonmell+slugmax@gmail.com with approval link
+- [ ] Clicking the link approves the production on the backend
 
 ---
 
-## Sprint 30: Phone Verification via SMS
+## Sprint 32: Discussion Media Attachments
 
-**Goal:** Make phone verification actually work by integrating a real SMS provider.
+**Goal:** Allow directors and crew to attach media in option discussion threads.
 
-- [ ] Integrate a real SMS provider (e.g., Twilio or Amazon SNS) into `sms-service.ts` (currently stubbed — logs but doesn't send)
-- [ ] Set up appropriate accounts and add credentials to Railway env vars and `~/.config/cm/env`
-- [ ] Ensure `SMS_ENABLED=true` activates real SMS sending on production
-- [ ] Test full phone verification flow end-to-end: enter phone → receive code → verify
+- [ ] Add media attachment support to option discussions — upload images, reference videos, or files directly in the discussion thread
+- [ ] DECIDERS can provide visual guidance (mood boards, reference photos, video clips) alongside the conversation
+- [ ] Attachments use existing S3 upload infrastructure (presigned URLs)
 
 ---
 
-## Following sprints - once you get here, first investigate these issues and split them into sprints.
+## Following sprints
 
-- [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, and then generate a PDF of that FDX file so that everything works better. Note in the software in a tooltip that this works better, and that the AI that pulls tags is very inaccurate.
-- [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department as well as a director and a production coordinator.
+- [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, then generate a PDF. Note in a tooltip that FDX works better and that AI tag pulling is inaccurate.
+- [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department, a director, and a production coordinator.
 
 ---
 
@@ -151,14 +222,14 @@ Explicitly deferred. Do not work on these during current sprints.
 
 ### Infrastructure
 
-- [ ] CloudFront CDN for S3 media (optimization — not needed until real user load)
+- [ ] CloudFront CDN for S3 media
 - [ ] Redis for session/rate-limit persistence
 - [ ] Per-project subscription billing (Stripe)
 - [ ] Enterprise SSO (SAML)
 
 ### Features
 
-- [ ] feature for the software to compose setting / actor / character options into a visual so you can see how things visually work together (maybe in collage/moodboard form)
+- [ ] Compose setting/actor/character options into collage/moodboard visual
 - [ ] React Native iOS/Android apps with offline sync
 - [ ] Tinder-like swipe interface for mobile approval
 - [ ] Storyboard panel support (visual options with sequential ordering)
