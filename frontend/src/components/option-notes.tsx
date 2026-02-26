@@ -53,11 +53,15 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
             file.type,
           );
 
-          await fetch(uploadUrl, {
+          const uploadResponse = await fetch(uploadUrl, {
             method: 'PUT',
             body: file,
             headers: { 'Content-Type': file.type },
           });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Upload failed for ${file.name} (${uploadResponse.status})`);
+          }
 
           attachmentRefs.push({
             s3Key,

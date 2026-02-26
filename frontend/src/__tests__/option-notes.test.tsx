@@ -7,9 +7,12 @@ vi.mock('../lib/api', () => ({
     listForOption: vi.fn(),
     createForOption: vi.fn(),
   },
+  optionsApi: {
+    getUploadUrl: vi.fn(),
+  },
 }));
 
-import { notesApi } from '../lib/api';
+import { notesApi, optionsApi } from '../lib/api';
 import { OptionNotes } from '../components/option-notes';
 
 const mockNotes = [
@@ -157,5 +160,90 @@ describe('OptionNotes', () => {
 
     const sendButton = screen.getByRole('button', { name: /send/i });
     expect(sendButton).toBeDisabled();
+  });
+
+  it('surfaces error when S3 upload fails', async () => {
+    (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
+      notes: [],
+    });
+    (optionsApi.getUploadUrl as ReturnType<typeof vi.fn>).mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'uploads/test.png',
+      mediaType: 'PHOTO',
+    });
+
+    // S3 returns 500
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 500,
+    } as Response);
+
+    const user = userEvent.setup();
+    render(<OptionNotes optionId="opt-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/add a note/i)).toBeInTheDocument();
+    });
+
+    // Type some content so submit is enabled
+    await user.type(screen.getByPlaceholderText(/add a note/i), 'Note with attachment');
+
+    // Simulate file attachment via the hidden input
+    const file = new File(['test'], 'photo.png', { type: 'image/png' });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, file);
+
+    // Submit
+    await user.click(screen.getByRole('button', { name: /send/i }));
+
+    // Should NOT create the note since S3 upload failed
+    await waitFor(() => {
+      expect(notesApi.createForOption).not.toHaveBeenCalled();
+    });
+
+    fetchSpy.mockRestore();
+  });
+
+  it('creates note with attachment refs after successful S3 upload', async () => {
+    (notesApi.listForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
+      notes: [],
+    });
+    (notesApi.createForOption as ReturnType<typeof vi.fn>).mockResolvedValue({
+      note: { id: 'note-4', content: 'With file', attachments: [] },
+    });
+    (optionsApi.getUploadUrl as ReturnType<typeof vi.fn>).mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'uploads/test.png',
+      mediaType: 'PHOTO',
+    });
+
+    // S3 returns success
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const user = userEvent.setup();
+    render(<OptionNotes optionId="opt-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/add a note/i)).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByPlaceholderText(/add a note/i), 'With file');
+
+    const file = new File(['test'], 'photo.png', { type: 'image/png' });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, file);
+
+    await user.click(screen.getByRole('button', { name: /send/i }));
+
+    await waitFor(() => {
+      expect(notesApi.createForOption).toHaveBeenCalledWith('opt-1', 'With file', [
+        { s3Key: 'uploads/test.png', fileName: 'photo.png', mediaType: 'PHOTO' },
+      ]);
+    });
+
+    fetchSpy.mockRestore();
   });
 });
