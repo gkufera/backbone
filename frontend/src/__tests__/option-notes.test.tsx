@@ -83,7 +83,7 @@ describe('OptionNotes', () => {
     await user.click(screen.getByRole('button', { name: /send/i }));
 
     await waitFor(() => {
-      expect(notesApi.createForOption).toHaveBeenCalledWith('opt-1', 'New note');
+      expect(notesApi.createForOption).toHaveBeenCalledWith('opt-1', 'New note', undefined);
     });
   });
 

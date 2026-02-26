@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { notesApi, type NoteResponse } from '../lib/api';
+import { notesApi, optionsApi, type NoteResponse } from '../lib/api';
+import { mediaTypeFromMime } from '@backbone/shared/constants';
+import { NoteAttachmentDisplay } from './note-attachment-display';
+import { NoteAttachmentUpload } from './note-attachment-upload';
 
 interface OptionNotesProps {
   optionId: string;
@@ -12,6 +15,7 @@ interface OptionNotesProps {
 export function OptionNotes({ optionId, composerName, composerDepartment }: OptionNotesProps) {
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [content, setContent] = useState('');
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,12 +36,40 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!content.trim() || isSubmitting) return;
+    const trimmed = content.trim();
+    if (!trimmed && attachmentFiles.length === 0) return;
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      await notesApi.createForOption(optionId, content.trim());
+      // Upload files to S3 first
+      let attachmentRefs: Array<{ s3Key: string; fileName: string; mediaType: string }> | undefined;
+
+      if (attachmentFiles.length > 0) {
+        attachmentRefs = [];
+        for (const file of attachmentFiles) {
+          const { uploadUrl, s3Key, mediaType } = await optionsApi.getUploadUrl(
+            file.name,
+            file.type,
+          );
+
+          await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type },
+          });
+
+          attachmentRefs.push({
+            s3Key,
+            fileName: file.name,
+            mediaType: mediaType || mediaTypeFromMime(file.type) || 'PDF',
+          });
+        }
+      }
+
+      await notesApi.createForOption(optionId, trimmed, attachmentRefs);
       setContent('');
+      setAttachmentFiles([]);
       await loadNotes();
     } catch {
       // silently fail
@@ -45,6 +77,8 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
       setIsSubmitting(false);
     }
   }
+
+  const canSubmit = content.trim().length > 0 || attachmentFiles.length > 0;
 
   if (isLoading) {
     return <div className="p-3 text-sm font-mono">Loading notes...</div>;
@@ -56,7 +90,7 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
       {notes.length === 0 ? (
         <p className="text-sm">No notes yet.</p>
       ) : (
-        <ul className="divide-y divide-black mb-3 max-h-40 overflow-y-auto">
+        <ul className="divide-y divide-black mb-3 max-h-60 overflow-y-auto">
           {notes.map((note) => (
             <li key={note.id} className="py-2">
               <div className="flex items-baseline justify-between gap-2">
@@ -70,7 +104,19 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
                   {new Date(note.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              <p className="text-sm mt-1">{note.content}</p>
+              {note.content && <p className="text-sm mt-1">{note.content}</p>}
+              {note.attachments && note.attachments.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {note.attachments.map((att) => (
+                    <NoteAttachmentDisplay
+                      key={att.id}
+                      s3Key={att.s3Key}
+                      fileName={att.fileName}
+                      mediaType={att.mediaType}
+                    />
+                  ))}
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -83,22 +129,28 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
         </p>
       )}
 
-      <form noValidate onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Add a note..."
-          className="flex-1 p-2 text-sm"
+      <form noValidate onSubmit={handleSubmit} className="space-y-2">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Add a note..."
+            className="flex-1 p-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={!canSubmit || isSubmitting}
+            className="px-3 py-1 text-sm disabled:opacity-50"
+            aria-label="Send"
+          >
+            {isSubmitting ? '...' : 'SEND'}
+          </button>
+        </div>
+        <NoteAttachmentUpload
+          files={attachmentFiles}
+          onChange={setAttachmentFiles}
         />
-        <button
-          type="submit"
-          disabled={!content.trim() || isSubmitting}
-          className="px-3 py-1 text-sm"
-          aria-label="Send"
-        >
-          SEND
-        </button>
       </form>
     </div>
   );
