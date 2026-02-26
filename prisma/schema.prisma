@@ -197,6 +197,7 @@ model ProductionMember {
   department   Department? @relation(fields: [departmentId], references: [id])
 
   @@unique([productionId, userId])
+  @@index([productionId, deletedAt])
   @@map("production_members")
 }
 
@@ -226,6 +227,7 @@ model Script {
   revisionMatches RevisionMatch[]
   directorNotes   DirectorNote[]
 
+  @@index([productionId, status])
   @@map("scripts")
 }
 
@@ -250,6 +252,7 @@ model Element {
   notes           Note[]
   revisionMatches RevisionMatch[]
 
+  @@index([scriptId, deletedAt])
   @@map("elements")
 }
 
@@ -271,6 +274,7 @@ model Option {
   notes           Note[]
   assets          OptionAsset[]
 
+  @@index([elementId])
   @@map("options")
 }
 
@@ -319,6 +323,7 @@ model Department {
   elements     Element[]
 
   @@unique([productionId, name])
+  @@index([productionId, deletedAt])
   @@map("departments")
 }
 
@@ -365,6 +370,7 @@ model Note {
   option       Option?  @relation(fields: [optionId], references: [id])
   attachments  NoteAttachment[]
 
+  @@index([optionId])
   @@map("notes")
 }
 
