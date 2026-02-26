@@ -25,6 +25,7 @@
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
+    "fast-xml-parser": "^5.4.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "pdf-parse": "^2.4.5",
