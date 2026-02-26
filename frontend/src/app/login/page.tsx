@@ -38,13 +38,18 @@ export default function LoginPage() {
     }
   }
 
+  const [resending, setResending] = useState(false);
+
   async function handleResend() {
     setResendMessage('');
+    setResending(true);
     try {
       await authApi.resendVerification(email);
       setResendMessage('Verification email sent! Check your inbox.');
     } catch {
       setResendMessage('Failed to resend. Please try again.');
+    } finally {
+      setResending(false);
     }
   }
 
@@ -66,9 +71,10 @@ export default function LoginPage() {
                 <div className="mt-2">
                   <button
                     onClick={handleResend}
-                    className="text-sm underline"
+                    disabled={resending}
+                    className="text-sm underline disabled:opacity-50"
                   >
-                    Resend verification email
+                    {resending ? 'Sending...' : 'Resend verification email'}
                   </button>
                   {resendMessage && (
                     <p className="mt-1 text-sm font-mono">{resendMessage}</p>
