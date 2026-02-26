@@ -500,6 +500,42 @@ describe('POST /api/auth/reset-password', () => {
     expect(res.body.message).toMatch(/password.*reset/i);
   });
 
+  it('increments user tokenVersion on password reset', async () => {
+    const mockToken = {
+      id: 'token-1',
+      userId: 'user-1',
+      token: 'valid-reset-token',
+      expiresAt: new Date(Date.now() + 3600000),
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    mockedPrisma.passwordResetToken.findFirst.mockResolvedValue(mockToken as any);
+
+    // Use interactive transaction to inspect the user update call
+    mockedPrisma.$transaction.mockImplementation(async (queries: unknown) => {
+      if (Array.isArray(queries)) {
+        return queries;
+      }
+      return [];
+    });
+
+    await request(app).post('/api/auth/reset-password').send({
+      token: 'valid-reset-token',
+      newPassword: 'newpassword123',
+    });
+
+    // Verify user.update was called with tokenVersion increment
+    expect(mockedPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'user-1' },
+        data: expect.objectContaining({
+          tokenVersion: { increment: 1 },
+        }),
+      }),
+    );
+  });
+
   it('returns 400 for expired token', async () => {
     const mockToken = {
       id: 'token-1',
@@ -879,6 +915,14 @@ describe('PATCH /api/auth/me', () => {
 
     expect(res.status).toBe(200);
     expect(mockedPrisma.user.update).toHaveBeenCalled();
+    // Verify tokenVersion increment was included in the update
+    expect(mockedPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          tokenVersion: { increment: 1 },
+        }),
+      }),
+    );
   });
 
   it('returns 401 for wrong current password', async () => {

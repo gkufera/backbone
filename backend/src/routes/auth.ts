@@ -195,7 +195,12 @@ authRouter.patch('/api/auth/me', requireAuth, async (req, res) => {
       return;
     }
 
-    const updateData: { name?: string; passwordHash?: string; emailNotificationsEnabled?: boolean } = {};
+    const updateData: {
+      name?: string;
+      passwordHash?: string;
+      emailNotificationsEnabled?: boolean;
+      tokenVersion?: { increment: number };
+    } = {};
 
     if (emailNotificationsEnabled !== undefined) {
       updateData.emailNotificationsEnabled = Boolean(emailNotificationsEnabled);
@@ -230,6 +235,7 @@ authRouter.patch('/api/auth/me', requireAuth, async (req, res) => {
       }
 
       updateData.passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+      updateData.tokenVersion = { increment: 1 };
     }
 
     const updatedUser = await prisma.user.update({
@@ -437,7 +443,7 @@ authRouter.post('/api/auth/reset-password', async (req, res) => {
       }),
       prisma.user.update({
         where: { id: resetToken.userId },
-        data: { passwordHash },
+        data: { passwordHash, tokenVersion: { increment: 1 } },
       }),
     ]);
 
