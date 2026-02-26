@@ -8,15 +8,15 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Infrastructure Status
 
-| Service            | Status         | Notes                                                                             |
-| ------------------ | -------------- | --------------------------------------------------------------------------------- |
-| Railway (frontend) | Running        | slugmax.com                                                                       |
-| Railway (backend)  | Running        | api.slugmax.com                                                                   |
-| PostgreSQL         | Running        | Railway-managed                                                                   |
-| AWS S3             | Running        | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox        | Domain verified (DKIM SUCCESS). Production access pending (case #177205820000226) |
-| Cloudflare DNS     | Configured     | Frontend, API, DKIM, SPF, DMARC records all set                                   |
-| GitHub CI/CD       | All green      | Tier 1 + E2E passing (Sprint 24)                                                 |
+| Service            | Status     | Notes                                                                             |
+| ------------------ | ---------- | --------------------------------------------------------------------------------- |
+| Railway (frontend) | Running    | slugmax.com                                                                       |
+| Railway (backend)  | Running    | api.slugmax.com                                                                   |
+| PostgreSQL         | Running    | Railway-managed                                                                   |
+| AWS S3             | Running    | slugmax-uploads bucket                                                            |
+| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Production access pending (case #177205820000226) |
+| Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
+| GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
 ---
 
@@ -155,6 +155,7 @@ Explicitly deferred. Do not work on these during current sprints.
 
 ### Features
 
+- [ ] feature for the software to compose setting / actor / character options into a visual so you can see how things visually work together (maybe in collage/moodboard form)
 - [ ] React Native iOS/Android apps with offline sync
 - [ ] Tinder-like swipe interface for mobile approval
 - [ ] Storyboard panel support (visual options with sequential ordering)
