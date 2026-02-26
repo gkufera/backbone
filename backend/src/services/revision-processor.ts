@@ -1,7 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { getFileBuffer } from '../lib/s3';
-import { parsePdf } from './pdf-parser';
-import { detectElements } from './element-detector';
+import { parseAndDetect } from './script-processor';
 import { matchElements } from './element-matcher';
 import { ElementType, ElementStatus, ElementSource, RevisionMatchStatus, ScriptStatus } from '@backbone/shared/types';
 
@@ -11,12 +10,10 @@ export async function processRevision(
   s3Key: string,
 ): Promise<void> {
   try {
-    // Step 1: Fetch PDF from S3 and parse (returns per-page data)
+    // Step 1: Fetch file from S3 and parse (format-aware)
     const buffer = await getFileBuffer(s3Key);
-    const { pages, pageCount } = await parsePdf(buffer);
-
-    // Step 2: Detect elements from new script (per-page)
-    const { elements: detectedElements } = detectElements(pages);
+    const { result, pageCount } = await parseAndDetect(buffer, s3Key, newScriptId);
+    const { elements: detectedElements } = result;
 
     // Step 3: Load existing elements from parent script
     const existingElements = await prisma.element.findMany({

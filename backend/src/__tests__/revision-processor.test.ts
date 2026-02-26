@@ -20,20 +20,42 @@ vi.mock('../lib/prisma', () => ({
 
 vi.mock('../lib/s3', () => ({
   getFileBuffer: vi.fn(),
+  putFileBuffer: vi.fn(),
 }));
 
 vi.mock('../services/pdf-parser', () => ({
   parsePdf: vi.fn(),
 }));
 
+vi.mock('../services/fdx-parser', () => ({
+  parseFdx: vi.fn(),
+}));
+
+vi.mock('../services/fdx-element-detector', () => ({
+  detectFdxElements: vi.fn(),
+}));
+
+vi.mock('../services/screenplay-pdf-generator', () => ({
+  generateScreenplayPdf: vi.fn(),
+}));
+
+vi.mock('../services/processing-progress', () => ({
+  setProgress: vi.fn(),
+  clearProgress: vi.fn(),
+}));
+
 import { prisma } from '../lib/prisma';
 import { getFileBuffer } from '../lib/s3';
 import { parsePdf } from '../services/pdf-parser';
+import { parseFdx } from '../services/fdx-parser';
+import { detectFdxElements } from '../services/fdx-element-detector';
 import { processRevision } from '../services/revision-processor';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGetFileBuffer = vi.mocked(getFileBuffer);
 const mockedParsePdf = vi.mocked(parsePdf);
+const mockedParseFdx = vi.mocked(parseFdx);
+const mockedDetectFdxElements = vi.mocked(detectFdxElements);
 
 describe('Revision Processor', () => {
   beforeEach(() => {
@@ -350,6 +372,94 @@ describe('Revision Processor', () => {
       expect.objectContaining({
         where: { id: 'elem-manual' },
         data: expect.objectContaining({ scriptId: 'new-script' }),
+      }),
+    );
+  });
+
+  it('processes FDX revision correctly using FDX parser', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Character', text: 'JOHN', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'INT. OFFICE - DAY', type: 'LOCATION' as any, highlightPage: 1, highlightText: 'INT. OFFICE - DAY', suggestedDepartment: 'Locations' },
+        { name: 'JOHN', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JOHN', suggestedDepartment: 'Cast' },
+      ],
+      sceneData: [{ sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] }],
+    });
+
+    // Existing elements match exactly
+    mockedPrisma.element.findMany.mockResolvedValue([
+      { id: 'elem-1', name: 'JOHN', type: 'CHARACTER', status: 'ACTIVE', source: 'AUTO', highlightPage: 1, highlightText: 'JOHN', scriptId: 'parent-script', createdAt: new Date(), updatedAt: new Date() },
+      { id: 'elem-2', name: 'INT. OFFICE - DAY', type: 'LOCATION', status: 'ACTIVE', source: 'AUTO', highlightPage: 1, highlightText: 'INT. OFFICE - DAY', scriptId: 'parent-script', createdAt: new Date(), updatedAt: new Date() },
+    ] as any);
+
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.fdx');
+
+    // Should use FDX parser, not PDF parser
+    expect(mockedParseFdx).toHaveBeenCalled();
+    expect(mockedParsePdf).not.toHaveBeenCalled();
+
+    // Elements should be migrated
+    expect(mockedPrisma.element.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'elem-1' },
+        data: expect.objectContaining({ scriptId: 'new-script' }),
+      }),
+    );
+
+    // Script should be READY (all exact matches)
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'new-script' },
+        data: expect.objectContaining({ status: 'READY' }),
+      }),
+    );
+  });
+
+  it('FDX revision element matching works with detected elements', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Character', text: 'JANE', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'JANE', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JANE', suggestedDepartment: 'Cast' },
+      ],
+      sceneData: [],
+    });
+
+    // No existing elements → all NEW
+    mockedPrisma.element.findMany.mockResolvedValue([]);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.fdx');
+
+    // New elements should be created
+    expect(mockedPrisma.element.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.arrayContaining([
+          expect.objectContaining({ scriptId: 'new-script', name: 'JANE' }),
+        ]),
+      }),
+    );
+
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'new-script' },
+        data: expect.objectContaining({ status: 'READY' }),
       }),
     );
   });
