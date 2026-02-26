@@ -89,9 +89,11 @@ describe('POST /api/productions', () => {
         },
         productionMember: {
           create: vi.fn().mockResolvedValue(mockMember),
+          update: vi.fn().mockResolvedValue(mockMember),
         },
         department: {
           create: mockDepartmentCreate,
+          findFirst: vi.fn().mockResolvedValue({ id: 'dept-po', name: 'Production Office', productionId: 'prod-1' }),
         },
       });
     });
@@ -106,6 +108,74 @@ describe('POST /api/productions', () => {
     expect(res.body.member.role).toBe('ADMIN');
     // Verify default departments were seeded (16 default departments)
     expect(mockDepartmentCreate).toHaveBeenCalledTimes(16);
+  });
+
+  it('auto-assigns production creator to Production Office department', async () => {
+    const mockProduction = {
+      id: 'prod-1',
+      title: 'My Film',
+      description: null,
+      createdById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockMember = {
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockDeptCreate = vi.fn().mockResolvedValue({
+      id: 'dept-new',
+      name: 'placeholder',
+      productionId: 'prod-1',
+    });
+
+    const mockDeptFindFirst = vi.fn().mockResolvedValue({
+      id: 'dept-prod-office',
+      name: 'Production Office',
+      productionId: 'prod-1',
+    });
+
+    const mockMemberUpdate = vi.fn().mockResolvedValue(mockMember);
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        production: {
+          create: vi.fn().mockResolvedValue(mockProduction),
+        },
+        productionMember: {
+          create: vi.fn().mockResolvedValue(mockMember),
+          update: mockMemberUpdate,
+        },
+        department: {
+          create: mockDeptCreate,
+          findFirst: mockDeptFindFirst,
+        },
+      });
+    });
+
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({ title: 'My Film' });
+
+    expect(res.status).toBe(201);
+
+    // Verify Production Office was looked up
+    expect(mockDeptFindFirst).toHaveBeenCalledWith({
+      where: { productionId: 'prod-1', name: 'Production Office' },
+    });
+
+    // Verify member was updated with Production Office department
+    expect(mockMemberUpdate).toHaveBeenCalledWith({
+      where: { id: 'member-1' },
+      data: { departmentId: 'dept-prod-office' },
+    });
   });
 
   it('returns 201 with production including description', async () => {
@@ -134,9 +204,11 @@ describe('POST /api/productions', () => {
         },
         productionMember: {
           create: vi.fn().mockResolvedValue(mockMember),
+          update: vi.fn().mockResolvedValue(mockMember),
         },
         department: {
           create: vi.fn(),
+          findFirst: vi.fn().mockResolvedValue({ id: 'dept-po', name: 'Production Office', productionId: 'prod-1' }),
         },
       });
     });

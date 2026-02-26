@@ -61,6 +61,17 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
         });
       }
 
+      // Auto-assign creator to Production Office department
+      const prodOfficeDept = await tx.department.findFirst({
+        where: { productionId: production.id, name: 'Production Office' },
+      });
+      if (prodOfficeDept) {
+        await tx.productionMember.update({
+          where: { id: member.id },
+          data: { departmentId: prodOfficeDept.id },
+        });
+      }
+
       return { production, member };
     });
 
