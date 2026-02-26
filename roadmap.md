@@ -89,7 +89,21 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 27: Granular Email Notifications
+## Sprint 27: Fix Email Verification (URGENT)
+
+**Goal:** Diagnose and fix email verification delivery failure. User carsonmell@gmail.com clicked "resend verification email", got "verification email sent" confirmation, but never received the email (checked spam).
+
+- [ ] Check Railway backend logs for SES send errors around the time of the failed delivery
+- [ ] Verify SES sandbox status — carsonmell@gmail.com may need to be verified as a recipient (SES sandbox restricts to verified addresses only)
+  - Current sandbox-verified addresses: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com (was "pending click" per infra status)
+  - If carsonmell@gmail.com verification never completed, SES will silently reject sends to that address
+- [ ] Fix the root cause (likely: SES sandbox + unverified recipient, or SES production access still pending)
+- [ ] Add error logging/response when SES send fails so users aren't told "sent" when it wasn't
+- [ ] Test end-to-end email delivery for carsonmell@gmail.com
+
+---
+
+## Sprint 28: Granular Email Notifications
 
 **Goal:** Directors get actionable, non-spammy email notifications with per-type preferences and batched delivery.
 
@@ -112,22 +126,6 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [ ] Settings UI: per-production notification preference checkboxes + scope selector
   - In production settings or dedicated notification settings section
 - [ ] Deprecate global `emailNotificationsEnabled` — keep as master on/off fallback, but granular preferences take priority when they exist
-
----
-
-## Sprint 28: Phone Verification in Signup
-
-**Goal:** Make phone verification mandatory during signup, with real SMS delivery.
-
-- [ ] Integrate real SMS provider (Twilio or Amazon SNS) into `sms-service.ts` (currently stubbed)
-- [ ] Set up accounts, add credentials to Railway env vars
-- [ ] Move phone verification from settings to signup flow
-  - After email/password, require phone number entry + SMS code verification
-  - Account not created until phone is verified
-- [ ] Update `POST /api/auth/signup` to accept and require `phone` field
-- [ ] Update frontend signup page with multi-step form (email/password → phone verification)
-- [ ] Production config: `SMS_ENABLED=true` with real credentials
-- [ ] Test full flow end-to-end
 
 ---
 
@@ -195,6 +193,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 ## Following sprints
 
 - [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, then generate a PDF. Note in a tooltip that FDX works better and that AI tag pulling is inaccurate.
+- [ ] Phone Verification in Signup — Make phone verification mandatory during signup, with real SMS delivery (Twilio or Amazon SNS). Move phone verification from settings to signup flow. Multi-step form: email/password → phone verification.
 - [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department, a director, and a production coordinator.
 
 ---
