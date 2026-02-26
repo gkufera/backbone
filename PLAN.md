@@ -1,16 +1,15 @@
 # Current Plan
 
-## Sprint 29 (roadmap) — Switch Email from SES to Resend (COMPLETE)
+## Sprint 29 QA Check — SES → Resend Migration (COMPLETE)
 
-**Goal:** Replace AWS SES with Resend for all transactional email. SES production access was denied.
+**Goal:** Fix critical bug and missing test coverage found in Sprint 29 QA review.
 
-- [x] Install `resend`, uninstall `@aws-sdk/client-sesv2`
-- [x] Rewrite `email-service.test.ts` — mock Resend instead of SES (TDD red)
-- [x] Rewrite `email-service.ts` — Resend client replaces SES client (TDD green)
-- [x] Change from address to `no-reply@slugmax.com` globally
-- [x] Update `.env.example` and `CLAUDE.md` with `RESEND_API_KEY`
-- [x] All 987 Tier 1 tests passing (496 frontend + 491 backend)
-- [x] Deploy to production and verify email delivery
+- [x] C1: Fix sendEmail to check Resend `{ data, error }` return value (TDD — 2 new tests)
+- [x] H1: Add sendProductionApprovalEmail tests (4 new tests)
+- [x] H2: Add sendProductionApprovedEmail tests (4 new tests)
+- [x] L1+L2+L3: Clean up stale SES references in tests and CI
+- [x] All 997 Tier 1 tests passing (496 frontend + 501 backend)
+- [x] Deploy to production
 
 ---
 

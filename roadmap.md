@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 496 frontend + 491 backend = 987 unit/integration, 57 E2E
+**Test counts:** 496 frontend + 501 backend = 997 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -148,6 +148,13 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Verify domain `slugmax.com` in Resend dashboard (DNS records added in Cloudflare, status: verified)
 - [x] Change from address to `no-reply@slugmax.com` globally
 - [x] Deploy and test end-to-end email delivery
+
+**QA Check (10 new tests, 4 fixes):**
+- [x] C1: Fixed sendEmail to check Resend `{ data, error }` return value — errors were silently swallowed (2 new tests)
+- [x] H1: Added sendProductionApprovalEmail unit tests — subject, HTML escaping, budget fallback, approveUrl (4 new tests)
+- [x] H2: Added sendProductionApprovedEmail unit tests — subject, HTML escaping, FRONTEND_URL fallback (4 new tests)
+- [x] L1+L2+L3: Cleaned up stale SES references in tests and CI
+- [x] 496 frontend + 501 backend = 997 total tests passing
 
 ---
 
