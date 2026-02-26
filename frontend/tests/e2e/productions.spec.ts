@@ -77,7 +77,7 @@ test.describe('Production flow', () => {
     // Add team member by email
     const emailInput = page.getByPlaceholder(/email/i);
     await emailInput.fill(memberEmail);
-    await page.getByRole('button', { name: /add/i }).click();
+    await page.getByRole('button', { name: 'Add Member' }).click();
 
     // Should see the new member in the list
     await expect(page.getByText(memberEmail)).toBeVisible({ timeout: 5000 });
