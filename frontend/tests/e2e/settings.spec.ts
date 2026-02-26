@@ -11,10 +11,9 @@ test.describe('Settings', () => {
       timeout: 10000,
     });
 
-    // Verify key sections exist
+    // Verify key sections exist (phone section removed in Sprint 32)
     await expect(page.getByText(/profile/i).first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/notifications/i).first()).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(/phone/i).first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/change password/i).first()).toBeVisible({ timeout: 5000 });
   });
 

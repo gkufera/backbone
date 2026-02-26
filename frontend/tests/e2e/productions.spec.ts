@@ -15,6 +15,16 @@ test.describe('Production flow', () => {
     await page.goto('/productions/new');
     await page.getByLabel(/production title/i).fill('My Test Production');
     await page.getByLabel(/studio name/i).fill('Test Studio');
+    // contactName and contactEmail may be pre-filled from auth context,
+    // but fill them explicitly to avoid race conditions
+    const contactNameInput = page.getByLabel(/your name/i);
+    if (await contactNameInput.inputValue() === '') {
+      await contactNameInput.fill('E2E Test User');
+    }
+    const contactEmailInput = page.getByLabel(/contact email/i);
+    if (await contactEmailInput.inputValue() === '') {
+      await contactEmailInput.fill('test@example.com');
+    }
     await page.getByRole('button', { name: /submit request/i }).click();
 
     // After submission, shows success message (no redirect — production is PENDING)
