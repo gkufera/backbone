@@ -33,6 +33,7 @@ vi.mock('../lib/api', () => ({
 }));
 
 import { productionsApi } from '../lib/api';
+import { STUDIO_NAME_MAX_LENGTH, CONTACT_NAME_MAX_LENGTH } from '@backbone/shared/constants/production';
 import NewProductionPage from '../app/productions/new/page';
 
 const mockedApi = vi.mocked(productionsApi);
@@ -140,6 +141,18 @@ describe('New Production page (request form)', () => {
     await user.click(screen.getByRole('button', { name: /submit request/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/title is required/i);
+  });
+
+  it('studioName input has maxLength from shared constants', () => {
+    render(<NewProductionPage />);
+    const input = screen.getByLabelText(/studio name/i);
+    expect(input).toHaveAttribute('maxLength', String(STUDIO_NAME_MAX_LENGTH));
+  });
+
+  it('contactName input has maxLength from shared constants', () => {
+    render(<NewProductionPage />);
+    const input = screen.getByLabelText(/your name/i);
+    expect(input).toHaveAttribute('maxLength', String(CONTACT_NAME_MAX_LENGTH));
   });
 
   it('validates required fields client-side', async () => {

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { productionsApi } from '../../../lib/api';
 import { useAuth } from '../../../lib/auth-context';
+import { STUDIO_NAME_MAX_LENGTH, CONTACT_NAME_MAX_LENGTH } from '@backbone/shared/constants/production';
 
 export default function NewProductionPage() {
   const { user } = useAuth();
@@ -92,6 +93,7 @@ export default function NewProductionPage() {
             value={studioName}
             onChange={(e) => setStudioName(e.target.value)}
             className="mt-1 w-full border-2 border-black p-2"
+            maxLength={STUDIO_NAME_MAX_LENGTH}
             required
           />
         </div>
@@ -119,6 +121,7 @@ export default function NewProductionPage() {
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
             className="mt-1 w-full border-2 border-black p-2"
+            maxLength={CONTACT_NAME_MAX_LENGTH}
             required
           />
         </div>
