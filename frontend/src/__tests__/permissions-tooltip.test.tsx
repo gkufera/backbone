@@ -19,13 +19,15 @@ describe('PermissionsTooltip', () => {
     expect(screen.getByText(/tentative/i)).toBeInTheDocument();
   });
 
-  it('shows tooltip content for DECIDER on click', async () => {
+  it('shows tooltip content for DECIDER with updated text', async () => {
     const user = userEvent.setup();
     render(<PermissionsTooltip role="DECIDER" />);
 
     await user.click(screen.getByRole('button', { name: /permissions info/i }));
 
-    expect(screen.getByText(/official/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/You make approvals based on options other users present to you/i),
+    ).toBeInTheDocument();
   });
 
   it('shows tooltip content for ADMIN on click', async () => {
@@ -63,6 +65,13 @@ describe('PermissionsTooltip', () => {
     const btn = screen.getByRole('button', { name: /permissions info/i });
     expect(btn).toHaveClass('border-black');
     expect(btn).toHaveClass('text-black');
+  });
+
+  it('info button has normal-case class to prevent uppercase rendering', () => {
+    render(<PermissionsTooltip role="MEMBER" />);
+
+    const btn = screen.getByRole('button', { name: /permissions info/i });
+    expect(btn).toHaveClass('normal-case');
   });
 
   it('tooltip popup text includes role name prefix', async () => {

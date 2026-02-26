@@ -8,7 +8,7 @@ interface PermissionsTooltipProps {
 }
 
 const roleDescriptions: Record<string, string> = {
-  DECIDER: 'Your approvals are official and final.',
+  DECIDER: 'You make approvals based on options other users present to you.',
   ADMIN:
     'Your approvals are tentative. A Decider must confirm them to make them official.',
   MEMBER:
@@ -19,8 +19,8 @@ export function PermissionsTooltip({ role, inverted }: PermissionsTooltipProps) 
   const [open, setOpen] = useState(false);
 
   const buttonClasses = inverted
-    ? 'ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-white text-xs text-white hover:bg-white hover:text-black'
-    : 'ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-black text-xs text-black hover:bg-black hover:text-white';
+    ? 'ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-white text-xs text-white hover:bg-white hover:text-black normal-case'
+    : 'ml-1 inline-flex h-5 w-5 items-center justify-center border-2 border-black text-xs text-black hover:bg-black hover:text-white normal-case';
 
   const description = roleDescriptions[role] || roleDescriptions.MEMBER;
 
