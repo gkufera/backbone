@@ -164,12 +164,12 @@ describe('Production dashboard', () => {
     expect(costumeElements.length).toBeGreaterThan(0);
   });
 
-  it('renders "Add Member" form with title field', async () => {
+  it('renders "Add Member" form without title field', async () => {
     setupMocks();
     render(<ProductionDashboard />);
 
     expect(await screen.findByPlaceholderText(/email/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/title/i)).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/title/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add member/i })).toBeInTheDocument();
   });
 
@@ -205,7 +205,7 @@ describe('Production dashboard', () => {
     expect(await screen.findByText(/failed to load production/i)).toBeInTheDocument();
   });
 
-  it('calls addMember API with title when form is submitted', async () => {
+  it('calls addMember API when form is submitted', async () => {
     const user = userEvent.setup();
     const updatedProduction = {
       ...mockProduction,
@@ -216,7 +216,7 @@ describe('Production dashboard', () => {
           productionId: 'prod-1',
           userId: 'user-2',
           role: 'MEMBER',
-          title: 'Costume Designer',
+          title: null,
           user: { id: 'user-2', name: 'New Person', email: 'new@example.com' },
           department: null,
         },
@@ -230,7 +230,6 @@ describe('Production dashboard', () => {
         productionId: 'prod-1',
         userId: 'user-2',
         role: 'MEMBER',
-        title: 'Costume Designer',
       },
     });
     mockedProductionsApi.get.mockResolvedValueOnce({ production: mockProduction });
@@ -241,16 +240,39 @@ describe('Production dashboard', () => {
     await screen.findByText('Film One');
 
     const emailInput = screen.getByPlaceholderText(/email/i);
-    const titleInput = screen.getByPlaceholderText(/title/i);
     await user.type(emailInput, 'new@example.com');
-    await user.type(titleInput, 'Costume Designer');
     await user.click(screen.getByRole('button', { name: /add member/i }));
 
     expect(mockedProductionsApi.addMember).toHaveBeenCalledWith(
       'prod-1',
       'new@example.com',
-      'Costume Designer',
+      undefined,
     );
+  });
+
+  it('supports comma-separated multi-email invite', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    mockedProductionsApi.addMember.mockResolvedValue({
+      member: {
+        id: 'member-new',
+        productionId: 'prod-1',
+        userId: 'user-new',
+        role: 'MEMBER',
+      },
+    });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Film One');
+
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    await user.type(emailInput, 'a@b.com, c@d.com');
+    await user.click(screen.getByRole('button', { name: /add member/i }));
+
+    expect(mockedProductionsApi.addMember).toHaveBeenCalledTimes(2);
+    expect(mockedProductionsApi.addMember).toHaveBeenCalledWith('prod-1', 'a@b.com', undefined);
+    expect(mockedProductionsApi.addMember).toHaveBeenCalledWith('prod-1', 'c@d.com', undefined);
   });
 
   it('shows error when addMember fails', async () => {

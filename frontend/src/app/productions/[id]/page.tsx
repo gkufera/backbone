@@ -24,7 +24,6 @@ export default function ProductionDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [memberEmail, setMemberEmail] = useState('');
-  const [memberTitle, setMemberTitle] = useState('');
   const [newDeptName, setNewDeptName] = useState('');
   const [feedPendingCount, setFeedPendingCount] = useState<number>(0);
   const [elementStats, setElementStats] = useState<{
@@ -57,10 +56,18 @@ export default function ProductionDashboard() {
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
 
+    const emails = memberEmail
+      .split(/[,;\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (emails.length === 0) return;
+
     try {
-      await productionsApi.addMember(id, memberEmail, memberTitle || undefined);
+      for (const email of emails) {
+        await productionsApi.addMember(id, email, undefined);
+      }
       setMemberEmail('');
-      setMemberTitle('');
       const data = await productionsApi.get(id);
       setProduction(data.production);
     } catch (err) {
@@ -342,19 +349,12 @@ export default function ProductionDashboard() {
 
           <form onSubmit={handleAddMember} className="flex gap-2">
             <input
-              type="email"
-              placeholder="Enter email to invite"
+              type="text"
+              placeholder="Enter emails (comma-separated)"
               value={memberEmail}
               onChange={(e) => setMemberEmail(e.target.value)}
               className="flex-1 border-2 border-black p-2"
               required
-            />
-            <input
-              type="text"
-              placeholder="Title (optional)"
-              value={memberTitle}
-              onChange={(e) => setMemberTitle(e.target.value)}
-              className="w-40 border-2 border-black p-2"
             />
             <button type="submit" className="mac-btn-primary">
               Add Member
