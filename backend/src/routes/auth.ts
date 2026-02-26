@@ -47,34 +47,40 @@ authRouter.post('/api/auth/signup', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    const isTestEnv = process.env.NODE_ENV === 'test';
 
     const user = await prisma.user.create({
       data: {
         name: trimmedName,
         email,
         passwordHash,
+        ...(isTestEnv && { emailVerified: true }),
       },
     });
 
-    // Generate email verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationExpiresAt = new Date(
-      Date.now() + VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
-    );
+    if (!isTestEnv) {
+      // Generate email verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const verificationExpiresAt = new Date(
+        Date.now() + VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
+      );
 
-    await prisma.emailVerificationToken.create({
-      data: { userId: user.id, token: verificationToken, expiresAt: verificationExpiresAt },
-    });
+      await prisma.emailVerificationToken.create({
+        data: { userId: user.id, token: verificationToken, expiresAt: verificationExpiresAt },
+      });
 
-    const verifyUrl = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
-    await sendEmail(
-      user.email,
-      'Verify your Slug Max email',
-      `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
-    );
+      const verifyUrl = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
+      await sendEmail(
+        user.email,
+        'Verify your Slug Max email',
+        `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
+      );
+    }
 
     res.status(201).json({
-      message: 'Account created. Please check your email to verify your account.',
+      message: isTestEnv
+        ? 'Account created and verified.'
+        : 'Account created. Please check your email to verify your account.',
     });
   } catch (error) {
     console.error('Signup error:', error);

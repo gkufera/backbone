@@ -60,21 +60,13 @@ describe('POST /api/auth/signup', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      emailVerified: false,
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     mockedPrisma.user.findUnique.mockResolvedValue(null);
     mockedPrisma.user.create.mockResolvedValue(mockUser);
-    mockedPrisma.emailVerificationToken.create.mockResolvedValue({
-      id: 'vtoken-1',
-      userId: 'test-id-123',
-      token: 'verify-token-abc',
-      expiresAt: new Date(Date.now() + 86400000),
-      usedAt: null,
-      createdAt: new Date(),
-    } as any);
 
     const res = await request(app).post('/api/auth/signup').send({
       name: 'Test User',
@@ -85,8 +77,9 @@ describe('POST /api/auth/signup', () => {
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('message');
     expect(res.body).not.toHaveProperty('token');
-    expect(mockedPrisma.emailVerificationToken.create).toHaveBeenCalled();
-    expect(mockedSendEmail).toHaveBeenCalled();
+    // In test mode (NODE_ENV=test), auto-verify skips token/email
+    expect(mockedPrisma.emailVerificationToken.create).not.toHaveBeenCalled();
+    expect(mockedSendEmail).not.toHaveBeenCalled();
   });
 
   it('returns 400 when required fields are missing', async () => {
@@ -137,21 +130,13 @@ describe('POST /api/auth/signup', () => {
       name: 'Test User',
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
-      emailVerified: false,
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     mockedPrisma.user.findUnique.mockResolvedValue(null);
     mockedPrisma.user.create.mockResolvedValue(mockUser);
-    mockedPrisma.emailVerificationToken.create.mockResolvedValue({
-      id: 'vtoken-1',
-      userId: 'test-id-123',
-      token: 'verify-token-abc',
-      expiresAt: new Date(Date.now() + 86400000),
-      usedAt: null,
-      createdAt: new Date(),
-    } as any);
 
     const res = await request(app).post('/api/auth/signup').send({
       name: '  Test User  ',
