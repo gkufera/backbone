@@ -47,16 +47,6 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 24.5: Disable Verification for Production Testing (URGENT)
-
-**Goal:** Allow testing on production while SES is still in sandbox mode.
-
-- [ ] Disable email verification requirement on production until SES production access is approved (case #177205820000226)
-- [ ] Disable phone verification requirement on production until ready
-- [ ] Ensure these can be easily re-enabled once SES is approved (env var or feature flag)
-
----
-
 ## Sprint 25: Production Security (was 24)
 
 **Goal:** Close the 4 remaining medium-priority security gaps identified in the security audit.
