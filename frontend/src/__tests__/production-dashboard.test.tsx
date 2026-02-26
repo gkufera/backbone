@@ -275,6 +275,31 @@ describe('Production dashboard', () => {
     expect(mockedProductionsApi.addMember).toHaveBeenCalledWith('prod-1', 'c@d.com', undefined);
   });
 
+  it('handles multi-email edge cases: extra commas, trailing spaces', async () => {
+    const user = userEvent.setup();
+    setupMocks();
+    mockedProductionsApi.addMember.mockResolvedValue({
+      member: {
+        id: 'member-new',
+        productionId: 'prod-1',
+        userId: 'user-new',
+        role: 'MEMBER',
+      },
+    });
+
+    render(<ProductionDashboard />);
+
+    await screen.findByText('Film One');
+
+    const emailInput = screen.getByPlaceholderText(/email/i);
+    await user.type(emailInput, 'a@b.com,,, c@d.com , ');
+    await user.click(screen.getByRole('button', { name: /add member/i }));
+
+    expect(mockedProductionsApi.addMember).toHaveBeenCalledTimes(2);
+    expect(mockedProductionsApi.addMember).toHaveBeenCalledWith('prod-1', 'a@b.com', undefined);
+    expect(mockedProductionsApi.addMember).toHaveBeenCalledWith('prod-1', 'c@d.com', undefined);
+  });
+
   it('shows error when addMember fails', async () => {
     const user = userEvent.setup();
     setupMocks();
