@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 468 frontend + 468 backend = 936 unit/integration, 57 E2E
+**Test counts:** 465 frontend + 454 backend = 919 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access under review (case #177205820000226). Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com (verified). |
+| Email (Resend)     | Pending    | SES application rejected. Switching to Resend. API key set in Railway + server. Domain verification needed in Resend dashboard. |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
@@ -130,42 +130,67 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 29: Production Security (DONE)
+## Sprint 29: Switch Email from SES to Resend (URGENT)
+
+**Goal:** Replace AWS SES with Resend for all transactional email. SES production access was rejected.
+
+**Infrastructure done:**
+- [x] Resend API key added to Railway backend env vars (`RESEND_API_KEY`)
+- [x] Resend API key added to server container env (`~/.config/cm/env`)
+- [x] `api.resend.com` added to container firewall allowed domains
+
+**Code changes needed:**
+- [ ] `npm install resend` in backend, `npm uninstall @aws-sdk/client-sesv2`
+- [ ] Rewrite `email-service.ts` — replace SES client with Resend client (`new Resend(process.env.RESEND_API_KEY)`, call `resend.emails.send()`)
+- [ ] Update `.env.example` — add `RESEND_API_KEY`, keep AWS creds (still needed for S3)
+- [ ] Update tests that mock `@aws-sdk/client-sesv2` to mock `resend` instead
+- [ ] Update roadmap infrastructure table status to Running after deploy
+- [ ] Verify domain `slugmax.com` in Resend dashboard (Greg will add DNS records in Cloudflare)
+- [ ] Deploy and test end-to-end email delivery
+
+---
+
+## Sprint 30: Production Security
 
 **Goal:** Close the 4 medium-priority security gaps from the security audit.
 
-- [x] S14: Token revocation / logout endpoint
-  - Added `POST /api/auth/logout` endpoint that increments `tokenVersion`
-  - `requireAuth` middleware now async — queries DB to verify JWT `tokenVersion` matches user record
-  - Frontend `logout()` calls API before clearing localStorage
-- [x] S19: Invalidate JWTs on password reset
-  - Added `tokenVersion Int @default(0)` to User model
-  - JWT payload includes `tokenVersion`; `requireAuth` rejects mismatched versions
-  - Password reset (`POST /api/auth/reset-password`) and password change (`PATCH /api/auth/me`) both increment `tokenVersion`
-- [x] S17: Persistent rate limiting — decision: accept in-memory for MVP
-  - In-memory rate limiting is acceptable for single-instance Railway deployment
-  - Limits reset on deploy but deploys are infrequent
-  - Redis can be added later if needed (tracked in backlog)
-- [x] S20: Per-user upload URL rate limiting
-  - `createUploadLimiter()` keyed by `req.user.userId` (30 requests/minute/user)
-  - Applied to `POST /api/options/upload-url` after `requireAuth`
+- [ ] S14: Token revocation / logout endpoint
+  - Add `POST /api/auth/logout` endpoint
+  - Options: in-memory deny set or DB-backed token invalidation
+  - Middleware checks deny list before accepting JWT
+- [ ] S19: Invalidate JWTs on password reset
+  - Add `tokenVersion` field to User model
+  - JWT includes tokenVersion; middleware rejects mismatched versions
+  - Pairs with S14 — logout can increment tokenVersion
+- [ ] S17: Persistent rate limiting
+  - Current: in-memory rate limiter resets on restart/deploy
+  - Evaluate if this is a real problem or acceptable for now
+  - Options: accept as-is, add DB-backed store, or add Redis
+- [ ] S20: Per-user upload URL rate limiting
+  - Per-user throttle on `POST /api/options/:id/upload-url`
+  - Prevent abuse of presigned S3 URL generation
 
 ---
 
-## Sprint 30: QA & Polish (DONE)
+## Sprint 31: QA & Performance
 
-**Goal:** Fix UI polish issues affecting usability. 941 Tier 1 tests passing (473 frontend + 468 backend).
+**Goal:** Full confidence that everything works end-to-end in production.
 
-- [x] Make sure no text is over a busy background — moved `.mac-alert-error` stripe pattern to `border-image`, solid white background for text
-- [x] Fix all tooltips to conform to 1-bit Macintosh design system — replaced native `title` tooltip with inline text; added `noValidate` to all forms to suppress native browser validation tooltips
-- [x] Hide the mobile menu hamburger button when the menu has no items — conditionally render based on auth state and productionId
-- [ ] Custom MAIL FROM domain for full DMARC alignment (deferred — AWS console work, not code)
-- [ ] Performance audit (deferred — requires manual Lighthouse browser testing)
-- [x] Design system compliance tests: no native `title` tooltips, all forms use `noValidate`, `.mac-alert-error` has solid text background
+- [ ] Make sure no text is over a busy background (e.g., "Please verify your email before logging in" — too hard to read)
+- [ ] Fix all tooltips to conform to 1-bit Macintosh design system (no rounded corners, no shadows, no grays — black/white only with sharp corners and 2px borders)
+- [ ] Hide the mobile menu hamburger button when the menu has no items
+- [ ] Custom MAIL FROM domain for full DMARC alignment
+- [ ] Performance audit
+  - Run Lighthouse on key pages (home, production, script viewer)
+  - Measure API response times for critical endpoints
+  - Optimize any endpoints > 500ms
+- [ ] Full QA pass
+  - All Tier 1 tests pass
+  - All Tier 2 E2E tests pass (Playwright on desktop + mobile viewports) in GitHub Actions
 
 ---
 
-## Sprint 31: Production Gating
+## Sprint 32: Production Gating
 
 **Goal:** Lock down production creation so users must request approval.
 
@@ -176,7 +201,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 32: Discussion Media Attachments
+## Sprint 33: Discussion Media Attachments
 
 **Goal:** Allow directors and crew to attach media in option discussion threads.
 

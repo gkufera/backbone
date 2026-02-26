@@ -84,6 +84,7 @@ for domain in \
     "email.us-east-1.amazonaws.com" \
     "email-smtp.us-east-1.amazonaws.com" \
     "ses.us-east-1.amazonaws.com" \
+    "api.resend.com" \
     "cloudfront.amazonaws.com" \
     "pypi.org" \
     "files.pythonhosted.org"; do
