@@ -28,7 +28,7 @@ test.describe('Production flow', () => {
     await page.getByRole('button', { name: /submit request/i }).click();
 
     // After submission, shows success message (no redirect — production is PENDING)
-    await expect(page.getByText(/request.*submitted/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Request Submitted')).toBeVisible({ timeout: 10000 });
   });
 
   test('active production dashboard shows title', async ({ page, request }) => {
