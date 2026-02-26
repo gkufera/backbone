@@ -1,5 +1,15 @@
 # Current Plan
 
+## Roadmap Completeness Audit + Performance Check (COMPLETE)
+
+**Result:** All roadmap stale items resolved. 6 database indexes added for hot query paths. npm audit clean. DMARC verified compliant. 1,071 Tier 1 tests passing (510 frontend + 561 backend).
+
+### Phases
+- [x] Phase 1: Add database indexes (TDD — 8 tests) for Element, Option, ProductionMember, Script, Department, Note
+- [x] Phase 2: Fix npm audit minimatch ReDoS vulnerability
+- [x] Phase 3: Update roadmap stale items (Sprint 25 CI, Sprint 27 email, Sprint 31 MAIL FROM + perf audit)
+- [x] Phase 4: Deploy
+
 ## Sprint 34 QA Check: FDX Support Audit (COMPLETE)
 
 **Result:** Fixed 3 bugs (revision processor FDX metadata, XXE hardening, null text nodes), added 9 tests. 1,063 Tier 1 tests passing (510 frontend + 553 backend).

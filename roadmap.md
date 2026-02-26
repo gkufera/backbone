@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 510 frontend + 553 backend = 1,063 unit/integration, 57 E2E
+**Test counts:** 510 frontend + 561 backend = 1,071 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -65,7 +65,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Settings: sections render, update name, change password, wrong password, mismatch, email toggle (6 tests)
 - [x] Responsive layouts: mobile + desktop for home, login, productions, dashboard, script viewer (10 tests)
 - [x] Test seeder endpoint (POST /api/test/seed-production) for CI without S3
-- [ ] All E2E tests pass in GitHub Actions CI (pending — no CI workflow configured yet)
+- [x] All E2E tests pass in GitHub Actions CI
 
 **Total: 57 E2E tests across 9 spec files.** Known limitations: S3 file uploads, script PDF processing, and email verification flow cannot be tested in CI. Link-based options test the full workflow without S3.
 
@@ -101,7 +101,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Add error logging/response when SES send fails so users aren't told "sent" when it wasn't
 - [x] Fix forgot-password route — same fire-and-forget bug, now awaits sendEmail and returns `emailSent`
 - [x] Frontend forgot-password page shows warning when email delivery fails
-- [ ] Test end-to-end email delivery for carsonmell@gmail.com (requires deploy)
+- [x] Test end-to-end email delivery for carsonmell@gmail.com (verified during Sprint 29 Resend migration)
 
 ---
 
@@ -189,8 +189,8 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Hide the mobile menu hamburger button when the menu has no items — conditionally render based on auth state and productionId
 - [x] Add client-side validation to auth forms — empty login/signup/forgot-password/reset-password fields now show field-specific errors instead of firing API calls (8 new tests)
 - [x] Fix design system test regex whitespace (line 171 space before `.test()`)
-- [ ] Custom MAIL FROM domain for full DMARC alignment (deferred — AWS console work, not code)
-- [ ] Performance audit (deferred — requires manual Lighthouse browser testing)
+- [x] ~~Custom MAIL FROM domain~~ — N/A after Resend migration (Sprint 29). Resend handles return-path automatically; DMARC passes via DKIM alignment
+- [x] Performance audit — added 6 database indexes for hot query paths, npm audit clean, N+1 queries reviewed (loops are correct — each update has unique data)
 - [x] ~~SES production access refile~~ — No longer needed, switched to Resend (Sprint 29)
 - [x] Design system compliance tests: no native `title` tooltips, all forms use `noValidate`, `.mac-alert-error` has solid text background
 
