@@ -34,11 +34,12 @@ describe('Forgot password page', () => {
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
   });
 
-  it('shows success message after submit', async () => {
+  it('shows success message when emailSent is true', async () => {
     const user = userEvent.setup();
 
     mockedAuthApi.forgotPassword.mockResolvedValue({
       message: 'If that email exists, check your email for a reset link',
+      emailSent: true,
     });
 
     render(<ForgotPasswordPage />);
@@ -47,6 +48,24 @@ describe('Forgot password page', () => {
     await user.click(screen.getByRole('button', { name: /send reset link/i }));
 
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
+    // Should NOT show warning
+    expect(screen.queryByText(/could not be sent/i)).not.toBeInTheDocument();
+  });
+
+  it('shows warning message when emailSent is false', async () => {
+    const user = userEvent.setup();
+
+    mockedAuthApi.forgotPassword.mockResolvedValue({
+      message: 'If that email exists, check your email for a reset link',
+      emailSent: false,
+    });
+
+    render(<ForgotPasswordPage />);
+
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: /send reset link/i }));
+
+    expect(await screen.findByText(/could not be sent/i)).toBeInTheDocument();
   });
 
   it('has a link back to login', () => {

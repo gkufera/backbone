@@ -8,17 +8,23 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [emailWarning, setEmailWarning] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setEmailWarning('');
     setLoading(true);
 
     try {
       const response = await authApi.forgotPassword(email);
-      setSuccess(response.message);
+      if (!response.emailSent) {
+        setEmailWarning('Email could not be sent. Please contact support.');
+      } else {
+        setSuccess(response.message);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -40,6 +46,12 @@ export default function ForgotPasswordPage() {
           {error && (
             <div role="alert" className="mac-alert-error p-3 text-sm">
               {error}
+            </div>
+          )}
+
+          {emailWarning && (
+            <div role="alert" className="mac-alert-error p-3 text-sm">
+              {emailWarning}
             </div>
           )}
 

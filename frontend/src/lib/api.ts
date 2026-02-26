@@ -442,8 +442,8 @@ export const authApi = {
     return request<{ user: AuthResponse['user'] }>('/api/auth/me');
   },
 
-  forgotPassword(email: string): Promise<{ message: string }> {
-    return request<{ message: string }>('/api/auth/forgot-password', {
+  forgotPassword(email: string): Promise<{ message: string; emailSent: boolean }> {
+    return request<{ message: string; emailSent: boolean }>('/api/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
