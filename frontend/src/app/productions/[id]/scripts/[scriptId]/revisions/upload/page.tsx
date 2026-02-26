@@ -82,7 +82,7 @@ export default function RevisionUploadPage() {
         <span className="text-sm">v{parentScript.version}</span>
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="pdf-file" className="block text-sm">
             PDF File

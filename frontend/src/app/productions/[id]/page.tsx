@@ -348,7 +348,7 @@ export default function ProductionDashboard() {
             ))}
           </ul>
 
-          <form onSubmit={handleAddMember} className="flex gap-2">
+          <form noValidate onSubmit={handleAddMember} className="flex gap-2">
             <input
               type="text"
               placeholder="Enter emails (comma-separated)"
@@ -420,7 +420,7 @@ export default function ProductionDashboard() {
             </ul>
           )}
 
-          <form onSubmit={handleCreateDepartment} className="flex gap-2">
+          <form noValidate onSubmit={handleCreateDepartment} className="flex gap-2">
             <input
               type="text"
               placeholder="New department name"

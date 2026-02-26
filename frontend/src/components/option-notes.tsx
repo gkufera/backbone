@@ -83,7 +83,7 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form noValidate onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
           value={content}

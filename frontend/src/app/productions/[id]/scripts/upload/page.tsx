@@ -73,7 +73,7 @@ export default function ScriptUploadPage() {
     <div className="mx-auto max-w-lg p-6">
       <h1 className="mb-6 text-2xl">Upload Script</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="pdf-file" className="block text-sm">
             PDF File

@@ -186,7 +186,7 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-2 border-black p-4">
+    <form noValidate onSubmit={handleSubmit} className="border-2 border-black p-4">
       <div className="mb-3 flex gap-2">
         <button
           type="button"

@@ -151,7 +151,7 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
+          <form noValidate onSubmit={handleProfileSubmit} className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm text-black">
                 Name
@@ -221,7 +221,7 @@ export default function SettingsPage() {
               <span className="badge badge-approved">VERIFIED</span>
             </div>
           ) : phoneCodeSent ? (
-            <form onSubmit={handleVerifyPhone} className="space-y-4">
+            <form noValidate onSubmit={handleVerifyPhone} className="space-y-4">
               {phoneError && (
                 <div role="alert" className="mac-alert-error p-3 text-sm">
                   {phoneError}
@@ -251,7 +251,7 @@ export default function SettingsPage() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleSendPhoneCode} className="space-y-4">
+            <form noValidate onSubmit={handleSendPhoneCode} className="space-y-4">
               {phoneError && (
                 <div role="alert" className="mac-alert-error p-3 text-sm">
                   {phoneError}
@@ -297,7 +297,7 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <form noValidate onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
               <label htmlFor="currentPassword" className="block text-sm text-black">
                 Current Password

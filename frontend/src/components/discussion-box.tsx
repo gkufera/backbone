@@ -84,7 +84,7 @@ export function DiscussionBox({ elementId, composerName, composerDepartment }: D
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <form noValidate onSubmit={handleSubmit} className="flex gap-2">
           <input
             type="text"
             value={content}

@@ -319,7 +319,7 @@ export default function ScriptViewerPage() {
               </div>
 
               {showAddForm && (
-                <form onSubmit={handleAddElement} className="mb-4 flex gap-2 border-2 border-black p-3">
+                <form noValidate onSubmit={handleAddElement} className="mb-4 flex gap-2 border-2 border-black p-3">
                   <input
                     type="text"
                     placeholder="Element name"

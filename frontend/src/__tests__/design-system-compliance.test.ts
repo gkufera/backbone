@@ -140,6 +140,23 @@ describe('Design System Compliance', () => {
     expect(alertErrorBlock).not.toMatch(/background:\s*repeating-linear-gradient/);
   });
 
+  it('all forms use noValidate to prevent native browser validation tooltips', () => {
+    const violations: string[] = [];
+    for (const file of tsxFiles) {
+      if (file.includes('__tests__') || file.includes('.test.')) continue;
+      const content = readFileSync(file, 'utf-8');
+      const lines = content.split('\n');
+      lines.forEach((line, i) => {
+        if (line.trim().startsWith('//') || line.trim().startsWith('import')) return;
+        // Match <form that has onSubmit but no noValidate
+        if (/<form\s/.test(line) && /onSubmit/.test(line) && !/noValidate/.test(line)) {
+          violations.push(`${file}:${i + 1}: ${line.trim()}`);
+        }
+      });
+    }
+    expect(violations).toEqual([]);
+  });
+
   it('no native HTML title tooltips in components (use inline text instead)', () => {
     const violations: string[] = [];
     for (const file of tsxFiles) {

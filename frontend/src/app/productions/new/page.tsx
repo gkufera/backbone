@@ -29,7 +29,7 @@ export default function NewProductionPage() {
     <div className="mx-auto max-w-lg p-6">
       <h1 className="mb-6 text-2xl">New Production</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block text-sm">
             Title
