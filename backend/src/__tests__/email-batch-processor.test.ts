@@ -24,6 +24,7 @@ import {
   processEmailBatch,
   startEmailBatchProcessor,
   stopEmailBatchProcessor,
+  _resetProcessingFlag,
 } from '../services/email-batch-processor';
 
 const mockedPrisma = vi.mocked(prisma);
@@ -31,7 +32,8 @@ const mockedSendDigestEmail = vi.mocked(sendDigestEmail);
 
 describe('processEmailBatch', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    _resetProcessingFlag();
   });
 
   it('sends nothing when no pending notifications', async () => {
@@ -275,6 +277,47 @@ describe('processEmailBatch', () => {
   });
 });
 
+describe('processEmailBatch concurrency', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    _resetProcessingFlag();
+  });
+
+  it('skips if already processing', async () => {
+    // First call will hang until we resolve it
+    let resolveFirst!: () => void;
+    mockedPrisma.notification.findMany.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFirst = () => resolve([]);
+        }),
+    );
+
+    const first = processEmailBatch();
+    const second = processEmailBatch();
+
+    // Resolve the first call
+    resolveFirst();
+    await first;
+    await second;
+
+    // findMany should only have been called once — second call was skipped
+    expect(mockedPrisma.notification.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets processing flag after error so next call proceeds', async () => {
+    mockedPrisma.notification.findMany.mockRejectedValueOnce(new Error('DB error'));
+
+    await expect(processEmailBatch()).rejects.toThrow('DB error');
+
+    // Next call should proceed normally
+    mockedPrisma.notification.findMany.mockResolvedValueOnce([]);
+    await processEmailBatch();
+
+    expect(mockedPrisma.notification.findMany).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('startEmailBatchProcessor / stopEmailBatchProcessor', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -302,7 +345,7 @@ describe('startEmailBatchProcessor / stopEmailBatchProcessor', () => {
     startEmailBatchProcessor(30_000);
     stopEmailBatchProcessor();
 
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     await vi.advanceTimersByTimeAsync(60_000);
 
     expect(mockedPrisma.notification.findMany).not.toHaveBeenCalled();
