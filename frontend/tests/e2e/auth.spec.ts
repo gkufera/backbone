@@ -5,9 +5,7 @@ const TEST_PASSWORD = 'securepassword123';
 const TEST_NAME = 'E2E Test User';
 
 test.describe('Auth flow', () => {
-  test('signup with valid credentials → redirected to home → see logout button', async ({
-    page,
-  }) => {
+  test('signup with valid credentials → redirected to verify-email-sent', async ({ page }) => {
     const email = uniqueEmail();
 
     await page.goto('/signup');
@@ -16,26 +14,21 @@ test.describe('Auth flow', () => {
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /sign up/i }).click();
 
-    // Should redirect to home and show logout
-    await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('button', { name: /log out/i })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(TEST_NAME)).toBeVisible();
+    // Should redirect to verify-email-sent page
+    await expect(page).toHaveURL(/verify-email-sent/, { timeout: 10000 });
+    await expect(page.getByText(/check your email/i)).toBeVisible({ timeout: 5000 });
   });
 
   test('login with existing credentials → see home page', async ({ page }) => {
     const email = uniqueEmail();
 
-    // First signup to create the account
+    // First signup to create the account (auto-verified in test mode)
     await page.goto('/signup');
     await page.getByLabel(/name/i).fill(TEST_NAME);
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /sign up/i }).click();
-    await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
-
-    // Logout
-    await page.getByRole('button', { name: /log out/i }).click();
-    await expect(page.getByRole('button', { name: /log out/i })).not.toBeVisible();
+    await expect(page).toHaveURL(/verify-email-sent/, { timeout: 10000 });
 
     // Now login with the same credentials
     await page.goto('/login');
@@ -43,7 +36,7 @@ test.describe('Auth flow', () => {
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 
-    await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/slug max/i).first()).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('button', { name: /log out/i })).toBeVisible({ timeout: 5000 });
   });
 

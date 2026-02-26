@@ -7,14 +7,22 @@ const TEST_NAME = 'E2E Test User';
 async function signupAndLogin(page: import('@playwright/test').Page) {
   const email = uniqueEmail();
 
+  // Signup (auto-verified in test mode)
   await page.goto('/signup');
   await page.getByLabel(/name/i).fill(TEST_NAME);
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(TEST_PASSWORD);
   await page.getByRole('button', { name: /sign up/i }).click();
+  await expect(page).toHaveURL(/verify-email-sent/, { timeout: 10000 });
 
-  // Wait for redirect to home
-  await expect(page.getByRole('heading', { name: /slug max/i })).toBeVisible({ timeout: 10000 });
+  // Login
+  await page.goto('/login');
+  await page.getByLabel(/email/i).fill(email);
+  await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+  await page.getByRole('button', { name: /log in/i }).click();
+
+  // Wait for authenticated home page
+  await expect(page.getByText(/slug max/i).first()).toBeVisible({ timeout: 10000 });
 
   return email;
 }
@@ -36,11 +44,10 @@ test.describe('Production flow', () => {
 
   test('create production → add team member → see in member list', async ({ page }) => {
     // Create first user (production owner)
-    const ownerEmail = await signupAndLogin(page);
+    await signupAndLogin(page);
 
-    // Create a second user to add as team member
+    // Create a second user to add as team member via API
     const memberEmail = uniqueEmail();
-    // Sign up member in a separate context - use API directly
     await page.evaluate(
       async ({ email, password, name, baseUrl }) => {
         await fetch(`${baseUrl}/api/auth/signup`, {
