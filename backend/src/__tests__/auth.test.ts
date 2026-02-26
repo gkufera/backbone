@@ -192,6 +192,7 @@ describe('POST /api/auth/login', () => {
       passwordHash: hashedPassword,
       emailVerified: true,
       emailNotificationsEnabled: true,
+      tokenVersion: 2,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -210,6 +211,11 @@ describe('POST /api/auth/login', () => {
     expect(res.body.user.emailVerified).toBe(true);
     expect(res.body.user.emailNotificationsEnabled).toBeDefined();
     expect(res.body.user).not.toHaveProperty('passwordHash');
+
+    // Verify JWT contains tokenVersion from user record
+    const jwt = await import('jsonwebtoken');
+    const decoded = jwt.default.decode(res.body.token) as Record<string, unknown>;
+    expect(decoded.tokenVersion).toBe(2);
   });
 
   it('returns 401 for invalid password', async () => {

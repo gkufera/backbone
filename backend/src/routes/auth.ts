@@ -128,6 +128,7 @@ authRouter.post('/api/auth/login', async (req, res) => {
     const token = signToken({
       userId: user.id,
       email: user.email,
+      tokenVersion: user.tokenVersion,
     });
 
     res.status(200).json({
