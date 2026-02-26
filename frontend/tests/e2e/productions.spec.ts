@@ -21,8 +21,8 @@ async function signupAndLogin(page: import('@playwright/test').Page) {
   await page.getByLabel(/password/i).fill(TEST_PASSWORD);
   await page.getByRole('button', { name: /log in/i }).click();
 
-  // Wait for authenticated home page
-  await expect(page.getByText(/slug max/i).first()).toBeVisible({ timeout: 10000 });
+  // Wait for login redirect to /productions to complete
+  await expect(page).toHaveURL(/\/productions$/, { timeout: 10000 });
 
   return email;
 }
@@ -39,6 +39,7 @@ test.describe('Production flow', () => {
     await page.getByRole('button', { name: /create/i }).click();
 
     // Should redirect to production dashboard and show the title
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
     await expect(page.getByText('My Test Production')).toBeVisible({ timeout: 10000 });
   });
 
@@ -70,6 +71,7 @@ test.describe('Production flow', () => {
     await page.getByRole('button', { name: /create/i }).click();
 
     // Wait for dashboard
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
     await expect(page.getByText('Team Production')).toBeVisible({ timeout: 10000 });
 
     // Add team member by email

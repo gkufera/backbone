@@ -16,10 +16,10 @@ test.describe('Auth flow', () => {
 
     // Should redirect to verify-email-sent page
     await expect(page).toHaveURL(/verify-email-sent/, { timeout: 10000 });
-    await expect(page.getByText(/check your email/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Check Your Email', { exact: true })).toBeVisible({ timeout: 5000 });
   });
 
-  test('login with existing credentials → see home page', async ({ page }) => {
+  test('login with existing credentials → see productions page', async ({ page }) => {
     const email = uniqueEmail();
 
     // First signup to create the account (auto-verified in test mode)
@@ -36,8 +36,9 @@ test.describe('Auth flow', () => {
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByRole('button', { name: /log in/i }).click();
 
-    await expect(page.getByText(/slug max/i).first()).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('button', { name: /log out/i })).toBeVisible({ timeout: 5000 });
+    // Login redirects to /productions
+    await expect(page).toHaveURL(/\/productions$/, { timeout: 10000 });
+    await expect(page.getByText('Productions')).toBeVisible({ timeout: 5000 });
   });
 
   test('invalid login shows error', async ({ page }) => {
