@@ -161,6 +161,18 @@ export default function ProductionDashboard() {
     return <div className="p-6">Production not found.</div>;
   }
 
+  if (production.status === 'PENDING') {
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <h1 className="mb-4 text-3xl">{production.title}</h1>
+        <span className="badge badge-outstanding">PENDING APPROVAL</span>
+        <p className="mt-4 font-mono text-sm">
+          Your production request is being reviewed by our sales team.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6">

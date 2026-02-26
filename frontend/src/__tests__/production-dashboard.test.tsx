@@ -870,4 +870,56 @@ describe('Production dashboard', () => {
     fireEvent.click(title);
     expect(screen.queryByDisplayValue('Film One')).not.toBeInTheDocument();
   });
+
+  it('PENDING production shows pending message, not dashboard content', async () => {
+    const pendingProduction = {
+      ...mockProduction,
+      status: 'PENDING',
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: pendingProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: [] });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+    mockedProductionsApi.getElementStats.mockResolvedValue({
+      pending: 0, outstanding: 0, approved: 0, total: 0,
+    });
+    mockedNotificationPreferencesApi.get.mockResolvedValue({
+      preferences: {
+        optionEmails: true, noteEmails: true, approvalEmails: true,
+        scriptEmails: true, memberEmails: true, scopeFilter: 'ALL',
+      },
+    });
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText('PENDING APPROVAL')).toBeInTheDocument();
+    expect(screen.getByText(/being reviewed by our sales team/i)).toBeInTheDocument();
+    // Dashboard sections should NOT be rendered
+    expect(screen.queryByText('Scripts')).not.toBeInTheDocument();
+    expect(screen.queryByText('Team Members')).not.toBeInTheDocument();
+  });
+
+  it('ACTIVE production shows full dashboard', async () => {
+    const activeProduction = {
+      ...mockProduction,
+      status: 'ACTIVE',
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: activeProduction });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: mockDepartments });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+    mockedProductionsApi.getElementStats.mockResolvedValue({
+      pending: 5, outstanding: 3, approved: 2, total: 10,
+    });
+    mockedNotificationPreferencesApi.get.mockResolvedValue({
+      preferences: {
+        optionEmails: true, noteEmails: true, approvalEmails: true,
+        scriptEmails: true, memberEmails: true, scopeFilter: 'ALL',
+      },
+    });
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText('Film One')).toBeInTheDocument();
+    expect(screen.getByText('Scripts')).toBeInTheDocument();
+    expect(screen.queryByText('PENDING APPROVAL')).not.toBeInTheDocument();
+  });
 });
