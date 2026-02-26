@@ -93,7 +93,17 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 28: Phone Verification via SMS
+## Sprint 28: Discussion Media Attachments
+
+**Goal:** Allow directors and crew to attach media (images, videos, files) in option discussion threads for inspiration and guidance.
+
+- [ ] Add media attachment support to option discussions — users can upload images, reference videos, or other files directly in the discussion thread for an option
+- [ ] Directors can provide visual guidance (mood boards, reference photos, video clips) that crew members see alongside the conversation
+- [ ] Attachments use the existing S3 upload infrastructure (presigned URLs)
+
+---
+
+## Sprint 29: Phone Verification via SMS
 
 **Goal:** Make phone verification actually work by integrating a real SMS provider.
 
@@ -105,7 +115,6 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 ---
 
 ## Following sprints - once you get here, first investigate these issues and split them into sprints.
-
 - [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, and then generate a PDF of that FDX file so that everything works better. Note in the software in a tooltip that this works better, and that the AI that pulls tags is very inaccurate.
 - [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department as well as a director and a production coordinator.
 
