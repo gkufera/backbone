@@ -1,8 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { signupAndLogin, apiSignup, getAuthToken, loginAs, API_BASE, TEST_PASSWORD } from './helpers';
-
-const uniqueEmail = () =>
-  `test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`;
+import { apiSignup, getAuthToken, loginAs, API_BASE } from './helpers';
 
 test.describe('Notifications', () => {
   /**
@@ -89,20 +86,21 @@ test.describe('Notifications', () => {
     });
   });
 
-  test('notifications page — empty state shows message', async ({ page }) => {
-    // Sign up fresh user with no notifications
-    await signupAndLogin(page);
+  test('notifications page — empty state shows message', async ({ page, request }) => {
+    // Create a fresh user and production via API (no notifications generated)
+    const email = await apiSignup(request, undefined, 'Empty Notif User');
+    const token = await getAuthToken(request, email);
 
-    // Create a production to access notifications page
-    await page.goto('/productions/new');
-    await page.getByLabel(/title/i).fill('Empty Notif Test');
-    await page.getByRole('button', { name: /create/i }).click();
-    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+    // Create production via API
+    const prodRes = await request.post(`${API_BASE}/api/productions`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { title: 'Empty Notif Test Production' },
+    });
+    const prodBody = await prodRes.json();
+    const productionId = prodBody.production.id;
 
-    // Extract production ID from URL
-    const url = page.url();
-    const productionId = url.split('/productions/')[1];
-
+    // Login via browser and navigate to notifications
+    await loginAs(page, email);
     await page.goto(`/productions/${productionId}/notifications`);
     await page.waitForLoadState('networkidle');
     await expect(page.getByRole('heading', { name: /notifications/i })).toBeVisible({

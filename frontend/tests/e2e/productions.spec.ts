@@ -108,6 +108,9 @@ test.describe('Production flow', () => {
     const deptRow = deptSection.locator('li', { hasText: 'Temp Department' });
     await expect(deptRow).toBeVisible({ timeout: 5000 });
 
+    // Register dialog handler BEFORE triggering the action
+    page.on('dialog', (dialog) => dialog.accept());
+
     // Find and click the delete button for the newly created department
     await deptRow.getByRole('button', { name: /delete/i }).click();
 
