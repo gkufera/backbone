@@ -1,80 +1,71 @@
 # Current Plan
 
-## Sprint 28 — Granular Email Notifications
+## Sprint 29 — Production Security (COMPLETE)
 
-**Goal:** Per-production notification preferences, email batching (1-minute digest), OPTION_ADDED notification type.
+**Goal:** Close 4 medium-priority security gaps from the security audit.
 
 ---
 
-### Step 1: Schema — NotificationPreference + OPTION_ADDED + emailSentAt
-- [x] Write failing tests for shared types (OPTION_ADDED, emailSentAt, constants)
-- [x] Add OPTION_ADDED to NotificationType enum, emailSentAt to Notification, NotificationPreference interface
-- [x] Add constants: NOTIFICATION_TYPE_CATEGORY, CATEGORY_TO_PREF_FIELD
-- [x] Add Prisma schema: ScopeFilter enum, NotificationPreference model, emailSentAt on Notification
-- [x] Create migration + generate Prisma client
-- [x] Run Tier 1 tests (460 frontend + 434 backend = 894 pass)
-- [x] COMMIT (0933b45)
+### Step 1: Add tokenVersion to schema + JWT
+- [x] Write failing test for JWT containing tokenVersion claim
+- [x] Add `tokenVersion Int @default(0)` to User model
+- [x] Add optional `tokenVersion` to `JwtPayload`, default to 0 in `signToken`
+- [x] Create migration `20260225300000_add_token_version`
+- [x] Run Tier 1 tests (462 pass)
+- [x] COMMIT (2aa83ce)
 
-### Step 2: Refactor createNotification — remove immediate email
-- [x] Update notification-service.test.ts to expect no email sending
-- [x] Remove sendNotificationEmail import and email-sending block
-- [x] Run Tier 1 tests (460 frontend + 433 backend)
-- [x] COMMIT (9c55462)
+### Step 2: requireAuth checks tokenVersion against DB
+- [x] Write 3 failing tests in `token-version-middleware.test.ts`
+- [x] Make `requireAuth` async with DB lookup for tokenVersion
+- [x] Update 20 test files with tokenVersion: 0 mocks for middleware
+- [x] Run Tier 1 tests (462 pass)
+- [x] COMMIT (63e7eee)
 
-### Step 3: Digest email template
-- [x] Write failing tests for sendDigestEmail (subject, bullet points, HTML)
-- [x] Implement sendDigestEmail in email-service.ts
-- [x] Run Tier 1 tests (460 frontend + 436 backend = 896 pass)
-- [x] COMMIT (870cf36)
+### Step 3: Include tokenVersion in login JWT
+- [x] Write failing test: login JWT contains user's tokenVersion from DB
+- [x] Pass `tokenVersion: user.tokenVersion` to `signToken()` in login handler
+- [x] Run Tier 1 tests (462 pass)
+- [x] COMMIT (4be09b5)
 
-### Step 4: Email batch processor
-- [x] Write 9 failing tests for processEmailBatch, start/stop
-- [x] Implement email-batch-processor.ts with preference filtering
-- [x] Start batch processor in index.ts
-- [x] Run Tier 1 tests (460 frontend + 445 backend)
-- [x] COMMIT (801d2fb)
+### Step 4: Invalidate JWTs on password reset (S19)
+- [x] Write failing tests for tokenVersion increment on reset-password and PATCH /me
+- [x] Add `tokenVersion: { increment: 1 }` to reset-password transaction
+- [x] Add `tokenVersion: { increment: 1 }` to PATCH /me password change
+- [x] Run Tier 1 tests (462 pass)
+- [x] COMMIT (5d6c4e0)
 
-### Step 5: OPTION_ADDED notification trigger
-- [x] Write failing test: option create triggers notifyDeciders with OPTION_ADDED
-- [x] Add notifyDeciders call in options.ts route after option creation
-- [x] Run Tier 1 tests (460 frontend + 446 backend)
-- [x] COMMIT (4c0a838)
+### Step 5: Add POST /api/auth/logout endpoint (S14)
+- [x] Write 2 failing tests for logout endpoint
+- [x] Add logout route: requireAuth → increment tokenVersion → return 200
+- [x] Run Tier 1 tests (464 pass)
+- [x] COMMIT (d0e9e1b)
 
-### Step 6: Notification preferences API
-- [x] Write 8 failing tests for GET/PATCH notification-preferences routes
-- [x] Implement notification-preferences.ts route with upsert
-- [x] Register route in app.ts
-- [x] Run Tier 1 tests (460 frontend + 454 backend)
-- [x] COMMIT (ba98972)
+### Step 6: Frontend calls logout API
+- [x] Write failing test: logout() calls authApi.logout() before clearing state
+- [x] Add authApi.logout() to frontend api.ts
+- [x] Update auth-context logout to async with try/catch API call
+- [x] Run Tier 1 tests (468 frontend + 464 backend)
+- [x] COMMIT (10d1ada)
 
-### Step 7: Frontend notification preferences UI
-- [x] Write 4 failing tests for NotificationPreferences component
-- [x] Add notificationPreferencesApi to frontend api.ts
-- [x] Create notification-preferences.tsx component
-- [x] Mount on production dashboard page
-- [x] Fix production-dashboard.test.tsx to mock new API
-- [x] Run Tier 1 tests (464 frontend + 454 backend = 918 pass)
-- [x] COMMIT (90b905f)
+### Step 7: Per-user upload URL rate limiting (S20)
+- [x] Write 3 failing tests in `upload-rate-limit.test.ts`
+- [x] Add `createUploadLimiter()` with per-userId key (30/min)
+- [x] Apply to POST /api/options/upload-url after requireAuth
+- [x] Run Tier 1 tests (468 frontend + 468 backend = 936 pass)
+- [x] COMMIT (9e3f236)
 
-### Step 8: Update settings page + roadmap + deploy
-- [x] Write failing test for updated settings text
-- [x] Update settings page notification description text
-- [x] Run Tier 1 tests (465 frontend + 454 backend = 919 pass)
+### Step 8: Document S17 decision + update roadmap
+- [x] Accept in-memory rate limiting for MVP (single-instance Railway)
 - [x] Update roadmap.md with completed items and test counts
-- [x] COMMIT (686b15c)
-- [x] Deploy to production
-
-### Sprint 28 Check — Quality Review
-- [x] Fix race condition in batch processor — mutex flag prevents concurrent execution (351a0f9)
-- [x] Delete dead code `sendNotificationEmail()` — removed function + cleaned 5 mock files (3ffee9e)
-- [x] HTML-escape digest email content — `escapeHtml()` applied to messages and production names (2add09e)
-- [x] Add graceful shutdown — SIGTERM handler stops batch processor + HTTP server (2e48e93)
-- [x] Add missing frontend tests — optimistic revert + dashboard integration (43b0315)
-- [x] Update PLAN.md and roadmap with final test counts (467 frontend + 456 backend = 923 pass)
+- [x] Update PLAN.md
 
 ---
 
 ## Previously Completed
+
+### Sprint 28 — Granular Email Notifications (COMPLETE)
+
+**Result: Per-production notification preferences, 1-minute email batching, OPTION_ADDED notifications. 923 total tests.**
 
 ### Sprint 27 — Fix Email Verification (COMPLETE)
 

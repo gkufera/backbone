@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 467 frontend + 456 backend = 923 unit/integration, 57 E2E
+**Test counts:** 468 frontend + 468 backend = 936 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -130,25 +130,25 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 29: Production Security
+## Sprint 29: Production Security (DONE)
 
 **Goal:** Close the 4 medium-priority security gaps from the security audit.
 
-- [ ] S14: Token revocation / logout endpoint
-  - Add `POST /api/auth/logout` endpoint
-  - Options: in-memory deny set or DB-backed token invalidation
-  - Middleware checks deny list before accepting JWT
-- [ ] S19: Invalidate JWTs on password reset
-  - Add `tokenVersion` field to User model
-  - JWT includes tokenVersion; middleware rejects mismatched versions
-  - Pairs with S14 — logout can increment tokenVersion
-- [ ] S17: Persistent rate limiting
-  - Current: in-memory rate limiter resets on restart/deploy
-  - Evaluate if this is a real problem or acceptable for now
-  - Options: accept as-is, add DB-backed store, or add Redis
-- [ ] S20: Per-user upload URL rate limiting
-  - Per-user throttle on `POST /api/options/:id/upload-url`
-  - Prevent abuse of presigned S3 URL generation
+- [x] S14: Token revocation / logout endpoint
+  - Added `POST /api/auth/logout` endpoint that increments `tokenVersion`
+  - `requireAuth` middleware now async — queries DB to verify JWT `tokenVersion` matches user record
+  - Frontend `logout()` calls API before clearing localStorage
+- [x] S19: Invalidate JWTs on password reset
+  - Added `tokenVersion Int @default(0)` to User model
+  - JWT payload includes `tokenVersion`; `requireAuth` rejects mismatched versions
+  - Password reset (`POST /api/auth/reset-password`) and password change (`PATCH /api/auth/me`) both increment `tokenVersion`
+- [x] S17: Persistent rate limiting — decision: accept in-memory for MVP
+  - In-memory rate limiting is acceptable for single-instance Railway deployment
+  - Limits reset on deploy but deploys are infrequent
+  - Redis can be added later if needed (tracked in backlog)
+- [x] S20: Per-user upload URL rate limiting
+  - `createUploadLimiter()` keyed by `req.user.userId` (30 requests/minute/user)
+  - Applied to `POST /api/options/upload-url` after `requireAuth`
 
 ---
 
