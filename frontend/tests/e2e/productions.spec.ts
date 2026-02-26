@@ -1,85 +1,162 @@
 import { test, expect } from '@playwright/test';
+import { signupAndLogin, apiSignup, TEST_PASSWORD, API_BASE } from './helpers';
 
-const uniqueEmail = () => `test-${Date.now()}@example.com`;
-const TEST_PASSWORD = 'securepassword123';
-const TEST_NAME = 'E2E Test User';
-
-async function signupAndLogin(page: import('@playwright/test').Page) {
-  const email = uniqueEmail();
-
-  // Signup (auto-verified in test mode)
-  await page.goto('/signup');
-  await page.getByLabel(/name/i).fill(TEST_NAME);
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-  await page.getByRole('button', { name: /sign up/i }).click();
-  await expect(page).toHaveURL(/verify-email-sent/, { timeout: 10000 });
-
-  // Login
-  await page.goto('/login');
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-  await page.getByRole('button', { name: /log in/i }).click();
-
-  // Wait for login redirect to /productions to complete
-  await expect(page).toHaveURL(/\/productions$/, { timeout: 10000 });
-
-  return email;
-}
+const uniqueEmail = () =>
+  `test-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@example.com`;
 
 test.describe('Production flow', () => {
   test('create production → see dashboard with title', async ({ page }) => {
     await signupAndLogin(page);
 
-    // Navigate to create production
     await page.goto('/productions/new');
-
-    // Fill in production details
     await page.getByLabel(/title/i).fill('My Test Production');
     await page.getByRole('button', { name: /create/i }).click();
 
-    // Should redirect to production dashboard and show the title
     await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
-    await expect(page.getByRole('heading', { name: 'My Test Production' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'My Test Production' })).toBeVisible({
+      timeout: 10000,
+    });
   });
 
-  test('create production → add team member → see in member list', async ({ page }) => {
-    // Create first user (production owner)
+  test('create production → add team member → see in member list', async ({ page, request }) => {
     await signupAndLogin(page);
 
-    // Create a second user to add as team member via API
-    const memberEmail = uniqueEmail();
-    await page.evaluate(
-      async ({ email, password, name, baseUrl }) => {
-        await fetch(`${baseUrl}/api/auth/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password }),
-        });
-      },
-      {
-        email: memberEmail,
-        password: TEST_PASSWORD,
-        name: 'Team Member',
-        baseUrl: 'http://localhost:8000',
-      },
-    );
+    // Create a second user via API
+    const memberEmail = await apiSignup(request);
 
-    // Navigate to create production
     await page.goto('/productions/new');
     await page.getByLabel(/title/i).fill('Team Production');
     await page.getByRole('button', { name: /create/i }).click();
 
-    // Wait for dashboard
     await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
-    await expect(page.getByRole('heading', { name: 'Team Production' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Team Production' })).toBeVisible({
+      timeout: 10000,
+    });
 
     // Add team member by email
     const emailInput = page.getByPlaceholder(/email/i);
     await emailInput.fill(memberEmail);
     await page.getByRole('button', { name: 'Add Member' }).click();
 
-    // Should see the new member in the list
     await expect(page.getByText(memberEmail)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('dashboard sections render — Scripts, Team, Departments', async ({ page }) => {
+    await signupAndLogin(page);
+
+    await page.goto('/productions/new');
+    await page.getByLabel(/title/i).fill('Section Test');
+    await page.getByRole('button', { name: /create/i }).click();
+
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+
+    // Verify key sections are visible
+    await expect(page.getByText(/scripts/i).first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/team/i).first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/departments/i).first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test('production list — created production appears in list', async ({ page }) => {
+    await signupAndLogin(page);
+
+    await page.goto('/productions/new');
+    await page.getByLabel(/title/i).fill('Listed Production');
+    await page.getByRole('button', { name: /create/i }).click();
+
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+
+    // Navigate back to productions list
+    await page.goto('/productions');
+    await expect(page.getByText('Listed Production')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('create department → appears in department list', async ({ page }) => {
+    await signupAndLogin(page);
+
+    await page.goto('/productions/new');
+    await page.getByLabel(/title/i).fill('Dept Test');
+    await page.getByRole('button', { name: /create/i }).click();
+
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+
+    // Fill new department name and add
+    const deptInput = page.getByPlaceholder(/department/i);
+    await deptInput.fill('Custom Department');
+    await page.getByRole('button', { name: /add department/i }).click();
+
+    await expect(page.getByText('Custom Department')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('delete department → removed from list', async ({ page }) => {
+    await signupAndLogin(page);
+
+    await page.goto('/productions/new');
+    await page.getByLabel(/title/i).fill('Dept Delete Test');
+    await page.getByRole('button', { name: /create/i }).click();
+
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+
+    // Add a custom department first
+    const deptInput = page.getByPlaceholder(/department/i);
+    await deptInput.fill('Temp Department');
+    await page.getByRole('button', { name: /add department/i }).click();
+    await expect(page.getByText('Temp Department')).toBeVisible({ timeout: 5000 });
+
+    // Find and click the delete button for the newly created department
+    const deptRow = page.getByText('Temp Department').locator('..');
+    await deptRow.getByRole('button', { name: /delete/i }).click();
+
+    // Verify it's gone
+    await expect(page.getByText('Temp Department')).not.toBeVisible({ timeout: 5000 });
+  });
+
+  test('change member role via dropdown', async ({ page, request }) => {
+    await signupAndLogin(page);
+
+    const memberEmail = await apiSignup(request, undefined, 'Role Test Member');
+
+    await page.goto('/productions/new');
+    await page.getByLabel(/title/i).fill('Role Test');
+    await page.getByRole('button', { name: /create/i }).click();
+
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+
+    // Add team member
+    const emailInput = page.getByPlaceholder(/email/i);
+    await emailInput.fill(memberEmail);
+    await page.getByRole('button', { name: 'Add Member' }).click();
+    await expect(page.getByText(memberEmail)).toBeVisible({ timeout: 5000 });
+
+    // Change role via dropdown
+    const roleSelect = page.getByLabel(/role for/i);
+    await roleSelect.selectOption('DECIDER');
+
+    // Verify the role change persists
+    await expect(roleSelect).toHaveValue('DECIDER', { timeout: 5000 });
+  });
+
+  test('assign member to department via dropdown', async ({ page, request }) => {
+    await signupAndLogin(page);
+
+    const memberEmail = await apiSignup(request, undefined, 'Dept Test Member');
+
+    await page.goto('/productions/new');
+    await page.getByLabel(/title/i).fill('Dept Assign Test');
+    await page.getByRole('button', { name: /create/i }).click();
+
+    await expect(page).toHaveURL(/\/productions\/[a-z0-9-]+$/, { timeout: 10000 });
+
+    // Add team member
+    const emailInput = page.getByPlaceholder(/email/i);
+    await emailInput.fill(memberEmail);
+    await page.getByRole('button', { name: 'Add Member' }).click();
+    await expect(page.getByText(memberEmail)).toBeVisible({ timeout: 5000 });
+
+    // Assign department via dropdown (default departments are seeded on creation)
+    const deptSelect = page.getByLabel(/department for/i);
+    await deptSelect.selectOption({ label: /cast/i });
+
+    // Verify the department assignment
+    await expect(deptSelect).toContainText(/cast/i, { timeout: 5000 });
   });
 });

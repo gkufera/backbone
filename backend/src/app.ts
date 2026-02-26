@@ -14,6 +14,7 @@ import { departmentsRouter } from './routes/departments';
 import { notificationsRouter } from './routes/notifications';
 import { notesRouter } from './routes/notes';
 import { directorNotesRouter } from './routes/director-notes';
+import { testSeedRouter } from './routes/test-seed';
 
 export function createApp() {
   const app = express();
@@ -49,6 +50,10 @@ export function createApp() {
   app.use(notificationsRouter);
   app.use(notesRouter);
   app.use(directorNotesRouter);
+
+  if (process.env.NODE_ENV === 'test') {
+    app.use(testSeedRouter);
+  }
 
   // Global error handler — safety net for any unhandled errors
   app.use((err: Error & { status?: number; type?: string }, _req: Request, res: Response, _next: NextFunction) => {
