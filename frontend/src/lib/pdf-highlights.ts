@@ -42,14 +42,28 @@ export function findTextInLayer(
   const spans = textLayerEl.querySelectorAll('span');
   const needle = searchText.toLowerCase();
 
+  // Collect all matching spans
+  const matches: HTMLElement[] = [];
   for (const span of spans) {
     const content = span.textContent?.toLowerCase() ?? '';
     if (content.includes(needle)) {
-      return span as HTMLElement;
+      matches.push(span as HTMLElement);
     }
   }
 
-  return null;
+  if (matches.length === 0) return null;
+
+  // Prefer exact match (case-insensitive)
+  const exactMatch = matches.find(
+    (span) => span.textContent?.toLowerCase() === needle,
+  );
+  if (exactMatch) return exactMatch;
+
+  // Otherwise return the most specific (shortest textContent) match
+  matches.sort(
+    (a, b) => (a.textContent?.length ?? 0) - (b.textContent?.length ?? 0),
+  );
+  return matches[0];
 }
 
 /**

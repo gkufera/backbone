@@ -209,11 +209,40 @@ export function ElementDetailPanel({
   }
 
   if (error && !element) {
-    return <div className="p-6 text-black font-bold font-mono">{error}</div>;
+    return (
+      <div className="p-6">
+        <p className="text-black font-bold font-mono mb-3">{error}</p>
+        <p className="text-sm font-mono mb-3">It may have been archived or removed.</p>
+        <button
+          onClick={() => {
+            setError(null);
+            setIsLoading(true);
+            loadData();
+          }}
+          className="mac-btn-secondary px-3 py-1 text-sm"
+        >
+          Refresh
+        </button>
+      </div>
+    );
   }
 
   if (!element) {
-    return <div className="p-6">Element not found.</div>;
+    return (
+      <div className="p-6">
+        <p className="font-mono">Element not found. It may have been archived.</p>
+        <button
+          onClick={() => {
+            setError(null);
+            setIsLoading(true);
+            loadData();
+          }}
+          className="mt-2 mac-btn-secondary px-3 py-1 text-sm"
+        >
+          Refresh
+        </button>
+      </div>
+    );
   }
 
   return (

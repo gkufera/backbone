@@ -54,6 +54,36 @@ describe('pdf-highlights utilities', () => {
       const result = findTextInLayer(layer, '');
       expect(result).toBeNull();
     });
+
+    it('returns the most specific (smallest) matching span when nested', () => {
+      // Create DOM with parent span containing child span
+      const container = document.createElement('div');
+      const parent = document.createElement('span');
+      parent.textContent = 'JOHN SMITH walks in';
+      const child = document.createElement('span');
+      child.textContent = 'JOHN';
+      container.appendChild(parent);
+      container.appendChild(child);
+
+      const result = findTextInLayer(container, 'JOHN');
+      expect(result).not.toBeNull();
+      // Should return the more specific (shorter) match
+      expect(result!.textContent).toBe('JOHN');
+    });
+
+    it('prefers exact text match over substring match', () => {
+      const container = document.createElement('div');
+      const longer = document.createElement('span');
+      longer.textContent = 'JOHN walks quietly';
+      const exact = document.createElement('span');
+      exact.textContent = 'JOHN';
+      container.appendChild(longer);
+      container.appendChild(exact);
+
+      const result = findTextInLayer(container, 'JOHN');
+      expect(result).not.toBeNull();
+      expect(result!.textContent).toBe('JOHN');
+    });
   });
 
   describe('applyHighlightStyle', () => {

@@ -343,6 +343,26 @@ describe('ElementDetailPanel', () => {
     });
   });
 
+  it('shows archived message and refresh button when element not found', async () => {
+    (elementsApi.list as ReturnType<typeof vi.fn>).mockResolvedValue({
+      elements: [], // Element not in list
+    });
+
+    render(
+      <ElementDetailPanel
+        elementId="elem-missing"
+        scriptId="script-1"
+        productionId="prod-1"
+        onBack={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/may have been archived/i)).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /refresh/i })).toBeInTheDocument();
+  });
+
   it('pressing Escape when no lightbox open calls onBack', async () => {
     const onBack = vi.fn();
     render(
