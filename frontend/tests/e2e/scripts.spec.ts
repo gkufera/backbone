@@ -11,8 +11,8 @@ test.describe('Script workflow', () => {
     await expect(page.getByRole('heading', { name: /upload script/i })).toBeVisible({
       timeout: 10000,
     });
-    // File input for PDF
-    await expect(page.getByLabel(/pdf file/i)).toBeVisible();
+    // File input for PDF or FDX
+    await expect(page.getByLabel(/script file/i)).toBeVisible();
     // Title field
     await expect(page.getByLabel(/title/i)).toBeVisible();
     // Upload button
@@ -56,7 +56,7 @@ test.describe('Script workflow', () => {
     await expect(page.getByRole('heading', { name: /upload new draft/i })).toBeVisible({
       timeout: 10000,
     });
-    await expect(page.getByLabel(/pdf file/i)).toBeVisible();
+    await expect(page.getByLabel(/script file/i)).toBeVisible();
   });
 
   test('element list shows all 5 elements', async ({ page, request }) => {
