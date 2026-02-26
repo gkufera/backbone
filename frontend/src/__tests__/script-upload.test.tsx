@@ -40,12 +40,12 @@ describe('Script upload page', () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: true });
   });
 
-  it('renders file input accepting PDFs', () => {
+  it('renders file input accepting both PDF and FDX files', () => {
     render(<ScriptUploadPage />);
 
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
     expect(fileInput).toBeInTheDocument();
-    expect(fileInput).toHaveAttribute('accept', 'application/pdf');
+    expect(fileInput).toHaveAttribute('accept', '.pdf,.fdx');
   });
 
   it('shows selected file name after selection', async () => {
@@ -53,22 +53,22 @@ describe('Script upload page', () => {
     render(<ScriptUploadPage />);
 
     const file = new File(['dummy'], 'test-script.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
     await user.upload(fileInput, file);
 
     expect(screen.getByText('test-script.pdf')).toBeInTheDocument();
   });
 
-  it('shows error for non-PDF files', async () => {
+  it('shows error for unsupported file types', async () => {
     render(<ScriptUploadPage />);
 
     const file = new File(['dummy'], 'test.doc', { type: 'application/msword' });
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
 
     // Use fireEvent to bypass accept attribute filtering
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/pdf/i);
+    expect(screen.getByRole('alert')).toHaveTextContent(/pdf|fdx/i);
   });
 
   it('calls upload flow on submit', async () => {
@@ -97,7 +97,7 @@ describe('Script upload page', () => {
     render(<ScriptUploadPage />);
 
     const file = new File(['dummy'], 'test-script.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
     await user.upload(fileInput, file);
 
     const titleInput = screen.getByLabelText(/title/i);
@@ -128,7 +128,7 @@ describe('Script upload page', () => {
     render(<ScriptUploadPage />);
 
     const file = new File(['dummy'], 'test-script.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
     await user.upload(fileInput, file);
 
     await user.click(screen.getByRole('button', { name: /upload/i }));
@@ -167,7 +167,7 @@ describe('Script upload page', () => {
     render(<ScriptUploadPage />);
 
     const file = new File(['dummy'], 'test-script.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
     await user.upload(fileInput, file);
 
     await user.click(screen.getByRole('button', { name: /upload/i }));
@@ -175,5 +175,68 @@ describe('Script upload page', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/productions/prod-1/scripts/script-1');
     });
+  });
+
+  it('auto-fills title from .fdx filename', async () => {
+    render(<ScriptUploadPage />);
+
+    const file = new File(['<FinalDraft/>'], 'my-screenplay.fdx', { type: 'application/xml' });
+    const fileInput = screen.getByLabelText(/script file/i);
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    const titleInput = screen.getByLabelText(/title/i) as HTMLInputElement;
+    expect(titleInput.value).toBe('my-screenplay');
+  });
+
+  it('sends correct contentType for FDX files', async () => {
+    const user = userEvent.setup();
+
+    mockedScriptsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'scripts/uuid/test.fdx',
+    });
+
+    mockedScriptsApi.create.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'test',
+        fileName: 'test.fdx',
+        s3Key: 'scripts/uuid/test.fdx',
+        pageCount: null,
+        status: 'PROCESSING',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<ScriptUploadPage />);
+
+    const file = new File(['<FinalDraft/>'], 'test.fdx', { type: 'application/xml' });
+    const fileInput = screen.getByLabelText(/script file/i);
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await user.click(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(mockedScriptsApi.getUploadUrl).toHaveBeenCalledWith(
+        'test.fdx',
+        'application/xml',
+      );
+    });
+  });
+
+  it('shows FDX accuracy info text when FDX selected', async () => {
+    render(<ScriptUploadPage />);
+
+    const file = new File(['<FinalDraft/>'], 'test.fdx', { type: 'application/xml' });
+    const fileInput = screen.getByLabelText(/script file/i);
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    expect(screen.getByText(/significantly more accurate/i)).toBeInTheDocument();
   });
 });
