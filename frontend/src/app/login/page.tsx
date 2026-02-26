@@ -21,6 +21,16 @@ export default function LoginPage() {
     setError('');
     setNeedsVerification(false);
     setResendMessage('');
+
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
+    if (!password) {
+      setError('Password is required');
+      return;
+    }
+
     setLoading(true);
 
     try {

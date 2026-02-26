@@ -17,6 +17,20 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+
+    if (!name.trim()) {
+      setError('Name is required');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
+    if (!password) {
+      setError('Password is required');
+      return;
+    }
+
     setLoading(true);
 
     try {

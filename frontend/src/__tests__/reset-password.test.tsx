@@ -37,6 +37,28 @@ describe('Reset password page', () => {
     expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument();
   });
 
+  it('shows error when submitting with empty password', async () => {
+    const user = userEvent.setup();
+    render(<ResetPasswordPage />);
+
+    await user.click(screen.getByRole('button', { name: /reset password/i }));
+
+    expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    expect(mockedAuthApi.resetPassword).not.toHaveBeenCalled();
+  });
+
+  it('shows error when submitting with mismatched passwords', async () => {
+    const user = userEvent.setup();
+    render(<ResetPasswordPage />);
+
+    await user.type(screen.getByLabelText(/new password/i), 'newpassword123');
+    await user.type(screen.getByLabelText(/confirm password/i), 'differentpassword');
+    await user.click(screen.getByRole('button', { name: /reset password/i }));
+
+    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+    expect(mockedAuthApi.resetPassword).not.toHaveBeenCalled();
+  });
+
   it('shows success message after valid reset', async () => {
     const user = userEvent.setup();
 

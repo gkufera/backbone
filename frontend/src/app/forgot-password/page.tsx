@@ -16,6 +16,12 @@ export default function ForgotPasswordPage() {
     setError('');
     setSuccess('');
     setEmailWarning('');
+
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
+
     setLoading(true);
 
     try {

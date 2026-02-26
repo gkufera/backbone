@@ -73,6 +73,28 @@ describe('Login page', () => {
     expect(screen.getByRole('link', { name: /forgot password/i })).toBeInTheDocument();
   });
 
+  it('shows error when submitting with empty email', async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/password/i), 'somepassword');
+    await user.click(screen.getByRole('button', { name: /log in/i }));
+
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+    expect(mockLogin).not.toHaveBeenCalled();
+  });
+
+  it('shows error when submitting with empty password', async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: /log in/i }));
+
+    expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    expect(mockLogin).not.toHaveBeenCalled();
+  });
+
   it('calls auth context login and redirects to /productions on submit', async () => {
     const user = userEvent.setup();
 

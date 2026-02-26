@@ -19,6 +19,11 @@ function ResetPasswordForm() {
     setError('');
     setSuccess('');
 
+    if (!newPassword) {
+      setError('Password is required');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;

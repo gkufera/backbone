@@ -46,6 +46,42 @@ describe('Signup page', () => {
     expect(screen.getByRole('link', { name: /log in/i })).toBeInTheDocument();
   });
 
+  it('shows error when submitting with empty name', async () => {
+    const user = userEvent.setup();
+    render(<SignupPage />);
+
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/password/i), 'securepassword123');
+    await user.click(screen.getByRole('button', { name: /sign up/i }));
+
+    expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+    expect(mockSignup).not.toHaveBeenCalled();
+  });
+
+  it('shows error when submitting with empty email', async () => {
+    const user = userEvent.setup();
+    render(<SignupPage />);
+
+    await user.type(screen.getByLabelText(/name/i), 'Test User');
+    await user.type(screen.getByLabelText(/password/i), 'securepassword123');
+    await user.click(screen.getByRole('button', { name: /sign up/i }));
+
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+    expect(mockSignup).not.toHaveBeenCalled();
+  });
+
+  it('shows error when submitting with empty password', async () => {
+    const user = userEvent.setup();
+    render(<SignupPage />);
+
+    await user.type(screen.getByLabelText(/name/i), 'Test User');
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: /sign up/i }));
+
+    expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    expect(mockSignup).not.toHaveBeenCalled();
+  });
+
   it('calls auth context signup and redirects to /verify-email-sent on submit', async () => {
     const user = userEvent.setup();
 

@@ -34,6 +34,16 @@ describe('Forgot password page', () => {
     expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
   });
 
+  it('shows error when submitting with empty email', async () => {
+    const user = userEvent.setup();
+    render(<ForgotPasswordPage />);
+
+    await user.click(screen.getByRole('button', { name: /send reset link/i }));
+
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+    expect(mockedAuthApi.forgotPassword).not.toHaveBeenCalled();
+  });
+
   it('shows success message when emailSent is true', async () => {
     const user = userEvent.setup();
 
