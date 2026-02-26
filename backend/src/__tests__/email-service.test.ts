@@ -5,7 +5,9 @@ const { mockSend } = vi.hoisted(() => ({
   mockSend: vi.fn(),
 }));
 vi.mock('resend', () => ({
-  Resend: vi.fn(() => ({ emails: { send: mockSend } })),
+  Resend: vi.fn(function () {
+    return { emails: { send: mockSend } };
+  }),
 }));
 
 import { sendEmail, sendDigestEmail } from '../services/email-service';
@@ -24,14 +26,14 @@ describe('Email Service', () => {
 
   it('sends email via Resend API when EMAIL_ENABLED is true', async () => {
     process.env.EMAIL_ENABLED = 'true';
-    process.env.EMAIL_FROM = 'noreply@slugmax.com';
+    process.env.EMAIL_FROM = 'no-reply@slugmax.com';
     process.env.RESEND_API_KEY = 're_test_123';
     mockSend.mockResolvedValue({ id: 'msg-1' });
 
     await sendEmail('recipient@example.com', 'Test Subject', '<p>Hello</p>');
 
     expect(mockSend).toHaveBeenCalledWith({
-      from: 'noreply@slugmax.com',
+      from: 'no-reply@slugmax.com',
       to: 'recipient@example.com',
       subject: 'Test Subject',
       html: '<p>Hello</p>',
@@ -58,7 +60,7 @@ describe('sendDigestEmail', () => {
     vi.clearAllMocks();
     process.env = { ...originalEnv };
     process.env.EMAIL_ENABLED = 'true';
-    process.env.EMAIL_FROM = 'noreply@slugmax.com';
+    process.env.EMAIL_FROM = 'no-reply@slugmax.com';
     process.env.RESEND_API_KEY = 're_test_123';
     process.env.FRONTEND_URL = 'https://slugmax.com';
     mockSend.mockResolvedValue({ id: 'msg-digest' });

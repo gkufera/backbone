@@ -29,7 +29,7 @@ export async function sendEmail(
 
   const client = getResendClient();
   await client.emails.send({
-    from: process.env.EMAIL_FROM ?? 'noreply@slugmax.com',
+    from: process.env.EMAIL_FROM ?? 'no-reply@slugmax.com',
     to,
     subject,
     html,
