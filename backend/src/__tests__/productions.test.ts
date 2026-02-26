@@ -178,6 +178,54 @@ describe('POST /api/productions', () => {
     });
   });
 
+  it('does not update member department when Production Office not found', async () => {
+    const mockProduction = {
+      id: 'prod-1',
+      title: 'My Film',
+      description: null,
+      createdById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockMember = {
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockMemberUpdate = vi.fn().mockResolvedValue(mockMember);
+
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn({
+        production: {
+          create: vi.fn().mockResolvedValue(mockProduction),
+        },
+        productionMember: {
+          create: vi.fn().mockResolvedValue(mockMember),
+          update: mockMemberUpdate,
+        },
+        department: {
+          create: vi.fn(),
+          findFirst: vi.fn().mockResolvedValue(null),
+        },
+      });
+    });
+
+    const res = await request(app)
+      .post('/api/productions')
+      .set(authHeader())
+      .send({ title: 'My Film' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.production.title).toBe('My Film');
+    // Member should NOT be updated when Production Office department is null
+    expect(mockMemberUpdate).not.toHaveBeenCalled();
+  });
+
   it('returns 201 with production including description', async () => {
     const mockProduction = {
       id: 'prod-1',
