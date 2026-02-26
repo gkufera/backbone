@@ -60,9 +60,17 @@
 - [x] Write failing test for updated settings text
 - [x] Update settings page notification description text
 - [x] Run Tier 1 tests (465 frontend + 454 backend = 919 pass)
-- [ ] Update roadmap.md with completed items and test counts
-- [ ] COMMIT
-- [ ] Deploy to production
+- [x] Update roadmap.md with completed items and test counts
+- [x] COMMIT (686b15c)
+- [x] Deploy to production
+
+### Sprint 28 Check — Quality Review
+- [x] Fix race condition in batch processor — mutex flag prevents concurrent execution (351a0f9)
+- [x] Delete dead code `sendNotificationEmail()` — removed function + cleaned 5 mock files (3ffee9e)
+- [x] HTML-escape digest email content — `escapeHtml()` applied to messages and production names (2add09e)
+- [x] Add graceful shutdown — SIGTERM handler stops batch processor + HTTP server (2e48e93)
+- [x] Add missing frontend tests — optimistic revert + dashboard integration (43b0315)
+- [x] Update PLAN.md and roadmap with final test counts (467 frontend + 456 backend = 923 pass)
 
 ---
 

@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 465 frontend + 454 backend = 919 unit/integration, 57 E2E
+**Test counts:** 467 frontend + 456 backend = 923 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
