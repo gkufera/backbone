@@ -18,6 +18,6 @@ export type { Approval } from './approval';
 export { NotificationType, ScopeFilter } from './notification';
 export type { Notification, NotificationPreference } from './notification';
 
-export type { Note } from './note';
+export type { Note, NoteAttachment, NoteAttachmentInput } from './note';
 
 export type { DirectorNote } from './director-note';

@@ -7,3 +7,18 @@ export interface Note {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface NoteAttachment {
+  id: string;
+  noteId: string;
+  s3Key: string;
+  fileName: string;
+  mediaType: string;
+  createdAt: Date;
+}
+
+export interface NoteAttachmentInput {
+  s3Key: string;
+  fileName: string;
+  mediaType: string;
+}

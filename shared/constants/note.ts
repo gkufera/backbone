@@ -1,1 +1,2 @@
 export const NOTE_CONTENT_MAX_LENGTH = 2000;
+export const NOTE_MAX_ATTACHMENTS = 5;

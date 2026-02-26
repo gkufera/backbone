@@ -28,4 +28,4 @@ export {
   CATEGORY_TO_PREF_FIELD,
 } from './notification';
 export type { NotificationCategory } from './notification';
-export { NOTE_CONTENT_MAX_LENGTH } from './note';
+export { NOTE_CONTENT_MAX_LENGTH, NOTE_MAX_ATTACHMENTS } from './note';
