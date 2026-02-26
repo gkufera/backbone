@@ -5,8 +5,8 @@ import { signToken } from '../lib/jwt';
 
 // Mock email service
 vi.mock('../services/email-service', () => ({
-  sendEmail: vi.fn(),
-  sendNotificationEmail: vi.fn(),
+  sendEmail: vi.fn().mockResolvedValue(undefined),
+  sendNotificationEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock SMS service
@@ -680,6 +680,39 @@ describe('POST /api/auth/resend-verification', () => {
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/check your email/i);
     expect(mockedSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('returns 200 immediately even when email sending is slow', async () => {
+    const mockUser = {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      passwordHash: 'hashed-pw',
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
+    mockedPrisma.emailVerificationToken.create.mockResolvedValue({
+      id: 'vtoken-3',
+      userId: 'user-1',
+      token: 'verify-token',
+      expiresAt: new Date(Date.now() + 86400000),
+      usedAt: null,
+      createdAt: new Date(),
+    } as any);
+
+    // Simulate slow email — never resolves during request
+    mockedSendEmail.mockImplementation(() => new Promise(() => {}));
+
+    const res = await request(app).post('/api/auth/resend-verification').send({
+      email: 'test@example.com',
+    });
+
+    // Should still return 200 immediately (fire-and-forget email)
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/check your email/i);
   });
 
   it('returns 200 but does not send email for already-verified user', async () => {

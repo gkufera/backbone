@@ -70,11 +70,11 @@ authRouter.post('/api/auth/signup', async (req, res) => {
       });
 
       const verifyUrl = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
-      await sendEmail(
+      sendEmail(
         user.email,
         'Verify your Slug Max email',
         `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
-      );
+      ).catch((err) => console.error('Failed to send verification email:', err));
     }
 
     res.status(201).json({
@@ -318,11 +318,11 @@ authRouter.post('/api/auth/resend-verification', async (req, res) => {
       });
 
       const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
-      await sendEmail(
+      sendEmail(
         user.email,
         'Verify your Slug Max email',
         `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
-      );
+      ).catch((err) => console.error('Failed to send verification email:', err));
     }
 
     // Always return 200 to not leak whether email exists
@@ -357,11 +357,11 @@ authRouter.post('/api/auth/forgot-password', async (req, res) => {
       });
 
       const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
-      await sendEmail(
+      sendEmail(
         user.email,
         'Reset your Slug Max password',
         `<p>Click the link below to reset your password:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>This link expires in ${VALIDATION.PASSWORD_RESET_TOKEN_EXPIRY_HOURS} hour(s).</p>`,
-      );
+      ).catch((err) => console.error('Failed to send password reset email:', err));
     }
 
     // Always return 200 to not leak whether email exists

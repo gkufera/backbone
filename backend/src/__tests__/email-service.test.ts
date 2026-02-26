@@ -1,12 +1,16 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 // Mock nodemailer before importing email service
-const mockSendMail = vi.fn();
+const { mockSendMail, mockCreateTransport } = vi.hoisted(() => {
+  const mockSendMail = vi.fn();
+  const mockCreateTransport = vi.fn(() => ({
+    sendMail: mockSendMail,
+  }));
+  return { mockSendMail, mockCreateTransport };
+});
 vi.mock('nodemailer', () => ({
   default: {
-    createTransport: vi.fn(() => ({
-      sendMail: mockSendMail,
-    })),
+    createTransport: mockCreateTransport,
   },
 }));
 
@@ -54,6 +58,25 @@ describe('Email Service', () => {
       expect.stringContaining('[Email]'),
     );
     consoleSpy.mockRestore();
+  });
+
+  it('creates transport with secure: false for STARTTLS on port 587', async () => {
+    process.env.EMAIL_ENABLED = 'true';
+    process.env.SMTP_HOST = 'email-smtp.us-east-1.amazonaws.com';
+    process.env.SMTP_PORT = '587';
+    process.env.SMTP_USER = 'AKIA123';
+    process.env.SMTP_PASS = 'secret';
+    mockSendMail.mockResolvedValue({ messageId: 'msg-3' });
+
+    await sendEmail('test@example.com', 'Test', '<p>Hi</p>');
+
+    expect(mockCreateTransport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        host: 'email-smtp.us-east-1.amazonaws.com',
+        port: 587,
+        secure: false,
+      }),
+    );
   });
 
   it('formats notification email correctly', async () => {
