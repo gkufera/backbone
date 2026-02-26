@@ -17,8 +17,12 @@ function VerifyEmailSentContent() {
     setResendMessage('');
 
     try {
-      await authApi.resendVerification(email);
-      setResendMessage('Verification email sent! Check your inbox.');
+      const result = await authApi.resendVerification(email);
+      if (result.emailSent) {
+        setResendMessage('Verification email sent! Check your inbox.');
+      } else {
+        setResendMessage('Email could not be sent. Please contact support.');
+      }
     } catch {
       setResendMessage('Failed to resend. Please try again.');
     } finally {

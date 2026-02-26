@@ -34,22 +34,37 @@ describe('Verify email sent page', () => {
     expect(screen.getByText(/verification link/i)).toBeInTheDocument();
   });
 
-  it('has a resend verification button', async () => {
+  it('shows success message when resend succeeds (emailSent: true)', async () => {
     const user = userEvent.setup();
 
     mockedAuthApi.resendVerification.mockResolvedValue({
       message: 'If that email exists, check your email for a verification link',
+      emailSent: true,
     });
 
     render(<VerifyEmailSentPage />);
 
     const resendBtn = screen.getByRole('button', { name: /resend/i });
-    expect(resendBtn).toBeInTheDocument();
-
     await user.click(resendBtn);
 
     expect(mockedAuthApi.resendVerification).toHaveBeenCalledWith('test@example.com');
     expect(await screen.findByText(/Verification email sent/i)).toBeInTheDocument();
+  });
+
+  it('shows warning message when email send fails (emailSent: false)', async () => {
+    const user = userEvent.setup();
+
+    mockedAuthApi.resendVerification.mockResolvedValue({
+      message: 'If that email exists, check your email for a verification link',
+      emailSent: false,
+    });
+
+    render(<VerifyEmailSentPage />);
+
+    const resendBtn = screen.getByRole('button', { name: /resend/i });
+    await user.click(resendBtn);
+
+    expect(await screen.findByText(/could not be sent/i)).toBeInTheDocument();
   });
 
   it('has a link to login', () => {

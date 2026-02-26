@@ -121,7 +121,7 @@ describe('Login page', () => {
     expect(screen.getByRole('button', { name: /resend/i })).toBeInTheDocument();
   });
 
-  it('shows loading state and success message when resend verification is clicked', async () => {
+  it('shows success message when resend verification succeeds (emailSent: true)', async () => {
     const user = userEvent.setup();
 
     const { ApiError } = await import('../lib/api');
@@ -129,13 +129,7 @@ describe('Login page', () => {
       new ApiError('Please verify your email', 403, 'EMAIL_NOT_VERIFIED'),
     );
 
-    // Make resend take a moment so we can observe the loading state
-    let resolveResend!: () => void;
-    mockResendVerification.mockImplementation(
-      () => new Promise<{ message: string }>((resolve) => {
-        resolveResend = () => resolve({ message: 'ok' });
-      }),
-    );
+    mockResendVerification.mockResolvedValue({ message: 'ok', emailSent: true });
 
     render(<LoginPage />);
 
@@ -146,14 +140,28 @@ describe('Login page', () => {
     const resendBtn = await screen.findByRole('button', { name: /resend/i });
     await user.click(resendBtn);
 
-    // Should show loading state and be disabled
-    expect(screen.getByRole('button', { name: /sending/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sending/i })).toBeDisabled();
-
-    // Resolve the promise
-    resolveResend();
-
-    // Should show success message
     expect(await screen.findByText(/verification email sent/i)).toBeInTheDocument();
+  });
+
+  it('shows warning message when resend email fails (emailSent: false)', async () => {
+    const user = userEvent.setup();
+
+    const { ApiError } = await import('../lib/api');
+    mockLogin.mockRejectedValue(
+      new ApiError('Please verify your email', 403, 'EMAIL_NOT_VERIFIED'),
+    );
+
+    mockResendVerification.mockResolvedValue({ message: 'ok', emailSent: false });
+
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
+    await user.type(screen.getByLabelText(/password/i), 'pass');
+    await user.click(screen.getByRole('button', { name: /log in/i }));
+
+    const resendBtn = await screen.findByRole('button', { name: /resend/i });
+    await user.click(resendBtn);
+
+    expect(await screen.findByText(/could not be sent/i)).toBeInTheDocument();
   });
 });

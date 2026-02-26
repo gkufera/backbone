@@ -463,8 +463,8 @@ export const authApi = {
     });
   },
 
-  resendVerification(email: string): Promise<{ message: string }> {
-    return request<{ message: string }>('/api/auth/resend-verification', {
+  resendVerification(email: string): Promise<{ message: string; emailSent: boolean }> {
+    return request<{ message: string; emailSent: boolean }>('/api/auth/resend-verification', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
