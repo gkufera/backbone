@@ -84,7 +84,9 @@ test.describe('Production flow', () => {
     await deptInput.fill('Custom Department');
     await page.getByRole('button', { name: /add department/i }).click();
 
-    await expect(page.locator('li', { hasText: 'Custom Department' })).toBeVisible({ timeout: 5000 });
+    // Scope to the Departments section to avoid matching member row <option> elements
+    const deptSection = page.locator('section', { hasText: 'Departments' }).first();
+    await expect(deptSection.locator('li', { hasText: 'Custom Department' })).toBeVisible({ timeout: 5000 });
   });
 
   test('delete department → removed from list', async ({ page }) => {
@@ -100,7 +102,10 @@ test.describe('Production flow', () => {
     const deptInput = page.getByPlaceholder(/department/i);
     await deptInput.fill('Temp Department');
     await page.getByRole('button', { name: /add department/i }).click();
-    const deptRow = page.locator('li', { hasText: 'Temp Department' });
+
+    // Scope to the Departments section to avoid matching member row <option> elements
+    const deptSection = page.locator('section', { hasText: 'Departments' }).first();
+    const deptRow = deptSection.locator('li', { hasText: 'Temp Department' });
     await expect(deptRow).toBeVisible({ timeout: 5000 });
 
     // Find and click the delete button for the newly created department

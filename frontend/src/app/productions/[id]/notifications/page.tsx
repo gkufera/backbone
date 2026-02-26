@@ -34,19 +34,15 @@ export default function NotificationsPage() {
     }
   }
 
-  if (isLoading) {
-    return <div className="p-6"><SkeletonCard /></div>;
-  }
-
-  if (error) {
-    return <div className="p-6 text-black font-bold">{error}</div>;
-  }
-
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="mb-6 text-3xl">Notifications</h1>
 
-      {notifications.length === 0 ? (
+      {isLoading ? (
+        <SkeletonCard />
+      ) : error ? (
+        <p className="text-black font-bold">{error}</p>
+      ) : notifications.length === 0 ? (
         <p className="text-black">No notifications yet.</p>
       ) : (
         <ul className="divide-y divide-black">
