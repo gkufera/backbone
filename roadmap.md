@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access DENIED (case #177205820000226) — API blocks resubmission after denial, must refile via AWS Console with stronger justification. Backup plan: Resend.com if SES denied again. Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell+slugmax@gmail.com. |
+| Resend             | Running    | Replaced AWS SES (Sprint 29). Domain `slugmax.com` verified. Using Resend SDK over HTTPS. From: no-reply@slugmax.com. |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
@@ -130,7 +130,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 29: Switch Email from SES to Resend (URGENT)
+## Sprint 29: Switch Email from SES to Resend (DONE)
 
 **Goal:** Replace AWS SES with Resend for all transactional email. SES production access was rejected.
 
@@ -139,14 +139,15 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Resend API key added to server container env (`~/.config/cm/env`)
 - [x] `api.resend.com` added to container firewall allowed domains
 
-**Code changes needed:**
-- [ ] `npm install resend` in backend, `npm uninstall @aws-sdk/client-sesv2`
-- [ ] Rewrite `email-service.ts` — replace SES client with Resend client (`new Resend(process.env.RESEND_API_KEY)`, call `resend.emails.send()`)
-- [ ] Update `.env.example` — add `RESEND_API_KEY`, keep AWS creds (still needed for S3)
-- [ ] Update tests that mock `@aws-sdk/client-sesv2` to mock `resend` instead
-- [ ] Update roadmap infrastructure table status to Running after deploy
+**Code changes:**
+- [x] `npm install resend` in backend, `npm uninstall @aws-sdk/client-sesv2`
+- [x] Rewrite `email-service.ts` — replace SES client with Resend client (`new Resend(process.env.RESEND_API_KEY)`, call `resend.emails.send()`)
+- [x] Update `.env.example` — add `RESEND_API_KEY`, keep AWS creds (still needed for S3)
+- [x] Update tests that mock `@aws-sdk/client-sesv2` to mock `resend` instead
+- [x] Update roadmap infrastructure table status to Running after deploy
 - [x] Verify domain `slugmax.com` in Resend dashboard (DNS records added in Cloudflare, status: verified)
-- [ ] Deploy and test end-to-end email delivery
+- [x] Change from address to `no-reply@slugmax.com` globally
+- [x] Deploy and test end-to-end email delivery
 
 ---
 
@@ -183,7 +184,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Fix design system test regex whitespace (line 171 space before `.test()`)
 - [ ] Custom MAIL FROM domain for full DMARC alignment (deferred — AWS console work, not code)
 - [ ] Performance audit (deferred — requires manual Lighthouse browser testing)
-- [ ] SES production access refile — case #177205820000226 denied, API blocks resubmission, must refile via AWS Console (backup: Resend.com)
+- [x] ~~SES production access refile~~ — No longer needed, switched to Resend (Sprint 29)
 - [x] Design system compliance tests: no native `title` tooltips, all forms use `noValidate`, `.mac-alert-error` has solid text background
 
 ---
