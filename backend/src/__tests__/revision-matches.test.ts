@@ -10,6 +10,9 @@ vi.mock('../lib/prisma', () => ({
     user: {
       findUnique: vi.fn(),
     },
+    production: {
+      findUnique: vi.fn(),
+    },
     productionMember: {
       findUnique: vi.fn(),
     },
@@ -67,6 +70,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 201 with correct version/parentScriptId', async () => {

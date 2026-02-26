@@ -11,6 +11,7 @@ import { ScriptStatus, ElementStatus, NotificationType, OptionStatus, ApprovalDe
 import type { SceneInfo } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
 import { generateImpliedElements } from '../services/implied-elements';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const scriptsRouter = Router();
 
@@ -63,6 +64,9 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(id, res))) return;
 
     if (!title || !fileName || !s3Key) {
       res.status(400).json({ error: 'title, fileName, and s3Key are required' });
@@ -245,6 +249,9 @@ scriptsRouter.post(
         res.status(403).json({ error: 'You are not a member of this production' });
         return;
       }
+
+      // Block mutations on PENDING productions
+      if (!(await requireActiveProduction(id, res))) return;
 
       // Find parent script
       const parentScript = await prisma.script.findUnique({

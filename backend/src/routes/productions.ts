@@ -16,6 +16,7 @@ import {
 import { MemberRole, NotificationType, ElementStatus, ElementWorkflowState } from '@backbone/shared/types';
 import { createNotification } from '../services/notification-service';
 import { sendProductionApprovalEmail, sendProductionApprovedEmail } from '../services/email-service';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const productionsRouter = Router();
 
@@ -339,6 +340,9 @@ productionsRouter.patch('/api/productions/:id', requireAuth, async (req, res) =>
       return;
     }
 
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(id, res))) return;
+
     if (!title || !String(title).trim()) {
       res.status(400).json({ error: 'Title is required' });
       return;
@@ -389,6 +393,9 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
       res.status(403).json({ error: 'Only ADMIN or DECIDER can add members' });
       return;
     }
+
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(id, res))) return;
 
     if (!email) {
       res.status(400).json({ error: 'Email is required' });
@@ -524,6 +531,9 @@ productionsRouter.delete(
         return;
       }
 
+      // Block mutations on PENDING productions
+      if (!(await requireActiveProduction(id, res))) return;
+
       // Find the member to remove
       const memberToRemove = await prisma.productionMember.findMany({
         where: { id: memberId, productionId: id },
@@ -585,6 +595,9 @@ productionsRouter.patch(
         res.status(403).json({ error: 'Only ADMIN or DECIDER can change member roles' });
         return;
       }
+
+      // Block mutations on PENDING productions
+      if (!(await requireActiveProduction(id, res))) return;
 
       // Find the target member
       const targetMember = await prisma.productionMember.findUnique({
@@ -673,6 +686,9 @@ productionsRouter.patch(
         res.status(403).json({ error: 'Only ADMIN or DECIDER can set member departments' });
         return;
       }
+
+      // Block mutations on PENDING productions
+      if (!(await requireActiveProduction(id, res))) return;
 
       // Find the target member
       const targetMember = await prisma.productionMember.findUnique({

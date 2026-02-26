@@ -455,6 +455,8 @@ describe('PATCH /api/productions/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    // requireActiveProduction check
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns updated production for ADMIN', async () => {
@@ -617,10 +619,11 @@ describe('POST /api/productions/:id/members — notification', () => {
         email: 'invited@example.com',
       } as any);
 
-    // Production lookup for title
+    // Production lookup (first for requireActiveProduction, then for title)
     mockedPrisma.production.findUnique.mockResolvedValue({
       id: 'prod-1',
       title: 'My Film',
+      status: 'ACTIVE',
     } as any);
 
     // Create member
@@ -987,5 +990,64 @@ describe('POST /api/productions/approve', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/token.*required/i);
+  });
+});
+
+describe('Mutation blocking on PENDING productions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+  });
+
+  it('POST /api/productions/:id/members returns 403 when PENDING', async () => {
+    // Membership check passes
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1', productionId: 'prod-1', userId: 'user-1', role: 'ADMIN',
+    } as any);
+    // Production is PENDING
+    mockedPrisma.production.findUnique.mockResolvedValue({
+      id: 'prod-1', title: 'Film', status: 'PENDING',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/members')
+      .set(authHeader())
+      .send({ email: 'new@example.com' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
+  });
+
+  it('PATCH /api/productions/:id returns 403 when PENDING', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1', productionId: 'prod-1', userId: 'user-1', role: 'ADMIN',
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({
+      id: 'prod-1', title: 'Film', status: 'PENDING',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/productions/prod-1')
+      .set(authHeader())
+      .send({ title: 'New Title' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/pending/i);
+  });
+
+  it('GET /api/productions/:id returns 200 when PENDING', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1', productionId: 'prod-1', userId: 'user-1', role: 'ADMIN',
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({
+      id: 'prod-1', title: 'Film', status: 'PENDING',
+      members: [], scripts: [], departments: [],
+    } as any);
+
+    const res = await request(app)
+      .get('/api/productions/prod-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
   });
 });

@@ -4,6 +4,7 @@ import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { parsePagination } from '../lib/pagination';
 import { MemberRole } from '@backbone/shared/types';
 import { DEPARTMENT_NAME_MAX_LENGTH } from '@backbone/shared/constants';
+import { requireActiveProduction } from '../lib/require-active-production';
 
 const departmentsRouter = Router();
 
@@ -74,6 +75,9 @@ departmentsRouter.post('/api/productions/:id/departments', requireAuth, async (r
       return;
     }
 
+    // Block mutations on PENDING productions
+    if (!(await requireActiveProduction(id, res))) return;
+
     if (!name || !String(name).trim()) {
       res.status(400).json({ error: 'Department name is required' });
       return;
@@ -131,6 +135,9 @@ departmentsRouter.delete(
         res.status(403).json({ error: 'Only ADMIN or DECIDER can delete departments' });
         return;
       }
+
+      // Block mutations on PENDING productions
+      if (!(await requireActiveProduction(id, res))) return;
 
       // Verify department belongs to this production
       const department = await prisma.department.findUnique({
@@ -193,6 +200,9 @@ departmentsRouter.patch(
         res.status(403).json({ error: 'Only ADMIN or DECIDER can update departments' });
         return;
       }
+
+      // Block mutations on PENDING productions
+      if (!(await requireActiveProduction(id, res))) return;
 
       const department = await prisma.department.findUnique({
         where: { id: departmentId, productionId: id },

@@ -149,6 +149,7 @@ describe('ProductionMember soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('DELETE /api/productions/:id/members/:memberId sets deletedAt', async () => {
@@ -199,6 +200,7 @@ describe('Department soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('DELETE /api/productions/:id/departments/:departmentId sets deletedAt', async () => {
@@ -248,6 +250,7 @@ describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('GET /api/productions/:id excludes soft-deleted members', async () => {

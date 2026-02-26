@@ -138,6 +138,7 @@ describe('POST /api/productions/:id/scripts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 201 with script record (status: PROCESSING)', async () => {
@@ -195,7 +196,7 @@ describe('POST /api/productions/:id/scripts', () => {
 
   it('returns 403 when not a production member', async () => {
     mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
-    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1' } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
 
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
@@ -814,6 +815,7 @@ describe('POST /api/productions/:id/scripts — notification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('triggers SCRIPT_UPLOADED notification to all production members', async () => {

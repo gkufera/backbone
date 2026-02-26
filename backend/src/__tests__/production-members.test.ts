@@ -54,6 +54,7 @@ describe('POST /api/productions/:id/members', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', title: 'Test Film', status: 'ACTIVE' } as any);
   });
 
   it('returns 201 when adding existing user by email', async () => {
@@ -387,6 +388,7 @@ describe('DELETE /api/productions/:id/members/:memberId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('returns 200 when removing a member', async () => {
@@ -504,6 +506,7 @@ describe('PATCH /api/productions/:id/members/:memberId/role', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('ADMIN can change a member role to DECIDER', async () => {
@@ -835,6 +838,7 @@ describe('PATCH /api/productions/:id/members/:memberId/department', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
   it('ADMIN can set a member department', async () => {
