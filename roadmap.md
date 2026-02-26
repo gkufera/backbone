@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 435 frontend + 427 backend = 862 unit/integration, 57 E2E
+**Test counts:** 450 frontend + 428 backend = 878 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -71,38 +71,21 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 26: UI Fixes & Polish ← NEXT
+## Sprint 26: UI Fixes & Polish (DONE)
 
 **Goal:** Fix every user-reported UI bug and polish issue. Make the app feel solid for real users.
 
-- [ ] Fix element name invisible on active row — add explicit `text-white` to Link when `isActive`
-  - `frontend/src/components/element-list.tsx:263`
-- [ ] Fix element list click to open side panel, not full page — use `onElementClick` callback instead of `<Link>` when handler prop is provided
-  - `frontend/src/components/element-list.tsx:261-266`
-- [ ] Fix PDF highlight bugs:
-  - Improve `findTextInLayer()` to match most specific (smallest) span, not first match
-  - Use exact text matching before substring fallback
-  - Handle "element not found" gracefully (show refresh prompt instead of error)
-  - `frontend/src/lib/pdf-highlights.ts:36-53`
-  - `frontend/src/components/element-detail-panel.tsx:69-79`
-- [ ] Fix OUTSTANDING badge to be visually distinct from APPROVED — create hatched/striped pattern badge (different from rejected's diagonal stripes)
-  - `frontend/src/app/globals.css` — new pattern for `.badge-ready` or rename to use distinct class
-  - `frontend/src/app/productions/[id]/page.tsx:263`
-- [ ] Fix productions page spacing — add `gap-4` between heading and button, use `max-w-3xl`
-  - `frontend/src/app/productions/page.tsx:34-35`
-- [ ] Fix footer sticking — prevent full-height pages from pushing footer below viewport
-  - `frontend/src/app/layout.tsx:38-41`
-- [ ] Fix sort/filter button active state — always include `border-2 border-black` on active buttons
-  - `frontend/src/components/element-list.tsx:137-150`
-- [ ] Change DECIDER tooltip: "You make approvals based on options other users present to you." + fix "i" button rendering as uppercase "I" (add `lowercase` class override)
-  - `frontend/src/components/permissions-tooltip.tsx:11, 34`
-- [ ] Remove "Title (optional)" from invite form, support comma/whitespace-separated multi-email invite
-  - `frontend/src/app/productions/[id]/page.tsx:343-362`
-- [ ] Add default departments: "Director", "Producer", "Production Office" with colors
-  - `shared/constants/departments.ts:3-33`
-  - Update test: `backend/src/__tests__/productions.test.ts:108` (expects 13 → 16 departments)
-- [ ] Auto-assign production creator to "Production Office" department
-  - `backend/src/routes/productions.ts:36-65` — after seeding depts, find Production Office dept, update member's departmentId
+- [x] Fix element name invisible on active row — add explicit `text-white` to Link when `isActive`
+- [x] Fix sort/filter button active state — always include `border-2 border-black` on active buttons
+- [x] Fix element list click to open side panel, not full page — use `onElementClick` callback instead of `<Link>` when handler prop is provided
+- [x] Fix OUTSTANDING badge to be visually distinct from APPROVED — horizontal stripe pattern (`.badge-outstanding-review`)
+- [x] Fix productions page spacing — add `gap-4` between heading and button, use `max-w-3xl`
+- [x] Fix footer sticking — add `min-h-0` to main, change script viewer from fixed calc to `flex-1`
+- [x] Change DECIDER tooltip text + fix lowercase "i" button (add `normal-case`)
+- [x] Remove "Title (optional)" from invite form, support comma/whitespace-separated multi-email invite
+- [x] Fix PDF highlight specificity — prefer smallest matching span, graceful "archived" error message
+- [x] Add default departments: "Director", "Producer", "Production Office" with colors
+- [x] Auto-assign production creator to "Production Office" department
 
 ---
 
