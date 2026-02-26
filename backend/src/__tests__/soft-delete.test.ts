@@ -50,10 +50,6 @@ vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn(),
 }));
 
-vi.mock('../services/sms-service', () => ({
-  sendSms: vi.fn(),
-}));
-
 vi.mock('../services/pdf-parser', () => ({
   parsePdf: vi.fn(),
 }));

@@ -31,10 +31,6 @@ vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn(),
 }));
 
-vi.mock('../services/sms-service', () => ({
-  sendSms: vi.fn(),
-}));
-
 import { app } from '../app';
 import { signToken } from '../lib/jwt';
 import { prisma } from '../lib/prisma';

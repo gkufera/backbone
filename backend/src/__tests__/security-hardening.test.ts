@@ -23,13 +23,9 @@ vi.mock('../lib/s3', () => ({
   generateDownloadUrl: vi.fn(),
 }));
 
-// Mock email + sms services
+// Mock email service
 vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn(),
-}));
-
-vi.mock('../services/sms-service', () => ({
-  sendSms: vi.fn(),
 }));
 
 import { createApp } from '../app';
