@@ -122,6 +122,24 @@ describe('Design System Compliance', () => {
     expect(violations).toEqual([]);
   });
 
+  it('.mac-alert-error has solid white background for text readability', () => {
+    const globalsPath = join(__dirname, '..', 'app', 'globals.css');
+    const content = readFileSync(globalsPath, 'utf-8');
+
+    // The .mac-alert-error class must have background: #fff (solid white)
+    // so text is readable. The stripe pattern should be on the border only.
+    const alertErrorMatch = content.match(
+      /\.mac-alert-error\s*\{[^}]+\}/s,
+    );
+    expect(alertErrorMatch).not.toBeNull();
+    const alertErrorBlock = alertErrorMatch![0];
+
+    // Must have a solid white background for text area
+    expect(alertErrorBlock).toMatch(/background:\s*#fff/);
+    // Must NOT have the stripe pattern as the main background
+    expect(alertErrorBlock).not.toMatch(/background:\s*repeating-linear-gradient/);
+  });
+
   it('no dark mode variants', () => {
     const violations: string[] = [];
     for (const file of tsxFiles) {
