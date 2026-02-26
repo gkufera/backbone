@@ -539,4 +539,20 @@ authRouter.post('/api/auth/verify-phone', requireAuth, async (req, res) => {
   }
 });
 
+authRouter.post('/api/auth/logout', requireAuth, async (req, res) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+
+    await prisma.user.update({
+      where: { id: authReq.user.userId },
+      data: { tokenVersion: { increment: 1 } },
+    });
+
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export { authRouter };

@@ -1312,3 +1312,36 @@ describe('POST /api/auth/verify-phone', () => {
     expect(res.body.error).toMatch(/expired/i);
   });
 });
+
+describe('POST /api/auth/logout', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+  });
+
+  it('returns 200 and increments tokenVersion', async () => {
+    mockedPrisma.user.update.mockResolvedValue({
+      id: 'user-1',
+      tokenVersion: 1,
+    } as any);
+
+    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
+
+    const res = await request(app)
+      .post('/api/auth/logout')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/logged out/i);
+    expect(mockedPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { tokenVersion: { increment: 1 } },
+    });
+  });
+
+  it('returns 401 when not authenticated', async () => {
+    const res = await request(app).post('/api/auth/logout');
+
+    expect(res.status).toBe(401);
+  });
+});
