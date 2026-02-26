@@ -51,7 +51,24 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 25: Production Security (was 24)
+## Sprint 25: Exhaustive E2E Tests
+
+**Goal:** Write comprehensive Playwright E2E tests covering every user-facing flow in the application.
+
+- [ ] Auth flows: signup, login, logout, forgot password, reset password, email verification, resend verification
+- [ ] Production management: create production, view production dashboard, add/remove members, assign departments and roles
+- [ ] Script workflow: upload script, view script, upload revision, version history, element detection results
+- [ ] Element management: element list (by appearance, by department, by status), create element, edit element, assign department, soft-delete element
+- [ ] Option workflow: create option (file upload and link), view option detail, option gallery, mark option as ready
+- [ ] Approval workflow: approve, reject, maybe decisions with notes, approval history, director notes
+- [ ] Notifications: notification bell, notification count, mark as read, notifications page
+- [ ] Settings: update name, change password, phone verification flow
+- [ ] Responsive layouts: test all key pages at mobile and desktop viewports
+- [ ] All E2E tests pass in GitHub Actions CI
+
+---
+
+## Sprint 26: Production Security
 
 **Goal:** Close the 4 remaining medium-priority security gaps identified in the security audit.
 
@@ -73,7 +90,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 26: QA & Performance (was 25)
+## Sprint 27: QA & Performance
 
 **Goal:** Confidence that everything works end-to-end in production.
 
@@ -91,13 +108,13 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 27: Lock down production server so that people pay us in order to create a production
+## Sprint 28: Lock down production server so that people pay us in order to create a production
 
 - [ ] Make it so that if a user tries to create a production, they have to request to create one and we have to approve it. Once they request a production (make it clear that the prioduction name, studio name, budget, and their name and contact details will be sent to our sales team before they submit), that production is in PENDING stage. An email gets sent to slugmax@kufera.com and carsonmell+slugmax@gmail.com that says we need to approve that production. There is a simple link in the email that, when clicked, approves the production on the backend.
 
 ---
 
-## Sprint 28: Discussion Media Attachments
+## Sprint 29: Discussion Media Attachments
 
 **Goal:** Allow directors and crew to attach media (images, videos, files) in option discussion threads for inspiration and guidance.
 
@@ -107,7 +124,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 29: Phone Verification via SMS
+## Sprint 30: Phone Verification via SMS
 
 **Goal:** Make phone verification actually work by integrating a real SMS provider.
 
