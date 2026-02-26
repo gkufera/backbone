@@ -12,15 +12,20 @@ const JWT_AUDIENCE = 'slugmax-api';
 export interface JwtPayload {
   userId: string;
   email: string;
+  tokenVersion?: number;
 }
 
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
-    algorithm: 'HS256',
-    expiresIn: JWT_EXPIRES_IN,
-    issuer: JWT_ISSUER,
-    audience: JWT_AUDIENCE,
-  });
+  return jwt.sign(
+    { ...payload, tokenVersion: payload.tokenVersion ?? 0 },
+    JWT_SECRET,
+    {
+      algorithm: 'HS256',
+      expiresIn: JWT_EXPIRES_IN,
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    },
+  );
 }
 
 export function verifyToken(token: string): JwtPayload {

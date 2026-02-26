@@ -55,4 +55,36 @@ describe('JWT claims and algorithm (S15, S16)', () => {
     expect(payload.userId).toBe('user-1');
     expect(payload.email).toBe('test@example.com');
   });
+
+  it('JWT includes tokenVersion claim', () => {
+    const token = signToken({
+      userId: 'user-1',
+      email: 'test@example.com',
+      tokenVersion: 3,
+    });
+
+    const decoded = jwt.decode(token) as Record<string, unknown>;
+    expect(decoded.tokenVersion).toBe(3);
+  });
+
+  it('tokenVersion defaults to 0 when not provided', () => {
+    const token = signToken({
+      userId: 'user-1',
+      email: 'test@example.com',
+    });
+
+    const decoded = jwt.decode(token) as Record<string, unknown>;
+    expect(decoded.tokenVersion).toBe(0);
+  });
+
+  it('verifyToken returns tokenVersion', () => {
+    const token = signToken({
+      userId: 'user-1',
+      email: 'test@example.com',
+      tokenVersion: 5,
+    });
+
+    const payload = verifyToken(token);
+    expect(payload.tokenVersion).toBe(5);
+  });
 });

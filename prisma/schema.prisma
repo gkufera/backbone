@@ -93,6 +93,7 @@ model User {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
+  tokenVersion  Int      @default(0) @map("token_version")
   emailNotificationsEnabled Boolean @default(true) @map("email_notifications_enabled")
 
   createdProductions        Production[]               @relation("CreatedProductions")
