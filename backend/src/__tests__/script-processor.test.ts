@@ -18,10 +18,23 @@ vi.mock('../lib/prisma', () => ({
 
 vi.mock('../lib/s3', () => ({
   getFileBuffer: vi.fn(),
+  putFileBuffer: vi.fn(),
 }));
 
 vi.mock('../services/pdf-parser', () => ({
   parsePdf: vi.fn(),
+}));
+
+vi.mock('../services/fdx-parser', () => ({
+  parseFdx: vi.fn(),
+}));
+
+vi.mock('../services/fdx-element-detector', () => ({
+  detectFdxElements: vi.fn(),
+}));
+
+vi.mock('../services/screenplay-pdf-generator', () => ({
+  generateScreenplayPdf: vi.fn(),
 }));
 
 vi.mock('../services/processing-progress', () => ({
@@ -30,14 +43,21 @@ vi.mock('../services/processing-progress', () => ({
 }));
 
 import { prisma } from '../lib/prisma';
-import { getFileBuffer } from '../lib/s3';
+import { getFileBuffer, putFileBuffer } from '../lib/s3';
 import { parsePdf } from '../services/pdf-parser';
+import { parseFdx } from '../services/fdx-parser';
+import { detectFdxElements } from '../services/fdx-element-detector';
+import { generateScreenplayPdf } from '../services/screenplay-pdf-generator';
 import { processScript } from '../services/script-processor';
 import { setProgress, clearProgress } from '../services/processing-progress';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGetFileBuffer = vi.mocked(getFileBuffer);
+const mockedPutFileBuffer = vi.mocked(putFileBuffer);
 const mockedParsePdf = vi.mocked(parsePdf);
+const mockedParseFdx = vi.mocked(parseFdx);
+const mockedDetectFdxElements = vi.mocked(detectFdxElements);
+const mockedGenerateScreenplayPdf = vi.mocked(generateScreenplayPdf);
 
 describe('Script Processor', () => {
   beforeEach(() => {
@@ -223,5 +243,116 @@ describe('Script Processor', () => {
     expect(setProgress).toHaveBeenCalledWith('script-1', 80, 'Saving elements');
     expect(setProgress).toHaveBeenCalledWith('script-1', 100, 'Complete');
     expect(clearProgress).toHaveBeenCalledWith('script-1');
+  });
+
+  it('routes to FDX parser when s3Key ends with .fdx', async () => {
+    const buffer = Buffer.from('<FinalDraft/>');
+    mockedGetFileBuffer.mockResolvedValue(buffer);
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [{ type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 }],
+      taggedElements: [],
+      pageCount: 5,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [{ name: 'INT. OFFICE - DAY', type: 'LOCATION' as any, highlightPage: 1, highlightText: 'INT. OFFICE - DAY', suggestedDepartment: 'Locations' }],
+      sceneData: [{ sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: [] }],
+    });
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('%PDF-fake'));
+    mockedPutFileBuffer.mockResolvedValue(undefined);
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 1 });
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.fdx');
+
+    expect(mockedParseFdx).toHaveBeenCalledWith(buffer);
+    expect(mockedParsePdf).not.toHaveBeenCalled();
+  });
+
+  it('routes to PDF parser when s3Key ends with .pdf', async () => {
+    const buffer = Buffer.from('fake pdf');
+    mockedGetFileBuffer.mockResolvedValue(buffer);
+    mockedParsePdf.mockResolvedValue({
+      text: 'INT. OFFICE - DAY',
+      pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'INT. OFFICE - DAY' }],
+    });
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 1 });
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.pdf');
+
+    expect(mockedParsePdf).toHaveBeenCalledWith(buffer);
+    expect(mockedParseFdx).not.toHaveBeenCalled();
+  });
+
+  it('generates PDF and uploads to S3 for FDX scripts', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [{ type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 }],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [],
+      sceneData: [],
+    });
+    const pdfBuffer = Buffer.from('%PDF-generated');
+    mockedGenerateScreenplayPdf.mockResolvedValue(pdfBuffer);
+    mockedPutFileBuffer.mockResolvedValue(undefined);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.fdx');
+
+    expect(mockedGenerateScreenplayPdf).toHaveBeenCalled();
+    expect(mockedPutFileBuffer).toHaveBeenCalledWith(
+      expect.stringContaining('.pdf'),
+      pdfBuffer,
+      'application/pdf',
+    );
+  });
+
+  it('updates script record with generated PDF s3Key and FDX metadata', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [{ type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 }],
+      taggedElements: [],
+      pageCount: 3,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [],
+      sceneData: [],
+    });
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('%PDF-gen'));
+    mockedPutFileBuffer.mockResolvedValue(undefined);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.fdx');
+
+    // Should update script with sourceS3Key (original FDX) and format
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          sourceS3Key: 'scripts/uuid/test.fdx',
+          format: 'FDX',
+        }),
+      }),
+    );
+  });
+
+  it('shows "Parsing FDX" progress message for FDX files', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({ elements: [], sceneData: [] });
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('%PDF-'));
+    mockedPutFileBuffer.mockResolvedValue(undefined);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.fdx');
+
+    expect(setProgress).toHaveBeenCalledWith('script-1', 30, 'Parsing FDX');
   });
 });

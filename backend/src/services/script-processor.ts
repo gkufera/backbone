@@ -1,26 +1,68 @@
 import { prisma } from '../lib/prisma';
-import { getFileBuffer } from '../lib/s3';
+import { getFileBuffer, putFileBuffer } from '../lib/s3';
 import { parsePdf } from './pdf-parser';
+import { parseFdx } from './fdx-parser';
 import { detectElements } from './element-detector';
+import { detectFdxElements } from './fdx-element-detector';
+import { generateScreenplayPdf } from './screenplay-pdf-generator';
 import { setProgress, clearProgress } from './processing-progress';
-import { ElementStatus, ElementSource, ScriptStatus } from '@backbone/shared/types';
+import { ElementStatus, ElementSource, ScriptStatus, ScriptFormat } from '@backbone/shared/types';
+import type { DetectionResult } from './element-detector';
+import type { FdxParagraph } from './fdx-parser';
+
+function isFdx(s3Key: string): boolean {
+  return s3Key.toLowerCase().endsWith('.fdx');
+}
+
+export async function parseAndDetect(
+  buffer: Buffer,
+  s3Key: string,
+  scriptId: string,
+): Promise<{ result: DetectionResult; pageCount: number; fdxParagraphs?: FdxParagraph[] }> {
+  if (isFdx(s3Key)) {
+    setProgress(scriptId, 30, 'Parsing FDX');
+    const parsed = parseFdx(buffer);
+
+    setProgress(scriptId, 60, 'Detecting elements');
+    const result = detectFdxElements(parsed);
+
+    return { result, pageCount: parsed.pageCount, fdxParagraphs: parsed.paragraphs };
+  } else {
+    setProgress(scriptId, 30, 'Parsing PDF');
+    const { pages, pageCount } = await parsePdf(buffer);
+
+    setProgress(scriptId, 60, 'Detecting elements');
+    const result = detectElements(pages);
+
+    return { result, pageCount };
+  }
+}
 
 export async function processScript(scriptId: string, s3Key: string): Promise<void> {
   try {
     setProgress(scriptId, 10, 'Fetching PDF');
 
-    // Step 1: Fetch PDF from S3
+    // Step 1: Fetch file from S3
     const buffer = await getFileBuffer(s3Key);
 
-    setProgress(scriptId, 30, 'Parsing PDF');
+    // Step 2+3: Parse and detect elements (format-specific)
+    const { result, pageCount, fdxParagraphs } = await parseAndDetect(buffer, s3Key, scriptId);
+    const { elements: detectedElements, sceneData } = result;
 
-    // Step 2: Parse PDF text (returns per-page data)
-    const { pages, pageCount } = await parsePdf(buffer);
+    // Step 3.5: For FDX files, generate PDF and upload to S3
+    let finalS3Key = s3Key;
+    let sourceS3Key: string | undefined;
+    let format: ScriptFormat | undefined;
 
-    setProgress(scriptId, 60, 'Detecting elements');
-
-    // Step 3: Detect elements from per-page text
-    const { elements: detectedElements, sceneData } = detectElements(pages);
+    if (isFdx(s3Key) && fdxParagraphs) {
+      setProgress(scriptId, 70, 'Generating PDF');
+      const pdfBuffer = await generateScreenplayPdf(fdxParagraphs);
+      const pdfS3Key = s3Key.replace(/\.fdx$/i, '.pdf');
+      await putFileBuffer(pdfS3Key, pdfBuffer, 'application/pdf');
+      finalS3Key = pdfS3Key;
+      sourceS3Key = s3Key;
+      format = ScriptFormat.FDX;
+    }
 
     // Step 4: Look up production departments for department assignment
     const script = await prisma.script.findUnique({
@@ -71,6 +113,9 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
         status: finalStatus,
         pageCount,
         sceneData: sceneData.length > 0 ? sceneData : undefined,
+        ...(finalS3Key !== s3Key ? { s3Key: finalS3Key } : {}),
+        ...(sourceS3Key ? { sourceS3Key } : {}),
+        ...(format ? { format } : {}),
       },
     });
 
