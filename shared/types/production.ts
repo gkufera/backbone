@@ -1,3 +1,8 @@
+export enum ProductionStatus {
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+}
+
 export enum MemberRole {
   ADMIN = 'ADMIN',
   DECIDER = 'DECIDER',
@@ -8,6 +13,11 @@ export interface Production {
   id: string;
   title: string;
   description: string | null;
+  status: ProductionStatus;
+  studioName: string | null;
+  budget: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
   createdById: string;
   createdAt: Date;
   updatedAt: Date;

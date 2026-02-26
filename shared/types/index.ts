@@ -1,6 +1,6 @@
 export type { User } from './user';
 
-export { MemberRole } from './production';
+export { MemberRole, ProductionStatus } from './production';
 export type { Production, ProductionMember, Department } from './production';
 
 export { ScriptStatus, RevisionMatchStatus, RevisionMatchDecision } from './script';
