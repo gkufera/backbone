@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 434 frontend + 421 backend = 855 total
+**Test counts:** 434 frontend + 424 backend = 858 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -55,16 +55,19 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 **Goal:** Write comprehensive Playwright E2E tests covering every user-facing flow in the application.
 
-- [ ] Auth flows: signup, login, logout, forgot password, reset password, email verification, resend verification
-- [ ] Production management: create production, view production dashboard, add/remove members, assign departments and roles
-- [ ] Script workflow: upload script, view script, upload revision, version history, element detection results
-- [ ] Element management: element list (by appearance, by department, by status), create element, edit element, assign department, soft-delete element
-- [ ] Option workflow: create option (file upload and link), view option detail, option gallery, mark option as ready
-- [ ] Approval workflow: approve, reject, maybe decisions with notes, approval history, director notes
-- [ ] Notifications: notification bell, notification count, mark as read, notifications page
-- [ ] Settings: update name, change password, phone verification flow
-- [ ] Responsive layouts: test all key pages at mobile and desktop viewports
-- [ ] All E2E tests pass in GitHub Actions CI
+- [x] Auth flows: signup, login, logout, forgot password, reset password, email verification, signup validation (8 tests)
+- [x] Production management: create production, view dashboard, add members, departments CRUD, roles, dept assignment (8 tests)
+- [x] Script workflow: upload page, script viewer, version history, revision upload, element list (5 tests)
+- [x] Element management: element detail, department assignment, create element, navigation, Add Option (5 tests)
+- [x] Option workflow: option gallery, create link option, mark/unmark ready, file upload form (5 tests)
+- [x] Approval workflow: approve (Y), reject (N), maybe (M), approval with note, review feed (5 tests)
+- [x] Notifications: bell count, notifications page, mark as read, empty state (4 tests)
+- [x] Settings: sections render, update name, change password, wrong password, mismatch, email toggle (6 tests)
+- [x] Responsive layouts: mobile + desktop for home, login, productions, dashboard, script viewer (10 tests)
+- [x] Test seeder endpoint (POST /api/test/seed-production) for CI without S3
+- [ ] All E2E tests pass in GitHub Actions CI (pending — no CI workflow configured yet)
+
+**Total: 57 E2E tests across 9 spec files.** Known limitations: S3 file uploads, script PDF processing, and email verification flow cannot be tested in CI. Link-based options test the full workflow without S3.
 
 ---
 
