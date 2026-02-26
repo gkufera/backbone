@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 494 frontend + 482 backend = 976 unit/integration, 57 E2E
+**Test counts:** 496 frontend + 491 backend = 987 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -170,25 +170,27 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Sprint 31: Production Gating (DONE)
 
-**Goal:** Lock down production creation so users must request approval. 976 Tier 1 tests passing (494 frontend + 482 backend).
+**Goal:** Lock down production creation so users must request approval. 987 Tier 1 tests passing (496 frontend + 491 backend).
 
 - [x] When a user tries to create a production, they submit a request (production name, studio name, budget, name, contact details — make clear this goes to sales team)
   - Redesigned /productions/new as "Request a Production" form with sales team messaging
   - Fields: Production Title (required), Studio Name (required), Budget (optional), Your Name (required), Contact Email (required)
   - Pre-fills name/email from auth context; inline success message (no redirect)
+  - Frontend enforces maxLength on studioName/contactName from shared constants
 - [x] Production starts in PENDING stage
   - Added ProductionStatus enum (PENDING/ACTIVE) to schema + shared types
   - POST /api/productions creates with status: PENDING
   - PENDING productions show "PENDING APPROVAL" badge in productions list
   - PENDING production dashboard shows gated view with "being reviewed" message
-  - All mutation routes (productions, departments, scripts, elements, options) blocked for PENDING productions via requireActiveProduction guard
-- [x] Email sent to slugmax@kufera.com and carsonmell@gmail.com with approval link
+  - All mutation routes (productions, departments, scripts, elements, options, approvals, notes, director-notes) blocked for PENDING productions via requireActiveProduction guard
+  - Guard returns 404 for missing productions, 403 for PENDING
+- [x] Email sent to slugmax@kufera.com and carsonmell+slugmax@gmail.com with approval link
   - Approval token generated (crypto.randomBytes, 30-day expiry) and stored in ProductionApprovalToken
   - HTML email with production details + "Approve Production" button sent to PRODUCTION_APPROVAL_EMAILS
 - [x] Clicking the link approves the production on the backend
   - POST /api/productions/approve (public, no auth) validates token, activates production
-  - Confirmation emails sent to all approvers + requesting user
-  - Frontend /approve-production page handles token validation with success/error states
+  - Confirmation emails deduplicated (contactEmail matching an approval address gets one email)
+  - Frontend /approve-production page displays actual API response message
 
 ---
 
