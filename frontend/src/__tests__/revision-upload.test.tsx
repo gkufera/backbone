@@ -69,9 +69,9 @@ describe('Revision upload page', () => {
   it('renders form with file input', async () => {
     render(<RevisionUploadPage />);
 
-    const fileInput = await screen.findByLabelText(/pdf/i);
+    const fileInput = await screen.findByLabelText(/script file/i);
     expect(fileInput).toBeInTheDocument();
-    expect(fileInput).toHaveAttribute('accept', 'application/pdf');
+    expect(fileInput).toHaveAttribute('accept', '.pdf,.fdx');
   });
 
   it('shows current version context', async () => {
@@ -112,7 +112,7 @@ describe('Revision upload page', () => {
     await screen.findByText(/uploading revision of/i);
 
     const file = new File(['dummy'], 'script-v2.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
     await user.upload(fileInput, file);
 
     await user.click(screen.getByRole('button', { name: /upload/i }));
@@ -141,7 +141,7 @@ describe('Revision upload page', () => {
     await screen.findByText(/uploading revision of/i);
 
     const file = new File(['dummy'], 'script-v2.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByLabelText(/pdf/i);
+    const fileInput = screen.getByLabelText(/script file/i);
     await user.upload(fileInput, file);
 
     await user.click(screen.getByRole('button', { name: /upload/i }));
