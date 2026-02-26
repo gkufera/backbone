@@ -3,7 +3,7 @@ export type { User } from './user';
 export { MemberRole, ProductionStatus } from './production';
 export type { Production, ProductionMember, Department } from './production';
 
-export { ScriptStatus, RevisionMatchStatus, RevisionMatchDecision } from './script';
+export { ScriptStatus, ScriptFormat, RevisionMatchStatus, RevisionMatchDecision } from './script';
 export type { Script, SceneInfo, RevisionMatch } from './script';
 
 export { ElementType, ElementStatus, ElementSource, ElementWorkflowState } from './element';

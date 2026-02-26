@@ -7,6 +7,11 @@ export enum ScriptStatus {
   ERROR = 'ERROR',
 }
 
+export enum ScriptFormat {
+  PDF = 'PDF',
+  FDX = 'FDX',
+}
+
 export interface SceneInfo {
   sceneNumber: number;
   location: string;
@@ -21,6 +26,8 @@ export interface Script {
   s3Key: string;
   pageCount: number | null;
   status: ScriptStatus;
+  format: ScriptFormat;
+  sourceS3Key: string | null;
   version: number;
   parentScriptId: string | null;
   uploadedById: string;

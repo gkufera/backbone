@@ -28,6 +28,11 @@ enum ScriptStatus {
   ERROR
 }
 
+enum ScriptFormat {
+  PDF
+  FDX
+}
+
 enum ElementType {
   CHARACTER
   LOCATION
@@ -203,6 +208,8 @@ model Script {
   s3Key          String       @map("s3_key")
   pageCount      Int?         @map("page_count")
   status         ScriptStatus @default(UPLOADING)
+  format         ScriptFormat @default(PDF)
+  sourceS3Key    String?      @map("source_s3_key")
   version        Int          @default(1)
   parentScriptId String?      @map("parent_script_id")
   uploadedById   String       @map("uploaded_by_id")
