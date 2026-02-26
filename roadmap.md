@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 504 frontend + 502 backend = 1,006 unit/integration, 57 E2E
+**Test counts:** 507 frontend + 547 backend = 1,054 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -250,9 +250,25 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Following sprints
+## Sprint 34: FDX (Final Draft) Script Support (DONE)
 
-- [ ] Process FDX (Final Draft) script files as well as PDFs. Use tagger tagging in FDX to import all tags intelligently, then generate a PDF. Note in a tooltip that FDX works better and that AI tag pulling is inaccurate.
+**Goal:** Process FDX script files alongside PDFs. Structured XML parsing is significantly more accurate than PDF text extraction. 1,054 Tier 1 tests (507 frontend + 547 backend).
+
+- [x] Shared constants: SCRIPT_ALLOWED_EXTENSIONS, XML MIME types, ScriptFormat enum
+- [x] Schema migration: `format` (PDF/FDX) and `sourceS3Key` fields on Script model
+- [x] FDX XML parser (`fast-xml-parser`): extracts paragraphs (Scene Heading, Character, Action, Dialogue, etc.) and TagData categories (Props, Wardrobe, Vehicles)
+- [x] FDX element detector: maps paragraph types to CHARACTER/LOCATION elements, imports tagger tags as OTHER elements, builds sceneData with character-scene mapping
+- [x] Screenplay PDF generator (`pdfkit`): generates industry-standard formatted PDF from FDX paragraphs (Courier 12pt, proper margins/indentation)
+- [x] S3 putFileBuffer: server-side upload of generated PDF buffer
+- [x] Script processor format routing: detects .fdx by extension, routes to FDX pipeline (parse → detect → generate PDF → upload), stores original FDX in sourceS3Key
+- [x] Revision processor: reuses shared parseAndDetect() for FDX revisions
+- [x] Frontend: upload pages accept .pdf and .fdx, show FDX accuracy tooltip, extension-based validation
+- [x] Backend routes: accept application/xml, store format metadata
+- [x] Integration test: full pipeline parse → detect → generate PDF
+
+---
+
+## Following sprints
 - [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department, a director, and a production coordinator.
 
 ---

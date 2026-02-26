@@ -1,5 +1,21 @@
 # Current Plan
 
+## Sprint 34: FDX (Final Draft) Script Support (COMPLETE)
+
+**Result:** Full FDX import pipeline — parse XML, detect elements from paragraph types + tagger tags, generate screenplay PDF. 1,054 Tier 1 tests passing (507 frontend + 547 backend).
+
+### Phases
+- [x] Phase 1: Shared constants, types, schema migration (ScriptFormat enum, sourceS3Key field)
+- [x] Phase 2: FDX XML parser using fast-xml-parser (8 tests)
+- [x] Phase 3: FDX element detector — characters, locations, tagged elements (10 tests)
+- [x] Phase 4: Screenplay PDF generator using pdfkit (5 tests)
+- [x] Phase 5: S3 putFileBuffer for server-side upload (2 tests)
+- [x] Phase 6: Script processor format routing — FDX vs PDF pipelines (5 tests)
+- [x] Phase 7: Revision processor FDX support (2 tests)
+- [x] Phase 8: Frontend upload pages accept .fdx with accuracy tooltip (3 tests)
+- [x] Phase 9: Backend routes accept FDX and store format metadata (3 tests)
+- [x] Phase 10: Integration test + full suite pass (2 tests)
+
 ## Sprint 32+33 QA Check (COMPLETE)
 
 **Result:** Fixed S3 upload validation bug (TDD), removed stale SMS mocks and phone fields from tests. 1,006 Tier 1 tests passing (504 frontend + 502 backend).
@@ -7,26 +23,6 @@
 ## Sprint 32+33 — Prune SMS + Discussion Media Attachments (COMPLETE)
 
 **Goal:** Remove unused SMS/phone verification code (Sprint 32), then add media attachments to option discussions (Sprint 33).
-
----
-
-### Sprint 32: Prune SMS/Phone Verification
-- [x] Schema migration — drop phone columns and PhoneVerificationCode model
-- [x] Remove backend SMS code (sms-service.ts, phone routes, auth response fields)
-- [x] Remove frontend phone code (settings UI, API methods, shared types/constants)
-- [x] Update roadmap — Sprint 30 checkboxes, SMS to backlog v2+
-
-### Sprint 33: Discussion Media Attachments
-- [x] Add NoteAttachment shared types and NOTE_MAX_ATTACHMENTS constant
-- [x] Add NoteAttachment Prisma model + migration
-- [x] Backend: POST notes with attachments (TDD — 6 new tests)
-- [x] Backend: GET notes includes attachments (TDD — 2 new tests)
-- [x] Backend: GET /api/notes/attachment-download-url endpoint (TDD — 4 new tests)
-- [x] Frontend: Update API types and methods for note attachments
-- [x] Frontend: NoteAttachmentDisplay component (TDD — 5 new tests)
-- [x] Frontend: NoteAttachmentUpload component (TDD — 5 new tests)
-- [x] Frontend: Integrate attachments into OptionNotes
-- [x] Full test suite passing + roadmap update
 
 ---
 
