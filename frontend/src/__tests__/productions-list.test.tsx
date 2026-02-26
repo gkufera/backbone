@@ -61,12 +61,12 @@ describe('Productions list page', () => {
     expect(screen.getByText('Film Two')).toBeInTheDocument();
   });
 
-  it('renders "Request Production" link', async () => {
+  it('renders "New Production" link', async () => {
     mockedApi.list.mockResolvedValue({ productions: [] });
 
     render(<ProductionsPage />);
 
-    expect(await screen.findByRole('link', { name: /request production/i })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /new production/i })).toBeInTheDocument();
   });
 
   it('shows empty state when no productions', async () => {

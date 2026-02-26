@@ -35,7 +35,7 @@ export default function ProductionsPage() {
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl">Productions</h1>
         <Link href="/productions/new" className="mac-btn-primary">
-          Request Production
+          New Production
         </Link>
       </div>
 

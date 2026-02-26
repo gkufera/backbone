@@ -43,9 +43,9 @@ describe('New Production page (request form)', () => {
     vi.clearAllMocks();
   });
 
-  it('heading says "Request a Production"', () => {
+  it('heading says "New Production"', () => {
     render(<NewProductionPage />);
-    expect(screen.getByRole('heading', { name: /request a production/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /new production/i })).toBeInTheDocument();
   });
 
   it('renders all required fields', () => {
@@ -58,9 +58,9 @@ describe('New Production page (request form)', () => {
     expect(screen.getByLabelText(/budget/i)).toBeInTheDocument();
   });
 
-  it('shows info text about sales team', () => {
+  it('shows info text about review process', () => {
     render(<NewProductionPage />);
-    expect(screen.getByText(/reviewed by our sales team/i)).toBeInTheDocument();
+    expect(screen.getByText(/reviewed by our team/i)).toBeInTheDocument();
   });
 
   it('pre-fills name and email from auth context', () => {
@@ -92,7 +92,7 @@ describe('New Production page (request form)', () => {
     await user.type(screen.getByLabelText(/studio name/i), 'Big Studio');
     await user.type(screen.getByLabelText(/budget/i), '$1M');
     // Name and email are pre-filled from auth context
-    await user.click(screen.getByRole('button', { name: /submit request/i }));
+    await user.click(screen.getByRole('button', { name: /create production/i }));
 
     expect(mockedApi.create).toHaveBeenCalledWith({
       title: 'My Film',
@@ -123,7 +123,7 @@ describe('New Production page (request form)', () => {
 
     await user.type(screen.getByLabelText(/production title/i), 'My Film');
     await user.type(screen.getByLabelText(/studio name/i), 'Big Studio');
-    await user.click(screen.getByRole('button', { name: /submit request/i }));
+    await user.click(screen.getByRole('button', { name: /create production/i }));
 
     expect(await screen.findByText(/request has been submitted/i)).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe('New Production page (request form)', () => {
 
     await user.type(screen.getByLabelText(/production title/i), 'My Film');
     await user.type(screen.getByLabelText(/studio name/i), 'Big Studio');
-    await user.click(screen.getByRole('button', { name: /submit request/i }));
+    await user.click(screen.getByRole('button', { name: /create production/i }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/title is required/i);
   });
@@ -164,7 +164,7 @@ describe('New Production page (request form)', () => {
     await user.clear(screen.getByLabelText(/your name/i));
     await user.clear(screen.getByLabelText(/contact email/i));
 
-    await user.click(screen.getByRole('button', { name: /submit request/i }));
+    await user.click(screen.getByRole('button', { name: /create production/i }));
 
     // API should NOT have been called
     expect(mockedApi.create).not.toHaveBeenCalled();

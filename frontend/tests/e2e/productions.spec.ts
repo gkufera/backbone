@@ -9,7 +9,7 @@ import {
 } from './helpers';
 
 test.describe('Production flow', () => {
-  test('request production form → shows success message', async ({ page }) => {
+  test('new production form → shows success message', async ({ page }) => {
     await signupAndLogin(page);
 
     await page.goto('/productions/new');
@@ -25,7 +25,7 @@ test.describe('Production flow', () => {
     if (await contactEmailInput.inputValue() === '') {
       await contactEmailInput.fill('test@example.com');
     }
-    await page.getByRole('button', { name: /submit request/i }).click();
+    await page.getByRole('button', { name: /create production/i }).click();
 
     // After submission, shows success message (no redirect — production is PENDING)
     await expect(page.getByText('Request Submitted')).toBeVisible({ timeout: 10000 });

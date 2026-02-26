@@ -38,7 +38,7 @@ export default function NewProductionPage() {
       });
       setIsSubmitted(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit request');
+      setError(err instanceof Error ? err.message : 'Failed to create production');
     } finally {
       setIsSubmitting(false);
     }
@@ -63,9 +63,9 @@ export default function NewProductionPage() {
 
   return (
     <div className="mx-auto max-w-lg p-6">
-      <h1 className="mb-2 text-2xl">Request a Production</h1>
+      <h1 className="mb-2 text-2xl">New Production</h1>
       <p className="mb-6 text-sm font-mono">
-        Your request will be reviewed by our sales team.
+        Your production will be reviewed by our team before activation.
       </p>
 
       <form noValidate onSubmit={handleSubmit} className="space-y-4">
@@ -151,7 +151,7 @@ export default function NewProductionPage() {
           disabled={isSubmitting}
           className="mac-btn-primary disabled:opacity-50"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Request'}
+          {isSubmitting ? 'Creating...' : 'Create Production'}
         </button>
       </form>
     </div>
