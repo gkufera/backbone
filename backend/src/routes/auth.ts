@@ -70,11 +70,15 @@ authRouter.post('/api/auth/signup', async (req, res) => {
       });
 
       const verifyUrl = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
-      sendEmail(
-        user.email,
-        'Verify your Slug Max email',
-        `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
-      ).catch((err) => console.error('Failed to send verification email:', err));
+      try {
+        await sendEmail(
+          user.email,
+          'Verify your Slug Max email',
+          `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
+        );
+      } catch (err) {
+        console.error('Failed to send verification email on signup:', err);
+      }
     }
 
     res.status(201).json({
@@ -307,6 +311,8 @@ authRouter.post('/api/auth/resend-verification', async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
+    let emailSent = true;
+
     if (user && !user.emailVerified) {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(
@@ -318,17 +324,23 @@ authRouter.post('/api/auth/resend-verification', async (req, res) => {
       });
 
       const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
-      sendEmail(
-        user.email,
-        'Verify your Slug Max email',
-        `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
-      ).catch((err) => console.error('Failed to send verification email:', err));
+      try {
+        await sendEmail(
+          user.email,
+          'Verify your Slug Max email',
+          `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
+        );
+      } catch (err) {
+        console.error('Failed to send verification email:', err);
+        emailSent = false;
+      }
     }
 
     // Always return 200 to not leak whether email exists
+    // emailSent is true for unknown/already-verified emails (no info leak)
     res
       .status(200)
-      .json({ message: 'If that email exists, check your email for a verification link' });
+      .json({ message: 'If that email exists, check your email for a verification link', emailSent });
   } catch (error) {
     console.error('Resend verification error:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -640,7 +640,7 @@ describe('POST /api/auth/resend-verification', () => {
     vi.clearAllMocks();
   });
 
-  it('resends verification for unverified user', async () => {
+  it('resends verification for unverified user and returns emailSent: true', async () => {
     const mockUser = {
       id: 'user-1',
       name: 'Test User',
@@ -667,10 +667,11 @@ describe('POST /api/auth/resend-verification', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/check your email/i);
+    expect(res.body.emailSent).toBe(true);
     expect(mockedSendEmail).toHaveBeenCalled();
   });
 
-  it('returns 200 for unknown email without leaking info', async () => {
+  it('returns 200 with emailSent: true for unknown email (no info leak)', async () => {
     mockedPrisma.user.findUnique.mockResolvedValue(null);
 
     const res = await request(app).post('/api/auth/resend-verification').send({
@@ -679,10 +680,11 @@ describe('POST /api/auth/resend-verification', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/check your email/i);
+    expect(res.body.emailSent).toBe(true);
     expect(mockedSendEmail).not.toHaveBeenCalled();
   });
 
-  it('returns 200 immediately even when email sending is slow', async () => {
+  it('returns 200 with emailSent: false when sendEmail rejects', async () => {
     const mockUser = {
       id: 'user-1',
       name: 'Test User',
@@ -703,19 +705,19 @@ describe('POST /api/auth/resend-verification', () => {
       createdAt: new Date(),
     } as any);
 
-    // Simulate slow email — never resolves during request
-    mockedSendEmail.mockImplementation(() => new Promise(() => {}));
+    // Simulate SES rejection
+    mockedSendEmail.mockRejectedValue(new Error('MessageRejected: Email address is not verified.'));
 
     const res = await request(app).post('/api/auth/resend-verification').send({
       email: 'test@example.com',
     });
 
-    // Should still return 200 immediately (fire-and-forget email)
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/check your email/i);
+    expect(res.body.emailSent).toBe(false);
   });
 
-  it('returns 200 but does not send email for already-verified user', async () => {
+  it('returns 200 with emailSent: true for already-verified user (no info leak)', async () => {
     const mockUser = {
       id: 'user-1',
       name: 'Verified User',
@@ -734,6 +736,7 @@ describe('POST /api/auth/resend-verification', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/check your email/i);
+    expect(res.body.emailSent).toBe(true);
     expect(mockedPrisma.emailVerificationToken.create).not.toHaveBeenCalled();
     expect(mockedSendEmail).not.toHaveBeenCalled();
   });
