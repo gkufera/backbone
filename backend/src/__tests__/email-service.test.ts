@@ -1,17 +1,12 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
-// Mock nodemailer before importing email service
-const { mockSendMail, mockCreateTransport } = vi.hoisted(() => {
-  const mockSendMail = vi.fn();
-  const mockCreateTransport = vi.fn(() => ({
-    sendMail: mockSendMail,
-  }));
-  return { mockSendMail, mockCreateTransport };
-});
-vi.mock('nodemailer', () => ({
-  default: {
-    createTransport: mockCreateTransport,
-  },
+// Mock SES client before importing email service
+const { mockSend } = vi.hoisted(() => ({
+  mockSend: vi.fn(),
+}));
+vi.mock('@aws-sdk/client-sesv2', () => ({
+  SESv2Client: vi.fn(() => ({ send: mockSend })),
+  SendEmailCommand: vi.fn((input: unknown) => ({ input })),
 }));
 
 import { sendEmail, sendNotificationEmail } from '../services/email-service';
@@ -28,23 +23,29 @@ describe('Email Service', () => {
     process.env = originalEnv;
   });
 
-  it('sends email when EMAIL_ENABLED is true', async () => {
+  it('sends email via SES API when EMAIL_ENABLED is true', async () => {
     process.env.EMAIL_ENABLED = 'true';
-    process.env.SMTP_HOST = 'smtp.example.com';
-    process.env.SMTP_PORT = '587';
-    process.env.SMTP_USER = 'user@example.com';
-    process.env.SMTP_PASS = 'secret';
     process.env.EMAIL_FROM = 'noreply@slugmax.com';
-    mockSendMail.mockResolvedValue({ messageId: 'msg-1' });
+    process.env.AWS_ACCESS_KEY_ID = 'AKIA123';
+    process.env.AWS_SECRET_ACCESS_KEY = 'secret';
+    mockSend.mockResolvedValue({ MessageId: 'msg-1' });
 
     await sendEmail('recipient@example.com', 'Test Subject', '<p>Hello</p>');
 
-    expect(mockSendMail).toHaveBeenCalledWith({
-      from: 'noreply@slugmax.com',
-      to: 'recipient@example.com',
-      subject: 'Test Subject',
-      html: '<p>Hello</p>',
-    });
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: expect.objectContaining({
+          FromEmailAddress: 'noreply@slugmax.com',
+          Destination: { ToAddresses: ['recipient@example.com'] },
+          Content: {
+            Simple: {
+              Subject: { Data: 'Test Subject' },
+              Body: { Html: { Data: '<p>Hello</p>' } },
+            },
+          },
+        }),
+      }),
+    );
   });
 
   it('logs to console when EMAIL_ENABLED is false', async () => {
@@ -53,47 +54,34 @@ describe('Email Service', () => {
 
     await sendEmail('recipient@example.com', 'Test Subject', '<p>Hello</p>');
 
-    expect(mockSendMail).not.toHaveBeenCalled();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Email]'),
-    );
+    expect(mockSend).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('[Email]'));
     consoleSpy.mockRestore();
-  });
-
-  it('creates transport with secure: false for STARTTLS on port 587', async () => {
-    process.env.EMAIL_ENABLED = 'true';
-    process.env.SMTP_HOST = 'email-smtp.us-east-1.amazonaws.com';
-    process.env.SMTP_PORT = '587';
-    process.env.SMTP_USER = 'AKIA123';
-    process.env.SMTP_PASS = 'secret';
-    mockSendMail.mockResolvedValue({ messageId: 'msg-3' });
-
-    await sendEmail('test@example.com', 'Test', '<p>Hi</p>');
-
-    expect(mockCreateTransport).toHaveBeenCalledWith(
-      expect.objectContaining({
-        host: 'email-smtp.us-east-1.amazonaws.com',
-        port: 587,
-        secure: false,
-      }),
-    );
   });
 
   it('formats notification email correctly', async () => {
     process.env.EMAIL_ENABLED = 'true';
     process.env.EMAIL_FROM = 'noreply@slugmax.com';
-    mockSendMail.mockResolvedValue({ messageId: 'msg-2' });
+    mockSend.mockResolvedValue({ MessageId: 'msg-2' });
 
     await sendNotificationEmail('user@example.com', {
       type: 'OPTION_APPROVED',
       message: 'Your option on JOHN was approved',
     });
 
-    expect(mockSendMail).toHaveBeenCalledWith(
+    expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: 'user@example.com',
-        subject: expect.stringContaining('Slug Max'),
-        html: expect.stringContaining('Your option on JOHN was approved'),
+        input: expect.objectContaining({
+          Destination: { ToAddresses: ['user@example.com'] },
+          Content: {
+            Simple: {
+              Subject: { Data: expect.stringContaining('Slug Max') },
+              Body: {
+                Html: { Data: expect.stringContaining('Your option on JOHN was approved') },
+              },
+            },
+          },
+        }),
       }),
     );
   });

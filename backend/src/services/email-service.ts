@@ -1,19 +1,11 @@
-import nodemailer from 'nodemailer';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 
 function isEmailEnabled(): boolean {
   return process.env.EMAIL_ENABLED === 'true';
 }
 
-function getTransport() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT ?? '587', 10),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+function getSesClient() {
+  return new SESv2Client({ region: 'us-east-1' });
 }
 
 export async function sendEmail(
@@ -26,13 +18,19 @@ export async function sendEmail(
     return;
   }
 
-  const transport = getTransport();
-  await transport.sendMail({
-    from: process.env.EMAIL_FROM ?? 'noreply@slugmax.com',
-    to,
-    subject,
-    html,
-  });
+  const client = getSesClient();
+  await client.send(
+    new SendEmailCommand({
+      FromEmailAddress: process.env.EMAIL_FROM ?? 'noreply@slugmax.com',
+      Destination: { ToAddresses: [to] },
+      Content: {
+        Simple: {
+          Subject: { Data: subject },
+          Body: { Html: { Data: html } },
+        },
+      },
+    }),
+  );
 }
 
 export async function sendNotificationEmail(

@@ -166,12 +166,8 @@ The goal: no deployment failure should ever happen twice for the same reason.
   - `PORT=8000`
   - `FRONTEND_URL=https://slugmax.com`
   - `EMAIL_ENABLED=true`
-  - `SMTP_HOST=email-smtp.us-east-1.amazonaws.com`
-  - `SMTP_PORT=587`
-  - `SMTP_USER=<SES SMTP access key>`
-  - `SMTP_PASS=<SES SMTP derived password>`
   - `EMAIL_FROM=noreply@slugmax.com`
-  - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
+  - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME` (SES uses same AWS creds as S3)
 
 **Frontend Service** (`frontend/`):
 
