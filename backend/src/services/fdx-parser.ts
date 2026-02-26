@@ -21,6 +21,7 @@ const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
   trimValues: false,
+  processEntities: false,
   isArray: (tagName) => tagName === 'Paragraph' || tagName === 'Text' || tagName === 'TagCategory' || tagName === 'Tag',
 });
 

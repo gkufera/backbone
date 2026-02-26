@@ -109,6 +109,32 @@ describe('FDX Parser', () => {
     expect(result.pageCount).toBe(3);
   });
 
+  it('rejects XXE payloads — entities are not expanded', () => {
+    const xxePayload = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [
+  <!ENTITY xxe SYSTEM "file:///etc/passwd">
+]>
+<FinalDraft DocumentType="Script" Template="No" Version="5">
+  <Content>
+    <Paragraph Type="Action"><Text>&xxe;</Text></Paragraph>
+  </Content>
+</FinalDraft>`;
+
+    // Should either throw or return without expanding the entity
+    let result;
+    try {
+      result = parseFdx(Buffer.from(xxePayload));
+    } catch {
+      // Throwing is acceptable — entity processing blocked
+      return;
+    }
+
+    // If it doesn't throw, the entity must not have been expanded
+    const allText = result.paragraphs.map((p) => p.text).join(' ');
+    expect(allText).not.toContain('root:');
+    expect(allText).not.toContain('/bin/');
+  });
+
   it('concatenates multiple Text nodes within a single paragraph', () => {
     const xml = wrapFdx(
       `<Paragraph Type="Action"><Text>The door </Text><Text Style="Bold">opens</Text><Text> slowly.</Text></Paragraph>`,
