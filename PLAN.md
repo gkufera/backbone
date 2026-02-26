@@ -1,8 +1,12 @@
 # Current Plan
 
+## Sprint 32+33 QA Check (COMPLETE)
+
+**Result:** Fixed S3 upload validation bug (TDD), removed stale SMS mocks and phone fields from tests. 1,006 Tier 1 tests passing (504 frontend + 502 backend).
+
 ## Sprint 32+33 — Prune SMS + Discussion Media Attachments (COMPLETE)
 
-**Goal:** Remove unused SMS/phone verification code (Sprint 32), then add media attachments to option discussions (Sprint 33). 1,001 Tier 1 tests passing (502 frontend + 499 backend).
+**Goal:** Remove unused SMS/phone verification code (Sprint 32), then add media attachments to option discussions (Sprint 33).
 
 ---
 
