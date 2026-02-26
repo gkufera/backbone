@@ -8,15 +8,15 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Infrastructure Status
 
-| Service            | Status     | Notes                                                                             |
-| ------------------ | ---------- | --------------------------------------------------------------------------------- |
-| Railway (frontend) | Running    | slugmax.com                                                                       |
-| Railway (backend)  | Running    | api.slugmax.com                                                                   |
-| PostgreSQL         | Running    | Railway-managed                                                                   |
-| AWS S3             | Running    | slugmax-uploads bucket                                                            |
+| Service            | Status     | Notes                                                                                                                 |
+| ------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| Railway (frontend) | Running    | slugmax.com                                                                                                           |
+| Railway (backend)  | Running    | api.slugmax.com                                                                                                       |
+| PostgreSQL         | Running    | Railway-managed                                                                                                       |
+| AWS S3             | Running    | slugmax-uploads bucket                                                                                                |
 | Resend             | Running    | Replaced AWS SES (Sprint 29). Domain `slugmax.com` verified. Using Resend SDK over HTTPS. From: no-reply@slugmax.com. |
-| Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
-| GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
+| Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                                                       |
+| GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                                                      |
 
 ---
 
@@ -135,11 +135,13 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 **Goal:** Replace AWS SES with Resend for all transactional email. SES production access was rejected.
 
 **Infrastructure done:**
+
 - [x] Resend API key added to Railway backend env vars (`RESEND_API_KEY`)
 - [x] Resend API key added to server container env (`~/.config/cm/env`)
 - [x] `api.resend.com` added to container firewall allowed domains
 
 **Code changes:**
+
 - [x] `npm install resend` in backend, `npm uninstall @aws-sdk/client-sesv2`
 - [x] Rewrite `email-service.ts` — replace SES client with Resend client (`new Resend(process.env.RESEND_API_KEY)`, call `resend.emails.send()`)
 - [x] Update `.env.example` — add `RESEND_API_KEY`, keep AWS creds (still needed for S3)
@@ -150,6 +152,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Deploy and test end-to-end email delivery
 
 **QA Check (10 new tests, 4 fixes):**
+
 - [x] C1: Fixed sendEmail to check Resend `{ data, error }` return value — errors were silently swallowed (2 new tests)
 - [x] H1: Added sendProductionApprovalEmail unit tests — subject, HTML escaping, budget fallback, approveUrl (4 new tests)
 - [x] H2: Added sendProductionApprovedEmail unit tests — subject, HTML escaping, FRONTEND_URL fallback (4 new tests)
@@ -280,7 +283,8 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 ---
 
 ## Following sprints
-- [ ] Simulated test productions with simulated AI agents using OpenClaw that pretend to be department heads from each department, a director, and a production coordinator.
+
+- [ ] Simulated test productions with simulated users that pretend to be department heads from each department, a director, and a production coordinator. Put this on production as a test and invite greg@kufera.com and carsonmell@gmail.com. (make sure we get invite emails!)
 
 ---
 
