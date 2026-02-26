@@ -168,7 +168,7 @@ describe('Design System Compliance', () => {
         if (line.trim().startsWith('//') || line.trim().startsWith('import')) return;
         // Match title="..." on HTML elements (tooltip usage)
         // Exclude title={...} which is a prop being passed to a component
-        if (/\btitle="[^"]+"/. test(line)) {
+        if (/\btitle="[^"]+"/.test(line)) {
           violations.push(`${file}:${i + 1}: ${line.trim()}`);
         }
       });
