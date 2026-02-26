@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| Email (Resend)     | Pending    | SES application rejected. Switching to Resend. API key set in Railway + server. Domain verification needed in Resend dashboard. |
+| Email (Resend)     | Verified   | Domain verified. API key set in Railway + server. Code switch from SES pending (Sprint 29). |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
@@ -145,7 +145,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [ ] Update `.env.example` — add `RESEND_API_KEY`, keep AWS creds (still needed for S3)
 - [ ] Update tests that mock `@aws-sdk/client-sesv2` to mock `resend` instead
 - [ ] Update roadmap infrastructure table status to Running after deploy
-- [ ] Verify domain `slugmax.com` in Resend dashboard (Greg will add DNS records in Cloudflare)
+- [x] Verify domain `slugmax.com` in Resend dashboard (DNS records added in Cloudflare, status: verified)
 - [ ] Deploy and test end-to-end email delivery
 
 ---
