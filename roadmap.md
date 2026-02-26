@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 492 frontend + 487 backend = 979 unit/integration, 57 E2E
+**Test counts:** 502 frontend + 499 backend = 1,001 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -234,13 +234,19 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 33: Discussion Media Attachments
+## Sprint 33: Discussion Media Attachments (DONE)
 
-**Goal:** Allow directors and crew to attach media in option discussion threads.
+**Goal:** Allow directors and crew to attach media in option discussion threads. 1,001 Tier 1 tests passing (502 frontend + 499 backend).
 
-- [ ] Add media attachment support to option discussions — upload images, reference videos, or files directly in the discussion thread
-- [ ] DECIDERS can provide visual guidance (mood boards, reference photos, video clips) alongside the conversation
-- [ ] Attachments use existing S3 upload infrastructure (presigned URLs)
+- [x] `NoteAttachment` Prisma model + migration (s3Key, fileName, mediaType, relation to Note)
+- [x] Shared types (`NoteAttachment`, `NoteAttachmentInput`) and constant (`NOTE_MAX_ATTACHMENTS = 5`)
+- [x] Backend: POST notes with optional attachments array (validates mediaType, max 5, content-or-attachments required)
+- [x] Backend: GET notes includes nested attachments array
+- [x] Backend: `GET /api/notes/attachment-download-url` endpoint with production membership authorization
+- [x] Frontend: `NoteAttachmentDisplay` component — renders IMAGE as img, VIDEO as video, AUDIO as audio, PDF as download link
+- [x] Frontend: `NoteAttachmentUpload` component — ATTACH button, file list with remove, max attachment limit enforced
+- [x] Frontend: Integrated into `OptionNotes` — upload flow (select → presigned URL → PUT S3 → create note with refs), inline display
+- [x] All attachments use existing S3 presigned URL infrastructure
 
 ---
 

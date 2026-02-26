@@ -1,48 +1,40 @@
 # Current Plan
 
-## Sprint 29 QA Check — SES → Resend Migration (COMPLETE)
+## Sprint 32+33 — Prune SMS + Discussion Media Attachments (COMPLETE)
 
-**Goal:** Fix critical bug and missing test coverage found in Sprint 29 QA review.
-
-- [x] C1: Fix sendEmail to check Resend `{ data, error }` return value (TDD — 2 new tests)
-- [x] H1: Add sendProductionApprovalEmail tests (4 new tests)
-- [x] H2: Add sendProductionApprovedEmail tests (4 new tests)
-- [x] L1+L2+L3: Clean up stale SES references in tests and CI
-- [x] All 997 Tier 1 tests passing (496 frontend + 501 backend)
-- [x] Deploy to production
+**Goal:** Remove unused SMS/phone verification code (Sprint 32), then add media attachments to option discussions (Sprint 33). 1,001 Tier 1 tests passing (502 frontend + 499 backend).
 
 ---
 
-## Sprint 31 — Production Gating (COMPLETE + QA CHECK)
+### Sprint 32: Prune SMS/Phone Verification
+- [x] Schema migration — drop phone columns and PhoneVerificationCode model
+- [x] Remove backend SMS code (sms-service.ts, phone routes, auth response fields)
+- [x] Remove frontend phone code (settings UI, API methods, shared types/constants)
+- [x] Update roadmap — Sprint 30 checkboxes, SMS to backlog v2+
 
-**Goal:** Gate production creation behind sales team approval. 987 Tier 1 tests passing (496 frontend + 491 backend).
-
----
-
-### Implementation (Steps 1-10)
-- [x] Schema migration + shared types (COMMIT 1b91bc4)
-- [x] Backend routes + email templates (COMMIT 2976076)
-- [x] Frontend /approve-production page (COMMIT 14984dc)
-- [x] Redesign New Production form (COMMIT 56540f7)
-- [x] Productions list shows PENDING status (COMMIT ef39ca4)
-- [x] Gate production dashboard for PENDING (COMMIT 2045506)
-- [x] Block mutations on PENDING productions (COMMIT c792046)
-- [x] Fix test seed + existing tests (COMMIT 5b0c39b)
-- [x] Full suite + docs (COMMIT 05951ee)
-
-### QA Check (11 new tests, 6 fixes)
-- [x] C1: Added requireActiveProduction guard to approvals, notes, director-notes (7 new tests)
-- [x] C2: Fixed approve-production page to display API response message (1 updated test)
-- [x] C3: Added maxLength to studioName/contactName inputs from shared constants (2 new tests)
-- [x] C4: Fixed approval email to carsonmell+slugmax@gmail.com
-- [x] M1: Deduplicated confirmation emails when contactEmail matches approval address (1 new test)
-- [x] M2: Fixed requireActiveProduction to return 404 for missing, 403 for PENDING (1 new test)
-- [x] Fixed workflow-state.test.ts mocks for new guard
-- [x] 496 frontend + 491 backend = 987 total tests passing
+### Sprint 33: Discussion Media Attachments
+- [x] Add NoteAttachment shared types and NOTE_MAX_ATTACHMENTS constant
+- [x] Add NoteAttachment Prisma model + migration
+- [x] Backend: POST notes with attachments (TDD — 6 new tests)
+- [x] Backend: GET notes includes attachments (TDD — 2 new tests)
+- [x] Backend: GET /api/notes/attachment-download-url endpoint (TDD — 4 new tests)
+- [x] Frontend: Update API types and methods for note attachments
+- [x] Frontend: NoteAttachmentDisplay component (TDD — 5 new tests)
+- [x] Frontend: NoteAttachmentUpload component (TDD — 5 new tests)
+- [x] Frontend: Integrate attachments into OptionNotes
+- [x] Full test suite passing + roadmap update
 
 ---
 
 ## Previously Completed
+
+### Sprint 29 QA Check — SES → Resend Migration (COMPLETE)
+
+**Result: Fixed Resend error handling, added email template tests, cleaned SES references. 997 total tests.**
+
+### Sprint 31 — Production Gating (COMPLETE + QA CHECK)
+
+**Result: Gate production creation behind sales team approval. 987 total tests.**
 
 ### Sprint 30 — QA & Polish Check (COMPLETE)
 
