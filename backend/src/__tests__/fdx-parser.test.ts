@@ -135,6 +135,25 @@ describe('FDX Parser', () => {
     expect(allText).not.toContain('/bin/');
   });
 
+  it('handles null #text nodes without producing "null" string', () => {
+    // When fast-xml-parser returns null for #text, String(null) produces "null"
+    // The parser should treat null as empty string
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<FinalDraft DocumentType="Script" Template="No" Version="5">
+  <Content>
+    <Paragraph Type="Action"><Text Style="Bold"></Text><Text>Real text here.</Text></Paragraph>
+  </Content>
+</FinalDraft>`;
+
+    const result = parseFdx(Buffer.from(xml));
+
+    // Should not contain "null" string from String(null)
+    for (const p of result.paragraphs) {
+      expect(p.text).not.toContain('null');
+    }
+    expect(result.paragraphs[0]?.text).toBe('Real text here.');
+  });
+
   it('concatenates multiple Text nodes within a single paragraph', () => {
     const xml = wrapFdx(
       `<Paragraph Type="Action"><Text>The door </Text><Text Style="Bold">opens</Text><Text> slowly.</Text></Paragraph>`,

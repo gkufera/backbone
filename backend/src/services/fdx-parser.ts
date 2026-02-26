@@ -57,7 +57,7 @@ export function parseFdx(buffer: Buffer): ParsedFdx {
       } else if (typeof textNode === 'object' && textNode !== null) {
         // Text node with attributes (e.g., Style="Bold")
         // The text content is in #text
-        const content = textNode['#text'] ?? '';
+        const content = textNode['#text'] || '';
         fullText += String(content);
       }
     }
