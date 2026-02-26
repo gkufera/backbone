@@ -171,8 +171,7 @@ describe('AppHeader', () => {
         name: 'Test',
         emailVerified: true,
         emailNotificationsEnabled: true,
-        phone: null,
-        phoneVerified: false,
+
         createdAt: new Date().toISOString(),
       },
     });
@@ -227,8 +226,7 @@ describe('AppHeader', () => {
         name: 'Test',
         emailVerified: true,
         emailNotificationsEnabled: true,
-        phone: null,
-        phoneVerified: false,
+
         createdAt: new Date().toISOString(),
       },
     });
@@ -259,8 +257,7 @@ describe('AppHeader', () => {
         name: 'Test',
         emailVerified: true,
         emailNotificationsEnabled: true,
-        phone: null,
-        phoneVerified: false,
+
         createdAt: new Date().toISOString(),
       },
     });
