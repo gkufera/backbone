@@ -29,6 +29,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.17.2",
     "prisma": "^6.6.0",
     "resend": "^6.9.2"
   },
@@ -39,6 +40,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.2",
     "@types/pdf-parse": "^1.1.5",
+    "@types/pdfkit": "^0.17.5",
     "@types/supertest": "^6.0.2",
     "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
