@@ -8,11 +8,6 @@ vi.mock('../services/email-service', () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
-// Mock SMS service
-vi.mock('../services/sms-service', () => ({
-  sendSms: vi.fn(),
-}));
-
 // Mock Prisma client
 vi.mock('../lib/prisma', () => ({
   prisma: {
@@ -31,22 +26,15 @@ vi.mock('../lib/prisma', () => ({
       findFirst: vi.fn(),
       update: vi.fn(),
     },
-    phoneVerificationCode: {
-      create: vi.fn(),
-      findFirst: vi.fn(),
-      update: vi.fn(),
-    },
     $transaction: vi.fn(),
   },
 }));
 
 import { prisma } from '../lib/prisma';
 import { sendEmail } from '../services/email-service';
-import { sendSms } from '../services/sms-service';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedSendEmail = vi.mocked(sendEmail);
-const mockedSendSms = vi.mocked(sendSms);
 
 describe('POST /api/auth/signup', () => {
   beforeEach(() => {
@@ -1091,236 +1079,6 @@ describe('Signup auto-verify in test mode', () => {
     // Should NOT create verification token or send email
     expect(mockedPrisma.emailVerificationToken.create).not.toHaveBeenCalled();
     expect(mockedSendEmail).not.toHaveBeenCalled();
-  });
-});
-
-describe('POST /api/auth/send-phone-code', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('returns 401 when not authenticated', async () => {
-    const res = await request(app)
-      .post('/api/auth/send-phone-code')
-      .send({ phone: '+15551234567' });
-
-    expect(res.status).toBe(401);
-  });
-
-  it('returns 400 for invalid phone format', async () => {
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/send-phone-code')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ phone: '555-1234' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/phone/i);
-  });
-
-  it('creates code and returns success for valid phone', async () => {
-    const mockUser = {
-      id: 'user-1',
-      name: 'Test User',
-      email: 'test@example.com',
-      passwordHash: 'hashed-pw',
-      emailVerified: true,
-      tokenVersion: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
-    mockedPrisma.phoneVerificationCode.create.mockResolvedValue({
-      id: 'pvc-1',
-      userId: 'user-1',
-      phone: '+15551234567',
-      code: '123456',
-      expiresAt: new Date(Date.now() + 600000),
-      usedAt: null,
-      createdAt: new Date(),
-    } as any);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/send-phone-code')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ phone: '+15551234567' });
-
-    expect(res.status).toBe(200);
-    expect(res.body.message).toMatch(/code sent/i);
-    expect(mockedPrisma.phoneVerificationCode.create).toHaveBeenCalled();
-    expect(mockedSendSms).toHaveBeenCalledWith(
-      '+15551234567',
-      expect.stringContaining('verification code'),
-    );
-  });
-
-  it('returns 400 when phone field is missing', async () => {
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/send-phone-code')
-      .set('Authorization', `Bearer ${token}`)
-      .send({});
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/phone/i);
-  });
-
-  it('generates a 6-digit numeric code', async () => {
-    const mockUser = {
-      id: 'user-1',
-      name: 'Test User',
-      email: 'test@example.com',
-      passwordHash: 'hashed-pw',
-      emailVerified: true,
-      tokenVersion: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    mockedPrisma.user.findUnique.mockResolvedValue(mockUser);
-    mockedPrisma.phoneVerificationCode.create.mockResolvedValue({
-      id: 'pvc-1',
-      userId: 'user-1',
-      phone: '+15551234567',
-      code: '123456',
-      expiresAt: new Date(Date.now() + 600000),
-      usedAt: null,
-      createdAt: new Date(),
-    } as any);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    await request(app)
-      .post('/api/auth/send-phone-code')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ phone: '+15551234567' });
-
-    const createCall = mockedPrisma.phoneVerificationCode.create.mock.calls[0][0];
-    const code = createCall.data.code;
-    expect(code).toMatch(/^\d{6}$/);
-    expect(Number(code)).toBeGreaterThanOrEqual(100000);
-    expect(Number(code)).toBeLessThanOrEqual(999999);
-  });
-});
-
-describe('POST /api/auth/verify-phone', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('returns 401 when not authenticated', async () => {
-    const res = await request(app)
-      .post('/api/auth/verify-phone')
-      .send({ code: '123456' });
-
-    expect(res.status).toBe(401);
-  });
-
-  it('returns 400 for invalid/unknown code', async () => {
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
-    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(null);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/verify-phone')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ code: '000000' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/invalid|not found/i);
-  });
-
-  it('succeeds with valid code', async () => {
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
-
-    const mockCode = {
-      id: 'pvc-1',
-      userId: 'user-1',
-      phone: '+15551234567',
-      code: '123456',
-      expiresAt: new Date(Date.now() + 600000),
-      usedAt: null,
-      createdAt: new Date(),
-    };
-
-    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(mockCode as any);
-    mockedPrisma.$transaction.mockResolvedValue([{}, {}]);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/verify-phone')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ code: '123456' });
-
-    expect(res.status).toBe(200);
-    expect(res.body.message).toMatch(/verified/i);
-  });
-
-  it('returns 400 when code field is missing', async () => {
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/verify-phone')
-      .set('Authorization', `Bearer ${token}`)
-      .send({});
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/code.*required/i);
-  });
-
-  it('returns 400 for already-used code', async () => {
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
-    // Code with usedAt set should not be found by the query (usedAt: null filter)
-    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(null);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/verify-phone')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ code: '123456' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/invalid/i);
-  });
-
-  it('returns 400 for expired code', async () => {
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
-
-    const mockCode = {
-      id: 'pvc-1',
-      userId: 'user-1',
-      phone: '+15551234567',
-      code: '123456',
-      expiresAt: new Date(Date.now() - 1000),
-      usedAt: null,
-      createdAt: new Date(),
-    };
-
-    mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(mockCode as any);
-
-    const token = signToken({ userId: 'user-1', email: 'test@example.com' });
-
-    const res = await request(app)
-      .post('/api/auth/verify-phone')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ code: '123456' });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/expired/i);
   });
 });
 

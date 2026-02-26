@@ -6,7 +6,6 @@ import { signToken } from '../lib/jwt';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { VALIDATION } from '@backbone/shared/constants';
 import { sendEmail } from '../services/email-service';
-import { sendSms } from '../services/sms-service';
 
 const authRouter = Router();
 
@@ -139,8 +138,6 @@ authRouter.post('/api/auth/login', async (req, res) => {
         email: user.email,
         emailVerified: user.emailVerified,
         emailNotificationsEnabled: user.emailNotificationsEnabled,
-        phone: user.phone ?? null,
-        phoneVerified: user.phoneVerified ?? false,
         createdAt: user.createdAt,
       },
     });
@@ -170,8 +167,6 @@ authRouter.get('/api/auth/me', requireAuth, async (req, res) => {
         email: user.email,
         emailVerified: user.emailVerified,
         emailNotificationsEnabled: user.emailNotificationsEnabled,
-        phone: user.phone ?? null,
-        phoneVerified: user.phoneVerified ?? false,
         createdAt: user.createdAt,
       },
     });
@@ -250,8 +245,6 @@ authRouter.patch('/api/auth/me', requireAuth, async (req, res) => {
         email: updatedUser.email,
         emailVerified: updatedUser.emailVerified,
         emailNotificationsEnabled: updatedUser.emailNotificationsEnabled,
-        phone: updatedUser.phone ?? null,
-        phoneVerified: updatedUser.phoneVerified ?? false,
         createdAt: updatedUser.createdAt,
       },
     });
@@ -450,91 +443,6 @@ authRouter.post('/api/auth/reset-password', async (req, res) => {
     res.status(200).json({ message: 'Password has been reset successfully' });
   } catch (error) {
     console.error('Reset password error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-authRouter.post('/api/auth/send-phone-code', requireAuth, async (req, res) => {
-  try {
-    const authReq = req as AuthenticatedRequest;
-    const { phone } = req.body;
-
-    if (!phone || !VALIDATION.PHONE_REGEX.test(phone)) {
-      res.status(400).json({ error: 'Invalid phone number. Must be E.164 format (e.g., +15551234567)' });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: authReq.user.userId },
-    });
-
-    if (!user) {
-      res.status(404).json({ error: 'User not found' });
-      return;
-    }
-
-    // Generate 6-digit code
-    const code = String(crypto.randomInt(100000, 1000000));
-    const expiresAt = new Date(
-      Date.now() + VALIDATION.PHONE_VERIFICATION_CODE_EXPIRY_MINUTES * 60 * 1000,
-    );
-
-    await prisma.phoneVerificationCode.create({
-      data: { userId: user.id, phone, code, expiresAt },
-    });
-
-    await sendSms(phone, `Your Slug Max verification code is: ${code}`);
-
-    res.status(200).json({ message: 'Verification code sent' });
-  } catch (error) {
-    console.error('Send phone code error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-authRouter.post('/api/auth/verify-phone', requireAuth, async (req, res) => {
-  try {
-    const authReq = req as AuthenticatedRequest;
-    const { code } = req.body;
-
-    if (!code) {
-      res.status(400).json({ error: 'Verification code is required' });
-      return;
-    }
-
-    const verificationCode = await prisma.phoneVerificationCode.findFirst({
-      where: {
-        userId: authReq.user.userId,
-        code: String(code),
-        usedAt: null,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!verificationCode) {
-      res.status(400).json({ error: 'Invalid verification code' });
-      return;
-    }
-
-    if (verificationCode.expiresAt < new Date()) {
-      res.status(400).json({ error: 'Verification code has expired' });
-      return;
-    }
-
-    await prisma.$transaction([
-      prisma.phoneVerificationCode.update({
-        where: { id: verificationCode.id },
-        data: { usedAt: new Date() },
-      }),
-      prisma.user.update({
-        where: { id: authReq.user.userId },
-        data: { phone: verificationCode.phone, phoneVerified: true },
-      }),
-    ]);
-
-    res.status(200).json({ message: 'Phone number verified successfully' });
-  } catch (error) {
-    console.error('Verify phone error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

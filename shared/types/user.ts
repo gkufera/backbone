@@ -4,8 +4,6 @@ export interface User {
   email: string;
   emailVerified: boolean;
   emailNotificationsEnabled: boolean;
-  phone: string | null;
-  phoneVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
