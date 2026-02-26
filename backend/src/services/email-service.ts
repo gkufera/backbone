@@ -1,4 +1,4 @@
-import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
+import { Resend } from 'resend';
 
 function escapeHtml(str: string): string {
   return str
@@ -13,8 +13,8 @@ function isEmailEnabled(): boolean {
   return process.env.EMAIL_ENABLED === 'true';
 }
 
-function getSesClient() {
-  return new SESv2Client({ region: 'us-east-1' });
+function getResendClient() {
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 export async function sendEmail(
@@ -27,19 +27,13 @@ export async function sendEmail(
     return;
   }
 
-  const client = getSesClient();
-  await client.send(
-    new SendEmailCommand({
-      FromEmailAddress: process.env.EMAIL_FROM ?? 'noreply@slugmax.com',
-      Destination: { ToAddresses: [to] },
-      Content: {
-        Simple: {
-          Subject: { Data: subject },
-          Body: { Html: { Data: html } },
-        },
-      },
-    }),
-  );
+  const client = getResendClient();
+  await client.emails.send({
+    from: process.env.EMAIL_FROM ?? 'noreply@slugmax.com',
+    to,
+    subject,
+    html,
+  });
 }
 
 export async function sendProductionApprovalEmail(
