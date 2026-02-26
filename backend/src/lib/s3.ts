@@ -56,6 +56,21 @@ export async function generateDownloadUrl(s3Key: string): Promise<string> {
   return getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
+export async function putFileBuffer(
+  s3Key: string,
+  buffer: Buffer,
+  contentType: string,
+): Promise<void> {
+  const command = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: s3Key,
+    Body: buffer,
+    ContentType: contentType,
+  });
+
+  await s3Client.send(command);
+}
+
 export async function getFileBuffer(s3Key: string): Promise<Buffer> {
   const command = new GetObjectCommand({
     Bucket: BUCKET,
