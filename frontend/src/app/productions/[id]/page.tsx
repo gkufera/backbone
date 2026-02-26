@@ -398,11 +398,13 @@ export default function ProductionDashboard() {
                       )}
                     </div>
                     {memberCount > 0 ? (
-                      <span
-                        className="btn-disabled-striped text-sm"
-                        title="Cannot delete department with members"
-                      >
-                        Delete
+                      <span className="flex items-center gap-2">
+                        <span className="btn-disabled-striped text-sm">
+                          Delete
+                        </span>
+                        <span className="font-mono text-xs">
+                          Cannot delete dept with members
+                        </span>
                       </span>
                     ) : (
                       <button

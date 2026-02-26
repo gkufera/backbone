@@ -140,6 +140,25 @@ describe('Design System Compliance', () => {
     expect(alertErrorBlock).not.toMatch(/background:\s*repeating-linear-gradient/);
   });
 
+  it('no native HTML title tooltips in components (use inline text instead)', () => {
+    const violations: string[] = [];
+    for (const file of tsxFiles) {
+      // Skip test files
+      if (file.includes('__tests__') || file.includes('.test.')) continue;
+      const content = readFileSync(file, 'utf-8');
+      const lines = content.split('\n');
+      lines.forEach((line, i) => {
+        if (line.trim().startsWith('//') || line.trim().startsWith('import')) return;
+        // Match title="..." on HTML elements (tooltip usage)
+        // Exclude title={...} which is a prop being passed to a component
+        if (/\btitle="[^"]+"/. test(line)) {
+          violations.push(`${file}:${i + 1}: ${line.trim()}`);
+        }
+      });
+    }
+    expect(violations).toEqual([]);
+  });
+
   it('no dark mode variants', () => {
     const violations: string[] = [];
     for (const file of tsxFiles) {

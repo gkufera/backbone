@@ -566,7 +566,10 @@ describe('Production dashboard', () => {
     expect(prodDesignRow).not.toBeNull();
     const disabledDelete = prodDesignRow!.querySelector('.btn-disabled-striped');
     expect(disabledDelete).toBeInTheDocument();
-    expect(disabledDelete).toHaveAttribute('title', 'Cannot delete department with members');
+    // Should show inline explanation text, NOT a native title tooltip
+    expect(disabledDelete).not.toHaveAttribute('title');
+    // The row should show the explanation text inline
+    expect(prodDesignRow).toHaveTextContent(/cannot delete.*with members/i);
 
     // Costume has 0 members — find its row with a regular delete button (btn-text class)
     const costumeElements = screen.getAllByText('Costume');
