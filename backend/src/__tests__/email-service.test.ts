@@ -10,7 +10,12 @@ vi.mock('resend', () => ({
   }),
 }));
 
-import { sendEmail, sendDigestEmail } from '../services/email-service';
+import {
+  sendEmail,
+  sendDigestEmail,
+  sendProductionApprovalEmail,
+  sendProductionApprovedEmail,
+} from '../services/email-service';
 
 describe('Email Service', () => {
   const originalEnv = process.env;
@@ -38,6 +43,39 @@ describe('Email Service', () => {
       subject: 'Test Subject',
       html: '<p>Hello</p>',
     });
+  });
+
+  it('throws when Resend returns an error', async () => {
+    process.env.EMAIL_ENABLED = 'true';
+    process.env.RESEND_API_KEY = 're_test_123';
+    mockSend.mockResolvedValue({
+      data: null,
+      error: { message: 'API key invalid', statusCode: 403, name: 'validation_error' },
+    });
+
+    await expect(
+      sendEmail('recipient@example.com', 'Test Subject', '<p>Hello</p>'),
+    ).rejects.toThrow('Email send failed: API key invalid');
+  });
+
+  it('logs error details on Resend failure', async () => {
+    process.env.EMAIL_ENABLED = 'true';
+    process.env.RESEND_API_KEY = 're_test_123';
+    mockSend.mockResolvedValue({
+      data: null,
+      error: { message: 'Daily quota exceeded', statusCode: 429, name: 'rate_limit_error' },
+    });
+
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(
+      sendEmail('recipient@example.com', 'Test', '<p>Hi</p>'),
+    ).rejects.toThrow();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Daily quota exceeded'),
+    );
+    consoleSpy.mockRestore();
   });
 
   it('logs to console when EMAIL_ENABLED is false', async () => {

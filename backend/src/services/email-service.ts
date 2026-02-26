@@ -28,12 +28,16 @@ export async function sendEmail(
   }
 
   const client = getResendClient();
-  await client.emails.send({
+  const { error } = await client.emails.send({
     from: process.env.EMAIL_FROM ?? 'no-reply@slugmax.com',
     to,
     subject,
     html,
   });
+  if (error) {
+    console.error(`[Email] Resend error: ${error.message}`);
+    throw new Error(`Email send failed: ${error.message}`);
+  }
 }
 
 export async function sendProductionApprovalEmail(
