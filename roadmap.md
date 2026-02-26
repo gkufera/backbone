@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 468 frontend + 468 backend = 936 unit/integration, 57 E2E
+**Test counts:** 481 frontend + 468 backend = 949 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access under review (case #177205820000226). Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com (verified). |
+| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Using SES API (@aws-sdk/client-sesv2) over HTTPS. Production access DENIED (case #177205820000226) — API blocks resubmission after denial, must refile via AWS Console with stronger justification. Backup plan: Resend.com if SES denied again. Sandbox verified: slugmax@kufera.com, greg@kufera.com, carsonmell@gmail.com. |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
@@ -154,13 +154,16 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Sprint 30: QA & Polish (DONE)
 
-**Goal:** Fix UI polish issues affecting usability. 941 Tier 1 tests passing (473 frontend + 468 backend).
+**Goal:** Fix UI polish issues affecting usability. 949 Tier 1 tests passing (481 frontend + 468 backend).
 
 - [x] Make sure no text is over a busy background — moved `.mac-alert-error` stripe pattern to `border-image`, solid white background for text
 - [x] Fix all tooltips to conform to 1-bit Macintosh design system — replaced native `title` tooltip with inline text; added `noValidate` to all forms to suppress native browser validation tooltips
 - [x] Hide the mobile menu hamburger button when the menu has no items — conditionally render based on auth state and productionId
+- [x] Add client-side validation to auth forms — empty login/signup/forgot-password/reset-password fields now show field-specific errors instead of firing API calls (8 new tests)
+- [x] Fix design system test regex whitespace (line 171 space before `.test()`)
 - [ ] Custom MAIL FROM domain for full DMARC alignment (deferred — AWS console work, not code)
 - [ ] Performance audit (deferred — requires manual Lighthouse browser testing)
+- [ ] SES production access refile — case #177205820000226 denied, API blocks resubmission, must refile via AWS Console (backup: Resend.com)
 - [x] Design system compliance tests: no native `title` tooltips, all forms use `noValidate`, `.mac-alert-error` has solid text background
 
 ---
