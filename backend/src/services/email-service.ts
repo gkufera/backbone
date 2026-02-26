@@ -41,3 +41,33 @@ export async function sendNotificationEmail(
   const html = `<p>${notification.message}</p>`;
   await sendEmail(to, subject, html);
 }
+
+export async function sendDigestEmail(
+  to: string,
+  productionName: string,
+  notifications: Array<{ message: string; link: string | null }>,
+): Promise<void> {
+  const count = notifications.length;
+  const subject = `Slug Max: ${count} new update${count !== 1 ? 's' : ''} on ${productionName}`;
+
+  const frontendUrl = process.env.FRONTEND_URL ?? 'https://slugmax.com';
+
+  const listItems = notifications
+    .map((n) => {
+      if (n.link) {
+        return `<li><a href="${frontendUrl}${n.link}">${n.message}</a></li>`;
+      }
+      return `<li>${n.message}</li>`;
+    })
+    .join('\n');
+
+  const html = `
+<h2>Updates on ${productionName}</h2>
+<ul>
+${listItems}
+</ul>
+<p><a href="${frontendUrl}">View on Slug Max</a></p>
+`.trim();
+
+  await sendEmail(to, subject, html);
+}

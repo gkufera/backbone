@@ -9,7 +9,7 @@ vi.mock('@aws-sdk/client-sesv2', () => ({
   SendEmailCommand: vi.fn((input: unknown) => ({ input })),
 }));
 
-import { sendEmail, sendNotificationEmail } from '../services/email-service';
+import { sendEmail, sendNotificationEmail, sendDigestEmail } from '../services/email-service';
 
 describe('Email Service', () => {
   const originalEnv = process.env;
@@ -84,5 +84,64 @@ describe('Email Service', () => {
         }),
       }),
     );
+  });
+});
+
+describe('sendDigestEmail', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env = { ...originalEnv };
+    process.env.EMAIL_ENABLED = 'true';
+    process.env.EMAIL_FROM = 'noreply@slugmax.com';
+    process.env.FRONTEND_URL = 'https://slugmax.com';
+    mockSend.mockResolvedValue({ MessageId: 'msg-digest' });
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('formats subject with count and production name', async () => {
+    await sendDigestEmail('user@example.com', 'My Film', [
+      { message: 'Option added on JOHN', link: '/productions/p1/scripts/s1/elements/e1' },
+      { message: 'Script uploaded: Draft 2', link: '/productions/p1/scripts/s2' },
+    ]);
+
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: expect.objectContaining({
+          Content: {
+            Simple: {
+              Subject: { Data: 'Slug Max: 2 new updates on My Film' },
+              Body: { Html: { Data: expect.any(String) } },
+            },
+          },
+        }),
+      }),
+    );
+  });
+
+  it('includes notification messages as bullet points', async () => {
+    await sendDigestEmail('user@example.com', 'My Film', [
+      { message: 'Option added on JOHN', link: '/productions/p1/scripts/s1/elements/e1' },
+      { message: 'Script uploaded: Draft 2', link: null },
+    ]);
+
+    const htmlArg = mockSend.mock.calls[0][0].input.Content.Simple.Body.Html.Data as string;
+    expect(htmlArg).toContain('Option added on JOHN');
+    expect(htmlArg).toContain('Script uploaded: Draft 2');
+  });
+
+  it('calls sendEmail with formatted HTML', async () => {
+    await sendDigestEmail('user@example.com', 'My Film', [
+      { message: 'Approval on LOCATION A', link: '/productions/p1/feed' },
+    ]);
+
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    const htmlArg = mockSend.mock.calls[0][0].input.Content.Simple.Body.Html.Data as string;
+    expect(htmlArg).toContain('<li>');
+    expect(htmlArg).toContain('Approval on LOCATION A');
   });
 });
