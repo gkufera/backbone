@@ -260,7 +260,7 @@ function ElementRow({
         {productionId && scriptId ? (
           <Link
             href={`/productions/${productionId}/scripts/${scriptId}/elements/${elem.id}`}
-            className={`font-mono underline ${isActive ? '' : 'text-black'}`}
+            className={`font-mono underline ${isActive ? 'text-white' : 'text-black'}`}
           >
             {elem.name}
           </Link>

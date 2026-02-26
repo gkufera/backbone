@@ -265,6 +265,21 @@ describe('Element list', () => {
     expect(row).toHaveClass('text-white');
   });
 
+  it('active element Link has text-white class for visibility on dark background', () => {
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        productionId="prod-1"
+        scriptId="script-1"
+        activeElementId="elem-1"
+      />,
+    );
+
+    const link = screen.getByRole('link', { name: 'JOHN' });
+    expect(link).toHaveClass('text-white');
+  });
+
   it('clicking department chip filters elements to that department', async () => {
     const user = userEvent.setup();
     const elementsWithDepts = [
