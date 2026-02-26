@@ -23,6 +23,9 @@ vi.mock('../lib/prisma', () => ({
       create: vi.fn(),
       findMany: vi.fn(),
     },
+    noteAttachment: {
+      findFirst: vi.fn(),
+    },
     notification: {
       create: vi.fn(),
     },
@@ -527,5 +530,176 @@ describe('GET /api/options/:optionId/notes', () => {
     expect(res.status).toBe(200);
     expect(res.body.notes).toHaveLength(1);
     expect(res.body.notes[0].content).toBe('Nice shot');
+  });
+});
+
+// ── POST /api/options/:optionId/notes with attachments ──────────────
+
+describe('POST /api/options/:optionId/notes — attachments', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
+  });
+
+  it('creates note with attachments array', async () => {
+    mockOptionWithMembership();
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+    mockedPrisma.note.create.mockResolvedValue({
+      id: 'note-3',
+      content: 'See attached',
+      userId: 'user-1',
+      elementId: null,
+      optionId: 'opt-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: { id: 'user-1', name: 'Test User' },
+      attachments: [
+        {
+          id: 'att-1',
+          noteId: 'note-3',
+          s3Key: 'uploads/img.jpg',
+          fileName: 'img.jpg',
+          mediaType: 'IMAGE',
+          createdAt: new Date(),
+        },
+      ],
+    } as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({
+        content: 'See attached',
+        attachments: [{ s3Key: 'uploads/img.jpg', fileName: 'img.jpg', mediaType: 'IMAGE' }],
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.note.attachments).toHaveLength(1);
+    expect(res.body.note.attachments[0].fileName).toBe('img.jpg');
+  });
+
+  it('creates note with attachments and empty content (media-only)', async () => {
+    mockOptionWithMembership();
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+    mockedPrisma.note.create.mockResolvedValue({
+      id: 'note-4',
+      content: '',
+      userId: 'user-1',
+      elementId: null,
+      optionId: 'opt-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: { id: 'user-1', name: 'Test User' },
+      attachments: [
+        {
+          id: 'att-2',
+          noteId: 'note-4',
+          s3Key: 'uploads/video.mp4',
+          fileName: 'video.mp4',
+          mediaType: 'VIDEO',
+          createdAt: new Date(),
+        },
+      ],
+    } as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({
+        content: '',
+        attachments: [{ s3Key: 'uploads/video.mp4', fileName: 'video.mp4', mediaType: 'VIDEO' }],
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.note.content).toBe('');
+    expect(res.body.note.attachments).toHaveLength(1);
+  });
+
+  it('rejects note with no content AND no attachments', async () => {
+    mockOptionWithMembership();
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({ content: '', attachments: [] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/content.*attachment/i);
+  });
+
+  it('rejects note with >5 attachments', async () => {
+    mockOptionWithMembership();
+
+    const attachments = Array.from({ length: 6 }, (_, i) => ({
+      s3Key: `uploads/file${i}.jpg`,
+      fileName: `file${i}.jpg`,
+      mediaType: 'IMAGE',
+    }));
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({ content: 'Too many', attachments });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/5/);
+  });
+
+  it('rejects attachment with invalid mediaType', async () => {
+    mockOptionWithMembership();
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({
+        content: 'Bad type',
+        attachments: [{ s3Key: 'uploads/file.xyz', fileName: 'file.xyz', mediaType: 'INVALID' }],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/media.*type/i);
+  });
+
+  it('creates text-only note (backward compatible, empty attachments)', async () => {
+    mockOptionWithMembership();
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'MEMBER',
+    } as any);
+    mockedPrisma.note.create.mockResolvedValue({
+      id: 'note-5',
+      content: 'Text only',
+      userId: 'user-1',
+      elementId: null,
+      optionId: 'opt-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      user: { id: 'user-1', name: 'Test User' },
+      attachments: [],
+    } as any);
+    mockedPrisma.productionMember.findMany.mockResolvedValue([]);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/notes')
+      .set(authHeader())
+      .send({ content: 'Text only' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.note.content).toBe('Text only');
+    expect(res.body.note.attachments).toHaveLength(0);
   });
 });

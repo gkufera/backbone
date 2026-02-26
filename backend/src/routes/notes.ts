@@ -2,12 +2,15 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { parsePagination } from '../lib/pagination';
-import { NOTE_CONTENT_MAX_LENGTH } from '@backbone/shared/constants';
+import { NOTE_CONTENT_MAX_LENGTH, NOTE_MAX_ATTACHMENTS } from '@backbone/shared/constants';
+import type { NoteAttachmentInput } from '@backbone/shared/types';
 import { NotificationType } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
 import { requireActiveProduction } from '../lib/require-active-production';
 
 const notesRouter = Router();
+
+const VALID_MEDIA_TYPES = new Set(['IMAGE', 'VIDEO', 'AUDIO', 'PDF', 'LINK']);
 
 // Enrich note objects with the user's department name from their production membership
 async function enrichNotesWithDepartment(
@@ -164,18 +167,47 @@ notesRouter.post('/api/options/:optionId/notes', requireAuth, async (req, res) =
   try {
     const authReq = req as AuthenticatedRequest;
     const { optionId } = req.params;
-    const { content } = req.body;
+    const { content, attachments } = req.body as {
+      content?: string;
+      attachments?: NoteAttachmentInput[];
+    };
 
-    if (!content || content.trim().length === 0) {
-      res.status(400).json({ error: 'Content is required' });
+    const trimmedContent = (content ?? '').trim();
+    const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+
+    // Must have content or attachments (or both)
+    if (trimmedContent.length === 0 && !hasAttachments) {
+      res.status(400).json({ error: 'Content or at least one attachment is required' });
       return;
     }
 
-    if (content.length > NOTE_CONTENT_MAX_LENGTH) {
+    if (trimmedContent.length > NOTE_CONTENT_MAX_LENGTH) {
       res.status(400).json({
         error: `Content must not exceed ${NOTE_CONTENT_MAX_LENGTH} characters`,
       });
       return;
+    }
+
+    if (hasAttachments) {
+      if (attachments!.length > NOTE_MAX_ATTACHMENTS) {
+        res.status(400).json({
+          error: `Maximum ${NOTE_MAX_ATTACHMENTS} attachments allowed`,
+        });
+        return;
+      }
+
+      for (const att of attachments!) {
+        if (!att.s3Key || !att.fileName || !att.mediaType) {
+          res.status(400).json({ error: 'Each attachment must have s3Key, fileName, and mediaType' });
+          return;
+        }
+        if (!VALID_MEDIA_TYPES.has(att.mediaType)) {
+          res.status(400).json({
+            error: `Invalid media type: ${att.mediaType}. Must be one of: ${[...VALID_MEDIA_TYPES].join(', ')}`,
+          });
+          return;
+        }
+      }
     }
 
     const option = await prisma.option.findUnique({
@@ -208,11 +240,23 @@ notesRouter.post('/api/options/:optionId/notes', requireAuth, async (req, res) =
 
     const note = await prisma.note.create({
       data: {
-        content,
+        content: trimmedContent,
         userId: authReq.user.userId,
         optionId,
+        ...(hasAttachments && {
+          attachments: {
+            create: attachments!.map((att) => ({
+              s3Key: att.s3Key,
+              fileName: att.fileName,
+              mediaType: att.mediaType as 'IMAGE' | 'VIDEO' | 'AUDIO' | 'PDF' | 'LINK',
+            })),
+          },
+        }),
       },
-      include: { user: { select: { id: true, name: true } } },
+      include: {
+        user: { select: { id: true, name: true } },
+        attachments: { orderBy: { createdAt: 'asc' } },
+      },
     });
 
     // Notify other production members
