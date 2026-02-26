@@ -318,11 +318,16 @@ authRouter.post('/api/auth/resend-verification', async (req, res) => {
       });
 
       const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
+      console.log(`[Resend] Sending verification email to ${user.email}, verifyUrl=${verifyUrl}`);
       sendEmail(
         user.email,
         'Verify your Slug Max email',
         `<p>Click the link below to verify your email:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>This link expires in ${VALIDATION.EMAIL_VERIFICATION_TOKEN_EXPIRY_HOURS} hours.</p>`,
       ).catch((err) => console.error('Failed to send verification email:', err));
+    } else {
+      console.log(
+        `[Resend] Skipped: user=${user ? 'found' : 'not found'}, emailVerified=${user?.emailVerified}`,
+      );
     }
 
     // Always return 200 to not leak whether email exists
