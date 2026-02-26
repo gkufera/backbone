@@ -164,7 +164,12 @@ The goal: no deployment failure should ever happen twice for the same reason.
   - `JWT_SECRET`
   - `CORS_ORIGINS=https://slugmax.com`
   - `PORT=8000`
-  - `EMAIL_ENABLED=false`
+  - `FRONTEND_URL=https://slugmax.com`
+  - `EMAIL_ENABLED=true`
+  - `SMTP_HOST=email-smtp.us-east-1.amazonaws.com`
+  - `SMTP_PORT=587`
+  - `SMTP_USER=<SES SMTP access key>`
+  - `SMTP_PASS=<SES SMTP derived password>`
   - `EMAIL_FROM=noreply@slugmax.com`
   - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
 

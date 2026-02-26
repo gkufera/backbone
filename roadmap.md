@@ -14,7 +14,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 | Railway (backend)  | Running    | api.slugmax.com                                                                   |
 | PostgreSQL         | Running    | Railway-managed                                                                   |
 | AWS S3             | Running    | slugmax-uploads bucket                                                            |
-| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). Production access pending (case #177205820000226) |
+| AWS SES            | Sandbox    | Domain verified (DKIM SUCCESS). SMTP configured in Railway. Production access under review (case #177205820000226). Sandbox sends to verified emails only. |
 | Cloudflare DNS     | Configured | Frontend, API, DKIM, SPF, DMARC records all set                                   |
 | GitHub CI/CD       | All green  | Tier 1 + E2E passing (Sprint 24)                                                  |
 
