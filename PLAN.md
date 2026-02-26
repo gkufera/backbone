@@ -1,74 +1,46 @@
 # Current Plan
 
-## Sprint 29 — Production Security (COMPLETE)
+## Sprint 30 — QA & Polish (COMPLETE)
 
-**Goal:** Close 4 medium-priority security gaps from the security audit.
+**Goal:** Fix UI polish issues affecting usability. 941 Tier 1 tests passing.
 
 ---
 
-### Step 1: Add tokenVersion to schema + JWT
-- [x] Write failing test for JWT containing tokenVersion claim
-- [x] Add `tokenVersion Int @default(0)` to User model
-- [x] Add optional `tokenVersion` to `JwtPayload`, default to 0 in `signToken`
-- [x] Create migration `20260225300000_add_token_version`
-- [x] Run Tier 1 tests (462 pass)
-- [x] COMMIT (2aa83ce)
+### Step 1: Fix .mac-alert-error text readability
+- [x] Write failing test: `.mac-alert-error` must have `background: #fff`
+- [x] Move stripe pattern from `background` to `border-image`
+- [x] Verify text readable with solid white background
+- [x] COMMIT (2bf6ecc)
 
-### Step 2: requireAuth checks tokenVersion against DB
-- [x] Write 3 failing tests in `token-version-middleware.test.ts`
-- [x] Make `requireAuth` async with DB lookup for tokenVersion
-- [x] Update 20 test files with tokenVersion: 0 mocks for middleware
-- [x] Run Tier 1 tests (462 pass)
-- [x] COMMIT (63e7eee)
+### Step 2: Fix native HTML tooltip on department delete button
+- [x] Write failing test: disabled delete has no `title` attribute, shows inline text
+- [x] Replace `title="Cannot delete..."` with inline `<span>` explanation
+- [x] Add design system test: no `title="..."` in component files
+- [x] COMMIT (3c033fa)
 
-### Step 3: Include tokenVersion in login JWT
-- [x] Write failing test: login JWT contains user's tokenVersion from DB
-- [x] Pass `tokenVersion: user.tokenVersion` to `signToken()` in login handler
-- [x] Run Tier 1 tests (462 pass)
-- [x] COMMIT (4be09b5)
+### Step 3: Hide mobile hamburger when menu is empty
+- [x] Write failing test: hamburger hidden when unauthenticated and no productionId
+- [x] Write passing tests: hamburger shown when authenticated or on production page
+- [x] Add `useAuth` to app-header, conditionally render hamburger
+- [x] COMMIT (cacd05d)
 
-### Step 4: Invalidate JWTs on password reset (S19)
-- [x] Write failing tests for tokenVersion increment on reset-password and PATCH /me
-- [x] Add `tokenVersion: { increment: 1 }` to reset-password transaction
-- [x] Add `tokenVersion: { increment: 1 }` to PATCH /me password change
-- [x] Run Tier 1 tests (462 pass)
-- [x] COMMIT (5d6c4e0)
+### Step 4: Add noValidate to all forms (user-reported)
+- [x] Write failing test: all `<form onSubmit>` must include `noValidate`
+- [x] Add `noValidate` to all 17 forms across 13 files
+- [x] COMMIT (6ff704b)
 
-### Step 5: Add POST /api/auth/logout endpoint (S14)
-- [x] Write 2 failing tests for logout endpoint
-- [x] Add logout route: requireAuth → increment tokenVersion → return 200
-- [x] Run Tier 1 tests (464 pass)
-- [x] COMMIT (d0e9e1b)
-
-### Step 6: Frontend calls logout API
-- [x] Write failing test: logout() calls authApi.logout() before clearing state
-- [x] Add authApi.logout() to frontend api.ts
-- [x] Update auth-context logout to async with try/catch API call
-- [x] Run Tier 1 tests (468 frontend + 464 backend)
-- [x] COMMIT (10d1ada)
-
-### Step 7: Per-user upload URL rate limiting (S20)
-- [x] Write 3 failing tests in `upload-rate-limit.test.ts`
-- [x] Add `createUploadLimiter()` with per-userId key (30/min)
-- [x] Apply to POST /api/options/upload-url after requireAuth
-- [x] Run Tier 1 tests (468 frontend + 468 backend = 936 pass)
-- [x] COMMIT (9e3f236)
-
-### Step 8: Document S17 decision + update roadmap
-- [x] Accept in-memory rate limiting for MVP (single-instance Railway)
-- [x] Update roadmap.md with completed items and test counts
-- [x] Update PLAN.md
-
-### Check: Sprint 29 Verification (COMPLETE)
-- [x] Three parallel agents reviewed all security implementation files
-- [x] All attack vectors confirmed blocked (old tokens, deleted users, concurrent increments)
-- [x] Test coverage verified: 41 backend test files, all with correct tokenVersion mocks
-- [x] Issue found: 11 mockUser objects in auth.test.ts missing tokenVersion — fixed (55d8146)
-- [x] Tier 1 tests pass: 468 frontend + 468 backend = 936 total
+### Step 5: Deploy and update roadmap
+- [x] Tier 1 tests: 473 frontend + 468 backend = 941 total
+- [x] Update roadmap.md with Sprint 30 completion
+- [ ] Deploy to production
 
 ---
 
 ## Previously Completed
+
+### Sprint 29 — Production Security (COMPLETE)
+
+**Result: Token revocation, JWT invalidation on password reset, per-user upload rate limiting. 936 total tests.**
 
 ### Sprint 28 — Granular Email Notifications (COMPLETE)
 

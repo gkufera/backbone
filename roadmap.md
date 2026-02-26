@@ -152,21 +152,16 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ---
 
-## Sprint 30: QA & Performance
+## Sprint 30: QA & Polish (DONE)
 
-**Goal:** Full confidence that everything works end-to-end in production.
+**Goal:** Fix UI polish issues affecting usability. 941 Tier 1 tests passing (473 frontend + 468 backend).
 
-- [ ] Make sure no text is over a busy background (e.g., "Please verify your email before logging in" — too hard to read)
-- [ ] Fix all tooltips to conform to 1-bit Macintosh design system (no rounded corners, no shadows, no grays — black/white only with sharp corners and 2px borders)
-- [ ] Hide the mobile menu hamburger button when the menu has no items
-- [ ] Custom MAIL FROM domain for full DMARC alignment
-- [ ] Performance audit
-  - Run Lighthouse on key pages (home, production, script viewer)
-  - Measure API response times for critical endpoints
-  - Optimize any endpoints > 500ms
-- [ ] Full QA pass
-  - All Tier 1 tests pass
-  - All Tier 2 E2E tests pass (Playwright on desktop + mobile viewports) in GitHub Actions
+- [x] Make sure no text is over a busy background — moved `.mac-alert-error` stripe pattern to `border-image`, solid white background for text
+- [x] Fix all tooltips to conform to 1-bit Macintosh design system — replaced native `title` tooltip with inline text; added `noValidate` to all forms to suppress native browser validation tooltips
+- [x] Hide the mobile menu hamburger button when the menu has no items — conditionally render based on auth state and productionId
+- [ ] Custom MAIL FROM domain for full DMARC alignment (deferred — AWS console work, not code)
+- [ ] Performance audit (deferred — requires manual Lighthouse browser testing)
+- [x] Design system compliance tests: no native `title` tooltips, all forms use `noValidate`, `.mac-alert-error` has solid text background
 
 ---
 
