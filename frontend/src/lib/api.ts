@@ -495,6 +495,12 @@ export const authApi = {
       body: JSON.stringify({ code }),
     });
   },
+
+  logout(): Promise<{ message: string }> {
+    return request<{ message: string }>('/api/auth/logout', {
+      method: 'POST',
+    });
+  },
 };
 
 export type ApprovalResponse = JsonSerialized<Approval> & {

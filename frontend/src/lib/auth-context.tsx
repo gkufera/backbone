@@ -20,7 +20,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateUser: (user: AuthUser) => void;
 }
 
@@ -62,7 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // No token returned — user must verify email first
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Clear local state even if API call fails
+    }
     localStorage.removeItem('token');
     setUser(null);
   }, []);

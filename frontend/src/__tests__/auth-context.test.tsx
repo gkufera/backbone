@@ -19,6 +19,7 @@ vi.mock('../lib/api', () => ({
     signup: vi.fn(),
     login: vi.fn(),
     me: vi.fn(),
+    logout: vi.fn(),
   },
 }));
 
@@ -128,7 +129,7 @@ describe('AuthProvider', () => {
     expect(localStorage.getItem('token')).toBe('new-token');
   });
 
-  it('logout clears user and token', async () => {
+  it('logout calls authApi.logout() then clears user and token', async () => {
     const user = userEvent.setup();
     localStorage.setItem('token', 'valid-token');
 
@@ -142,6 +143,44 @@ describe('AuthProvider', () => {
         createdAt: new Date().toISOString(),
       },
     });
+    mockedAuthApi.logout.mockResolvedValue({ message: 'Logged out successfully' });
+
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('authenticated')).toHaveTextContent('true');
+    });
+
+    await user.click(screen.getByRole('button', { name: /logout/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('authenticated')).toHaveTextContent('false');
+    });
+
+    expect(mockedAuthApi.logout).toHaveBeenCalled();
+    expect(screen.getByTestId('user')).toHaveTextContent('null');
+    expect(localStorage.getItem('token')).toBeNull();
+  });
+
+  it('logout clears state even if API call fails', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('token', 'valid-token');
+
+    mockedAuthApi.me.mockResolvedValue({
+      user: {
+        id: 'test-id',
+        name: 'Test User',
+        email: 'test@example.com',
+        emailVerified: true,
+        emailNotificationsEnabled: true,
+        createdAt: new Date().toISOString(),
+      },
+    });
+    mockedAuthApi.logout.mockRejectedValue(new Error('Network error'));
 
     render(
       <AuthProvider>
