@@ -9,7 +9,7 @@ import {
   OPTION_DESCRIPTION_MAX_LENGTH,
 } from '@backbone/shared/constants';
 import { ElementWorkflowState, MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
-import { notifyProductionMembers } from '../services/notification-service';
+import { notifyProductionMembers, notifyDeciders } from '../services/notification-service';
 
 const optionsRouter = Router();
 
@@ -224,6 +224,20 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       include: {
         assets: { orderBy: { sortOrder: 'asc' } },
       },
+    });
+
+    // Notify deciders about the new option (fire-and-forget)
+    const productionId = element.script.productionId;
+    const elementName = element.name ?? 'an element';
+    const link = `/productions/${productionId}/scripts/${element.scriptId}/elements/${elementId}`;
+    notifyDeciders(
+      productionId,
+      authReq.user.userId,
+      NotificationType.OPTION_ADDED,
+      `New option added on ${elementName}`,
+      link,
+    ).catch((err) => {
+      console.error('Failed to send OPTION_ADDED notifications:', err instanceof Error ? err.message : 'Unknown error');
     });
 
     res.status(201).json({ option });

@@ -61,12 +61,20 @@ vi.mock('../lib/s3', () => ({
   generateDownloadUrl: vi.fn(),
 }));
 
+// Mock notification service
+vi.mock('../services/notification-service', () => ({
+  notifyProductionMembers: vi.fn().mockResolvedValue([]),
+  notifyDeciders: vi.fn().mockResolvedValue([]),
+}));
+
 import { prisma } from '../lib/prisma';
 import { generateMediaUploadUrl, generateDownloadUrl } from '../lib/s3';
+import { notifyDeciders } from '../services/notification-service';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGenerateMediaUploadUrl = vi.mocked(generateMediaUploadUrl);
 const mockedGenerateDownloadUrl = vi.mocked(generateDownloadUrl);
+const mockedNotifyDeciders = vi.mocked(notifyDeciders);
 
 const testUser = {
   userId: 'user-1',
@@ -430,6 +438,39 @@ describe('POST /api/elements/:elementId/options', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.option.readyForReview).toBe(false);
+  });
+
+  it('triggers OPTION_ADDED notification to deciders', async () => {
+    mockElementWithMembership();
+    mockedPrisma.option.create.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      mediaType: 'IMAGE',
+      description: 'Reference photo',
+      status: 'ACTIVE',
+      readyForReview: false,
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      assets: [
+        { id: 'a1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+      ],
+    } as any);
+    mockedNotifyDeciders.mockResolvedValue([]);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+    });
+
+    expect(res.status).toBe(201);
+    expect(mockedNotifyDeciders).toHaveBeenCalledWith(
+      'prod-1',
+      'user-1',
+      'OPTION_ADDED',
+      expect.stringContaining('JOHN'),
+      expect.stringContaining('/productions/prod-1/scripts/script-1/elements/elem-1'),
+    );
   });
 });
 
