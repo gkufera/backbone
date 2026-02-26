@@ -167,7 +167,8 @@ The goal: no deployment failure should ever happen twice for the same reason.
   - `FRONTEND_URL=https://slugmax.com`
   - `EMAIL_ENABLED=true`
   - `EMAIL_FROM=no-reply@slugmax.com`
-  - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME` (SES uses same AWS creds as S3)
+  - `RESEND_API_KEY` (Resend email delivery)
+  - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME` (S3 file uploads)
 
 **Frontend Service** (`frontend/`):
 
