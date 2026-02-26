@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { createUploadLimiter } from '../middleware/rate-limit';
 import { parsePagination } from '../lib/pagination';
 import { generateMediaUploadUrl, generateDownloadUrl } from '../lib/s3';
 import {
@@ -12,9 +13,10 @@ import { ElementWorkflowState, MediaType, NotificationType, OptionStatus } from 
 import { notifyProductionMembers, notifyDeciders } from '../services/notification-service';
 
 const optionsRouter = Router();
+const uploadLimiter = createUploadLimiter();
 
 // Generate presigned upload URL for option media
-optionsRouter.post('/api/options/upload-url', requireAuth, async (req, res) => {
+optionsRouter.post('/api/options/upload-url', requireAuth, uploadLimiter, async (req, res) => {
   try {
     const { fileName, contentType, thumbnailFileName } = req.body;
 
