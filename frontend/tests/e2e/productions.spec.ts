@@ -154,9 +154,9 @@ test.describe('Production flow', () => {
 
     // Assign department via dropdown (default departments are seeded on creation)
     const deptSelect = page.getByLabel(/department for/i);
-    await deptSelect.selectOption({ label: /cast/i });
+    await deptSelect.selectOption({ label: 'Cast' });
 
     // Verify the department assignment
-    await expect(deptSelect).toContainText(/cast/i, { timeout: 5000 });
+    await expect(deptSelect).toContainText('Cast', { timeout: 5000 });
   });
 });
