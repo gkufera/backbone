@@ -89,7 +89,7 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
 ## Sprint 27: Lock down production server so that people pay us in order to create a production
 
-- [ ] Make it so that if a user tries to create a production, they have to request to create one and we have to approve it. Once they request a production (make it clear that the prioduction name, studio name, budget, and their name and contact details will be sent to our sales team before they submit), that production is in PENDING stage. An email gets sent to slugmax@kufera.com and carsonmell+slugmaxsubsciption@gmail.com that says we need to approve that production. There is a simple link in the email that, when clicked, approves the production on the backend.
+- [ ] Make it so that if a user tries to create a production, they have to request to create one and we have to approve it. Once they request a production (make it clear that the prioduction name, studio name, budget, and their name and contact details will be sent to our sales team before they submit), that production is in PENDING stage. An email gets sent to slugmax@kufera.com and carsonmell+slugmax@gmail.com that says we need to approve that production. There is a simple link in the email that, when clicked, approves the production on the backend.
 
 ---
 
