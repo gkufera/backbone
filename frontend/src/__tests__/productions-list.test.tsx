@@ -14,6 +14,7 @@ vi.mock('../lib/api', () => ({
   authApi: { signup: vi.fn(), login: vi.fn(), me: vi.fn() },
   productionsApi: {
     create: vi.fn(),
+    approve: vi.fn(),
     list: vi.fn(),
     get: vi.fn(),
     addMember: vi.fn(),
@@ -40,6 +41,7 @@ describe('Productions list page', () => {
           createdById: 'user-1',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          status: 'ACTIVE',
         },
         {
           id: 'prod-2',
@@ -48,6 +50,7 @@ describe('Productions list page', () => {
           createdById: 'user-1',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          status: 'ACTIVE',
         },
       ],
     });
@@ -58,12 +61,12 @@ describe('Productions list page', () => {
     expect(screen.getByText('Film Two')).toBeInTheDocument();
   });
 
-  it('renders "New Production" link', async () => {
+  it('renders "Request Production" link', async () => {
     mockedApi.list.mockResolvedValue({ productions: [] });
 
     render(<ProductionsPage />);
 
-    expect(await screen.findByRole('link', { name: /new production/i })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /request production/i })).toBeInTheDocument();
   });
 
   it('shows empty state when no productions', async () => {
@@ -80,5 +83,47 @@ describe('Productions list page', () => {
     render(<ProductionsPage />);
 
     expect(await screen.findByText(/failed to load productions/i)).toBeInTheDocument();
+  });
+
+  it('PENDING productions show "PENDING APPROVAL" badge', async () => {
+    mockedApi.list.mockResolvedValue({
+      productions: [
+        {
+          id: 'prod-1',
+          title: 'Pending Film',
+          description: null,
+          createdById: 'user-1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          status: 'PENDING',
+        },
+      ],
+    });
+
+    render(<ProductionsPage />);
+
+    expect(await screen.findByText('Pending Film')).toBeInTheDocument();
+    expect(screen.getByText('PENDING APPROVAL')).toBeInTheDocument();
+  });
+
+  it('ACTIVE productions render without badge', async () => {
+    mockedApi.list.mockResolvedValue({
+      productions: [
+        {
+          id: 'prod-1',
+          title: 'Active Film',
+          description: null,
+          createdById: 'user-1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          status: 'ACTIVE',
+        },
+      ],
+    });
+
+    render(<ProductionsPage />);
+
+    expect(await screen.findByText('Active Film')).toBeInTheDocument();
+    expect(screen.queryByText('PENDING APPROVAL')).not.toBeInTheDocument();
   });
 });

@@ -35,7 +35,7 @@ export default function ProductionsPage() {
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl">Productions</h1>
         <Link href="/productions/new" className="mac-btn-primary">
-          New Production
+          Request Production
         </Link>
       </div>
 
@@ -49,7 +49,12 @@ export default function ProductionsPage() {
                 href={`/productions/${p.id}`}
                 className="block px-3 py-4 hover:bg-black hover:text-white"
               >
-                <h2>{p.title}</h2>
+                <div className="flex items-center gap-2">
+                  <h2>{p.title}</h2>
+                  {p.status === 'PENDING' && (
+                    <span className="badge badge-outstanding">PENDING APPROVAL</span>
+                  )}
+                </div>
                 {p.description && <p className="mt-1 text-sm font-mono">{p.description}</p>}
               </Link>
             </li>
