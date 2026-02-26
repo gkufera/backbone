@@ -1,5 +1,16 @@
 # Current Plan
 
+## Sprint 34 QA Check: FDX Support Audit (COMPLETE)
+
+**Result:** Fixed 3 bugs (revision processor FDX metadata, XXE hardening, null text nodes), added 9 tests. 1,063 Tier 1 tests passing (510 frontend + 553 backend).
+
+### Phases
+- [x] Phase 1: Fix revision processor — generate PDF, store sourceS3Key/format/s3Key/sceneData (4 tests)
+- [x] Phase 2: XXE security — explicit processEntities: false + rejection test (1 test)
+- [x] Phase 3: Null text node fix — ?? → || for falsy values (1 test)
+- [x] Phase 4: Revision upload FDX frontend tests — acceptance, contentType, tooltip (3 tests)
+- [x] Phase 5: Full suite pass + docs update
+
 ## Sprint 34: FDX (Final Draft) Script Support (COMPLETE)
 
 **Result:** Full FDX import pipeline — parse XML, detect elements from paragraph types + tagger tags, generate screenplay PDF. 1,054 Tier 1 tests passing (507 frontend + 547 backend).

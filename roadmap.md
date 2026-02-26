@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 507 frontend + 547 backend = 1,054 unit/integration, 57 E2E
+**Test counts:** 510 frontend + 553 backend = 1,063 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 
@@ -247,6 +247,17 @@ Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 - [x] Frontend: `NoteAttachmentUpload` component — ATTACH button, file list with remove, max attachment limit enforced
 - [x] Frontend: Integrated into `OptionNotes` — upload flow (select → presigned URL → PUT S3 → create note with refs), inline display
 - [x] All attachments use existing S3 presigned URL infrastructure
+
+---
+
+## Sprint 34 QA Check: FDX Support Audit (DONE)
+
+**Goal:** Audit Sprint 34 FDX implementation for bugs, security, and test gaps. 1,063 Tier 1 tests (510 frontend + 553 backend).
+
+- [x] Fix revision processor FDX support — generate PDF, store sourceS3Key/format/s3Key/sceneData in both RECONCILING and READY branches (4 tests)
+- [x] XXE security hardening — explicit `processEntities: false` in FDX parser + XXE rejection test (1 test)
+- [x] Fix null text node edge case — `??` → `||` for falsy #text values (1 test)
+- [x] Revision upload FDX frontend tests — .fdx acceptance, contentType, accuracy tooltip (3 tests)
 
 ---
 
