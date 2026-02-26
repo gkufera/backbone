@@ -159,3 +159,139 @@ describe('sendDigestEmail', () => {
     expect(htmlArg).toContain('Approval on LOCATION A');
   });
 });
+
+describe('sendProductionApprovalEmail', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env = { ...originalEnv };
+    process.env.EMAIL_ENABLED = 'true';
+    process.env.EMAIL_FROM = 'no-reply@slugmax.com';
+    process.env.RESEND_API_KEY = 're_test_123';
+    mockSend.mockResolvedValue({ id: 'msg-approval' });
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('sends with correct subject format', async () => {
+    await sendProductionApprovalEmail(
+      'admin@example.com',
+      'My Film',
+      'Acme Studios',
+      'Jane Doe',
+      'jane@example.com',
+      '$1M',
+      'https://slugmax.com/approve/token-123',
+    );
+
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Slug Max: New production request — My Film',
+      }),
+    );
+  });
+
+  it('HTML-escapes user inputs in body', async () => {
+    await sendProductionApprovalEmail(
+      'admin@example.com',
+      '<script>xss</script>',
+      'Studio & "Friends"',
+      'O\'Brien',
+      'ob@example.com',
+      null,
+      'https://slugmax.com/approve/t1',
+    );
+
+    const htmlArg = mockSend.mock.calls[0][0].html as string;
+    expect(htmlArg).not.toContain('<script>');
+    expect(htmlArg).toContain('&lt;script&gt;xss&lt;/script&gt;');
+    expect(htmlArg).toContain('Studio &amp; &quot;Friends&quot;');
+    expect(htmlArg).toContain('O&#39;Brien');
+  });
+
+  it('shows "Not specified" when budget is null', async () => {
+    await sendProductionApprovalEmail(
+      'admin@example.com',
+      'My Film',
+      'Acme',
+      'Jane',
+      'jane@example.com',
+      null,
+      'https://slugmax.com/approve/t1',
+    );
+
+    const htmlArg = mockSend.mock.calls[0][0].html as string;
+    expect(htmlArg).toContain('Not specified');
+  });
+
+  it('includes approveUrl in anchor tag', async () => {
+    const approveUrl = 'https://slugmax.com/approve/token-abc';
+    await sendProductionApprovalEmail(
+      'admin@example.com',
+      'My Film',
+      'Acme',
+      'Jane',
+      'jane@example.com',
+      '$500K',
+      approveUrl,
+    );
+
+    const htmlArg = mockSend.mock.calls[0][0].html as string;
+    expect(htmlArg).toContain(`href="${approveUrl}"`);
+    expect(htmlArg).toContain('Approve Production');
+  });
+});
+
+describe('sendProductionApprovedEmail', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env = { ...originalEnv };
+    process.env.EMAIL_ENABLED = 'true';
+    process.env.EMAIL_FROM = 'no-reply@slugmax.com';
+    process.env.RESEND_API_KEY = 're_test_123';
+    mockSend.mockResolvedValue({ id: 'msg-approved' });
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('sends with correct subject format', async () => {
+    await sendProductionApprovedEmail('user@example.com', 'My Film');
+
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Slug Max: "My Film" has been approved',
+      }),
+    );
+  });
+
+  it('HTML-escapes production title in body', async () => {
+    await sendProductionApprovedEmail('user@example.com', '<b>Dangerous & "Title"</b>');
+
+    const htmlArg = mockSend.mock.calls[0][0].html as string;
+    expect(htmlArg).not.toContain('<b>Dangerous');
+    expect(htmlArg).toContain('&lt;b&gt;Dangerous &amp; &quot;Title&quot;&lt;/b&gt;');
+  });
+
+  it('uses FRONTEND_URL env var in link', async () => {
+    process.env.FRONTEND_URL = 'https://custom.example.com';
+    await sendProductionApprovedEmail('user@example.com', 'My Film');
+
+    const htmlArg = mockSend.mock.calls[0][0].html as string;
+    expect(htmlArg).toContain('href="https://custom.example.com"');
+  });
+
+  it('falls back to https://slugmax.com when FRONTEND_URL is not set', async () => {
+    delete process.env.FRONTEND_URL;
+    await sendProductionApprovedEmail('user@example.com', 'My Film');
+
+    const htmlArg = mockSend.mock.calls[0][0].html as string;
+    expect(htmlArg).toContain('href="https://slugmax.com"');
+  });
+});
