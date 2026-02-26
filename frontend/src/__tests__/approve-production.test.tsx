@@ -35,7 +35,7 @@ describe('Approve Production page', () => {
     expect(screen.getByText(/approving/i)).toBeInTheDocument();
   });
 
-  it('shows success message on approval', async () => {
+  it('shows the API response message on approval', async () => {
     mockedApi.approve.mockResolvedValue({
       message: 'Production approved successfully',
       productionTitle: 'My Film',
@@ -43,7 +43,7 @@ describe('Approve Production page', () => {
 
     render(<ApproveProductionPage />);
 
-    expect(await screen.findByText(/approved/i)).toBeInTheDocument();
+    expect(await screen.findByText('Production approved successfully')).toBeInTheDocument();
   });
 
   it('shows error message on failure', async () => {

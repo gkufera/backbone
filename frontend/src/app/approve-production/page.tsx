@@ -44,7 +44,7 @@ function ApproveProductionContent() {
           {status === 'success' && (
             <div className="space-y-4">
               <p className="text-center text-sm font-mono text-black">
-                Production has been approved!
+                {message}
               </p>
               <p className="text-center">
                 <Link href="/productions" className="mac-btn-primary inline-block px-6 py-2">
