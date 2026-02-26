@@ -37,7 +37,7 @@ jobs:
       CORS_ORIGINS: http://localhost:3000
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
       EMAIL_ENABLED: "false"
-      EMAIL_FROM: noreply@test.com
+      EMAIL_FROM: no-reply@test.com
       AWS_ACCESS_KEY_ID: ci-dummy-key
       AWS_SECRET_ACCESS_KEY: ci-dummy-secret
       S3_BUCKET_NAME: ci-dummy-bucket

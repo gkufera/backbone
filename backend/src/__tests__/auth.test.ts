@@ -454,7 +454,7 @@ describe('POST /api/auth/forgot-password', () => {
       usedAt: null,
       createdAt: new Date(),
     } as any);
-    mockedSendEmail.mockRejectedValue(new Error('SES rejected'));
+    mockedSendEmail.mockRejectedValue(new Error('Email send failed: API key invalid'));
 
     const res = await request(app).post('/api/auth/forgot-password').send({
       email: 'test@example.com',
@@ -793,8 +793,8 @@ describe('POST /api/auth/resend-verification', () => {
       createdAt: new Date(),
     } as any);
 
-    // Simulate SES rejection
-    mockedSendEmail.mockRejectedValue(new Error('MessageRejected: Email address is not verified.'));
+    // Simulate Resend rejection
+    mockedSendEmail.mockRejectedValue(new Error('Email send failed: Email address is not verified.'));
 
     const res = await request(app).post('/api/auth/resend-verification').send({
       email: 'test@example.com',

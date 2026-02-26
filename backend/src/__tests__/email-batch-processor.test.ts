@@ -262,7 +262,7 @@ describe('processEmailBatch', () => {
     mockedPrisma.notificationPreference.findUnique.mockResolvedValue(null);
     // First user's email fails, second succeeds
     mockedSendDigestEmail
-      .mockRejectedValueOnce(new Error('SES error'))
+      .mockRejectedValueOnce(new Error('Resend error'))
       .mockResolvedValueOnce(undefined);
     mockedPrisma.notification.updateMany.mockResolvedValue({ count: 2 } as any);
 
