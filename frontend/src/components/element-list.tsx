@@ -257,13 +257,23 @@ function ElementRow({
         {tempClass && elem.approvalTemperature && (
           <span className={`inline-block ${tempClass}`} aria-hidden="true">{tempGlyph[elem.approvalTemperature]}</span>
         )}
-        {productionId && scriptId ? (
+        {productionId && scriptId && !onElementClick ? (
           <Link
             href={`/productions/${productionId}/scripts/${scriptId}/elements/${elem.id}`}
             className={`font-mono underline ${isActive ? 'text-white' : 'text-black'}`}
           >
             {elem.name}
           </Link>
+        ) : onElementClick ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onElementClick(elem.id);
+            }}
+            className={`font-mono underline border-0 bg-transparent p-0 normal-case tracking-normal ${isActive ? 'text-white hover:text-white' : 'text-black hover:bg-black hover:text-white'}`}
+          >
+            {elem.name}
+          </button>
         ) : (
           <span className="font-mono">{elem.name}</span>
         )}

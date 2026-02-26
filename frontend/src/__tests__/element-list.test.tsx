@@ -613,6 +613,62 @@ describe('Element list', () => {
     expect(screen.getByRole('list', { name: 'Unassigned' })).toBeInTheDocument();
   });
 
+  it('renders element name as button (not Link) when onElementClick is provided', () => {
+    const onElementClick = vi.fn();
+
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        productionId="prod-1"
+        scriptId="script-1"
+        onElementClick={onElementClick}
+      />,
+    );
+
+    // Should NOT have links for element names
+    const links = screen.queryAllByRole('link');
+    expect(links).toHaveLength(0);
+
+    // Element name should be a button
+    const nameButton = screen.getByRole('button', { name: 'JOHN' });
+    expect(nameButton).toBeInTheDocument();
+  });
+
+  it('clicking element name button fires onElementClick callback', async () => {
+    const user = userEvent.setup();
+    const onElementClick = vi.fn();
+
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        productionId="prod-1"
+        scriptId="script-1"
+        onElementClick={onElementClick}
+      />,
+    );
+
+    const nameButton = screen.getByRole('button', { name: 'JOHN' });
+    await user.click(nameButton);
+
+    expect(onElementClick).toHaveBeenCalledWith('elem-1');
+  });
+
+  it('renders element name as Link when onElementClick is not provided', () => {
+    render(
+      <ElementList
+        elements={mockElements}
+        onArchive={mockOnArchive}
+        productionId="prod-1"
+        scriptId="script-1"
+      />,
+    );
+
+    const links = screen.getAllByRole('link');
+    expect(links.length).toBe(4);
+  });
+
   it('archive button stopPropagation', async () => {
     const user = userEvent.setup();
     const onElementClick = vi.fn();
