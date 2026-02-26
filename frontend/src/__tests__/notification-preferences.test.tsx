@@ -73,6 +73,32 @@ describe('NotificationPreferences', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
+  it('reverts checkbox on API error', async () => {
+    const user = userEvent.setup();
+    mockedApi.get.mockResolvedValue({ preferences: defaultPrefs });
+    mockedApi.update.mockRejectedValue(new Error('Network error'));
+
+    render(<NotificationPreferences productionId="prod-1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Options')).toBeInTheDocument();
+    });
+
+    const optionsCheckbox = screen.getByRole('checkbox', { name: /options/i });
+    expect(optionsCheckbox).toBeChecked();
+
+    // Click to uncheck — optimistic update unchecks immediately
+    await user.click(optionsCheckbox);
+
+    // After API error, checkbox should revert to checked
+    await waitFor(() => {
+      expect(optionsCheckbox).toBeChecked();
+    });
+
+    // Error message should display
+    expect(screen.getByText('Failed to update preference')).toBeInTheDocument();
+  });
+
   it('handles API error gracefully', async () => {
     mockedApi.get.mockRejectedValue(new Error('Network error'));
 

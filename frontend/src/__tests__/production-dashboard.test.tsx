@@ -831,6 +831,22 @@ describe('Production dashboard', () => {
     expect(mockToastShow).toHaveBeenCalledWith('No user found with that email', 'error');
   });
 
+  it('renders Email Notifications section with preference checkboxes', async () => {
+    setupMocks();
+
+    render(<ProductionDashboard />);
+
+    // Wait for the Email Notifications section title to render
+    expect(await screen.findByText('Email Notifications')).toBeInTheDocument();
+
+    // Wait for the preferences API to resolve and checkboxes to appear
+    expect(await screen.findByRole('checkbox', { name: /options/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /approvals/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /notes/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /scripts/i })).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /members/i })).toBeInTheDocument();
+  });
+
   it('MEMBER cannot edit title (no cursor-pointer, click does not enter edit mode)', async () => {
     const memberProduction = {
       ...mockProduction,
