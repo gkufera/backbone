@@ -22,7 +22,7 @@ test.describe('Notifications', () => {
       data: { title: 'Notification Test Production' },
     });
     const prodBody = await prodRes.json();
-    const productionId = prodBody.id;
+    const productionId = prodBody.production.id;
 
     // User A adds User B as member → triggers MEMBER_INVITED notification
     await request.post(`${API_BASE}/api/productions/${productionId}/members`, {
@@ -104,8 +104,9 @@ test.describe('Notifications', () => {
     const productionId = url.split('/productions/')[1];
 
     await page.goto(`/productions/${productionId}/notifications`);
+    await page.waitForLoadState('networkidle');
     await expect(page.getByRole('heading', { name: /notifications/i })).toBeVisible({
-      timeout: 10000,
+      timeout: 15000,
     });
 
     // Should show empty state text

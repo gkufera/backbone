@@ -64,7 +64,7 @@ test.describe('Element management', () => {
     await page.getByPlaceholder(/element name/i).fill('New Test Element');
     // The type dropdown - select "Other"
     await page.getByRole('combobox').selectOption('OTHER');
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
 
     // Verify new element appears in the list
     await expect(page.getByText('New Test Element').first()).toBeVisible({ timeout: 5000 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../lib/auth-context';
 import { authApi } from '../../lib/api';
 import { useToast } from '../../lib/toast-context';
@@ -25,6 +25,14 @@ export default function SettingsPage() {
     user?.emailNotificationsEnabled ?? true,
   );
   const [notifLoading, setNotifLoading] = useState(false);
+
+  // Sync form state when user loads (e.g., after page reload)
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setEmailNotifications(user.emailNotificationsEnabled);
+    }
+  }, [user?.name, user?.emailNotificationsEnabled]);
 
   const [phone, setPhone] = useState('');
   const [phoneCode, setPhoneCode] = useState('');

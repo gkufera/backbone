@@ -84,7 +84,7 @@ test.describe('Production flow', () => {
     await deptInput.fill('Custom Department');
     await page.getByRole('button', { name: /add department/i }).click();
 
-    await expect(page.getByText('Custom Department')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('li', { hasText: 'Custom Department' })).toBeVisible({ timeout: 5000 });
   });
 
   test('delete department → removed from list', async ({ page }) => {
@@ -100,14 +100,14 @@ test.describe('Production flow', () => {
     const deptInput = page.getByPlaceholder(/department/i);
     await deptInput.fill('Temp Department');
     await page.getByRole('button', { name: /add department/i }).click();
-    await expect(page.getByText('Temp Department')).toBeVisible({ timeout: 5000 });
+    const deptRow = page.locator('li', { hasText: 'Temp Department' });
+    await expect(deptRow).toBeVisible({ timeout: 5000 });
 
     // Find and click the delete button for the newly created department
-    const deptRow = page.locator('li', { hasText: 'Temp Department' });
     await deptRow.getByRole('button', { name: /delete/i }).click();
 
     // Verify it's gone
-    await expect(page.getByText('Temp Department')).not.toBeVisible({ timeout: 5000 });
+    await expect(deptRow).not.toBeVisible({ timeout: 5000 });
   });
 
   test('change member role via dropdown', async ({ page, request }) => {
@@ -127,8 +127,8 @@ test.describe('Production flow', () => {
     await page.getByRole('button', { name: 'Add Member' }).click();
     await expect(page.getByText(memberEmail)).toBeVisible({ timeout: 5000 });
 
-    // Change role via dropdown
-    const roleSelect = page.getByLabel(/role for/i);
+    // Change role via dropdown (target the member's row, not the admin's)
+    const roleSelect = page.getByLabel('Role for Role Test Member');
     await roleSelect.selectOption('DECIDER');
 
     // Verify the role change persists
@@ -153,7 +153,7 @@ test.describe('Production flow', () => {
     await expect(page.getByText(memberEmail)).toBeVisible({ timeout: 5000 });
 
     // Assign department via dropdown (default departments are seeded on creation)
-    const deptSelect = page.getByLabel(/department for/i);
+    const deptSelect = page.getByLabel('Department for Dept Test Member');
     await deptSelect.selectOption({ label: 'Cast' });
 
     // Verify the department assignment

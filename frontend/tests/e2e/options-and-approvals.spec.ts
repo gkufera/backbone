@@ -96,10 +96,10 @@ test.describe('Options', () => {
       timeout: 10000,
     });
 
-    // Click "Unmark Ready"
-    await page.getByRole('button', { name: /unmark ready/i }).click();
+    // Click "Unmark Ready" (aria-label is "Mark not ready")
+    await page.getByRole('button', { name: /mark not ready/i }).click();
 
-    // After unmarking, "Mark Ready" button should reappear (not "Unmark Ready")
+    // After unmarking, "Mark Ready" button should reappear
     await expect(page.getByRole('button', { name: /^mark ready$/i })).toBeVisible({
       timeout: 5000,
     });
@@ -144,7 +144,7 @@ test.describe('Approvals', () => {
     });
 
     // Click Y (approve) button
-    await page.getByRole('button', { name: 'Y' }).click();
+    await page.getByRole('button', { name: 'Y', exact: true }).click();
 
     // Verify approval indicator appears (APPROVED badge in approval history)
     await expect(page.getByText('APPROVED').first()).toBeVisible({ timeout: 5000 });
@@ -164,7 +164,7 @@ test.describe('Approvals', () => {
     });
 
     // Click N (reject) button
-    await page.getByRole('button', { name: 'N' }).click();
+    await page.getByRole('button', { name: 'N', exact: true }).click();
 
     // Verify rejection indicator
     await expect(page.getByText('REJECTED').first()).toBeVisible({ timeout: 5000 });
@@ -184,7 +184,7 @@ test.describe('Approvals', () => {
     });
 
     // Click M (maybe) button
-    await page.getByRole('button', { name: 'M' }).click();
+    await page.getByRole('button', { name: 'M', exact: true }).click();
 
     // Verify maybe indicator
     await expect(page.getByText('MAYBE').first()).toBeVisible({ timeout: 5000 });
@@ -210,7 +210,7 @@ test.describe('Approvals', () => {
     await page.getByPlaceholder(/add a note/i).fill('Great reference for this character');
 
     // Click Y (approve) with the note
-    await page.getByRole('button', { name: 'Y' }).click();
+    await page.getByRole('button', { name: 'Y', exact: true }).click();
 
     // Verify both approval and note are visible
     await expect(page.getByText('APPROVED').first()).toBeVisible({ timeout: 5000 });

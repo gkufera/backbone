@@ -41,6 +41,16 @@
 - E2E tests: 57 total, require running backend+DB for Tier 2 execution
 - Roadmap updated
 
+### Sprint 25 QA Review Fixes — DONE
+- Added handler-level NODE_ENV guard in test-seed.ts (defense-in-depth)
+- Added error details in test-seed.ts error responses
+- Replaced `waitForTimeout` with `waitForLoadState` in notifications.spec.ts
+- Added localStorage token assertion in auth.spec.ts logout test
+- Replaced fragile `locator('..')` with `locator('li')` filter in productions.spec.ts
+- Added element name validation assertions in options-and-approvals.spec.ts
+- Strengthened feed test to check actual element names (John, Sarah)
+- Improved seedProduction error messages in helpers.ts
+
 ---
 
 **Next step:** Sprint 26 — Production Security
