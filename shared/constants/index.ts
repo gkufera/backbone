@@ -15,5 +15,10 @@ export {
   DEPARTMENT_NAME_MAX_LENGTH,
   ELEMENT_TYPE_DEPARTMENT_MAP,
 } from './departments';
-export { NOTIFICATION_MESSAGE_MAX_LENGTH } from './notification';
+export {
+  NOTIFICATION_MESSAGE_MAX_LENGTH,
+  NOTIFICATION_TYPE_CATEGORY,
+  CATEGORY_TO_PREF_FIELD,
+} from './notification';
+export type { NotificationCategory } from './notification';
 export { NOTE_CONTENT_MAX_LENGTH } from './note';

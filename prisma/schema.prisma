@@ -69,11 +69,17 @@ enum NotificationType {
   OPTION_APPROVED
   OPTION_REJECTED
   OPTION_MAYBE
+  OPTION_ADDED
   MEMBER_INVITED
   SCRIPT_UPLOADED
   TENTATIVE_APPROVAL
   TENTATIVE_CONFIRMED
   NOTE_ADDED
+}
+
+enum ScopeFilter {
+  ALL
+  MY_DEPARTMENT
 }
 
 model User {
@@ -89,17 +95,18 @@ model User {
 
   emailNotificationsEnabled Boolean @default(true) @map("email_notifications_enabled")
 
-  createdProductions      Production[]               @relation("CreatedProductions")
-  productionMembers       ProductionMember[]
-  uploadedScripts         Script[]
-  uploadedOptions         Option[]                   @relation("UploadedOptions")
-  approvals               Approval[]
-  notifications           Notification[]
-  notes                   Note[]
-  directorNotes           DirectorNote[]
-  passwordResetTokens     PasswordResetToken[]
-  emailVerificationTokens EmailVerificationToken[]
-  phoneVerificationCodes  PhoneVerificationCode[]
+  createdProductions        Production[]               @relation("CreatedProductions")
+  productionMembers         ProductionMember[]
+  uploadedScripts           Script[]
+  uploadedOptions           Option[]                   @relation("UploadedOptions")
+  approvals                 Approval[]
+  notifications             Notification[]
+  notificationPreferences   NotificationPreference[]
+  notes                     Note[]
+  directorNotes             DirectorNote[]
+  passwordResetTokens       PasswordResetToken[]
+  emailVerificationTokens   EmailVerificationToken[]
+  phoneVerificationCodes    PhoneVerificationCode[]
 
   @@map("users")
 }
@@ -152,11 +159,12 @@ model Production {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  createdBy      User               @relation("CreatedProductions", fields: [createdById], references: [id])
-  members        ProductionMember[]
-  scripts        Script[]
-  departments    Department[]
-  notifications  Notification[]
+  createdBy                 User                     @relation("CreatedProductions", fields: [createdById], references: [id])
+  members                   ProductionMember[]
+  scripts                   Script[]
+  departments               Department[]
+  notifications             Notification[]
+  notificationPreferences   NotificationPreference[]
 
   @@map("productions")
 }
@@ -353,6 +361,7 @@ model Notification {
   message      String
   link         String?
   read         Boolean          @default(false)
+  emailSentAt  DateTime?        @map("email_sent_at")
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
 
@@ -361,6 +370,26 @@ model Notification {
 
   @@index([userId, productionId, read])
   @@map("notifications")
+}
+
+model NotificationPreference {
+  id             String      @id @default(cuid())
+  userId         String      @map("user_id")
+  productionId   String      @map("production_id")
+  optionEmails   Boolean     @default(true) @map("option_emails")
+  noteEmails     Boolean     @default(true) @map("note_emails")
+  approvalEmails Boolean     @default(true) @map("approval_emails")
+  scriptEmails   Boolean     @default(true) @map("script_emails")
+  memberEmails   Boolean     @default(true) @map("member_emails")
+  scopeFilter    ScopeFilter @default(ALL) @map("scope_filter")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  user           User        @relation(fields: [userId], references: [id])
+  production     Production  @relation(fields: [productionId], references: [id])
+
+  @@unique([userId, productionId])
+  @@map("notification_preferences")
 }
 
 model DirectorNote {

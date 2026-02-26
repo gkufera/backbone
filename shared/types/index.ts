@@ -15,8 +15,8 @@ export type { Option, OptionAsset } from './option';
 export { ApprovalDecision } from './approval';
 export type { Approval } from './approval';
 
-export { NotificationType } from './notification';
-export type { Notification } from './notification';
+export { NotificationType, ScopeFilter } from './notification';
+export type { Notification, NotificationPreference } from './notification';
 
 export type { Note } from './note';
 
