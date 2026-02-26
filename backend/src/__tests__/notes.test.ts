@@ -85,6 +85,7 @@ function mockOptionWithMembership() {
 describe('GET /api/elements/:elementId/notes returns user department name', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('includes department name on each note', async () => {
@@ -120,6 +121,7 @@ describe('GET /api/elements/:elementId/notes returns user department name', () =
 describe('POST /api/elements/:elementId/notes returns user department name', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('includes department name on created note', async () => {
@@ -161,6 +163,7 @@ describe('POST /api/elements/:elementId/notes returns user department name', () 
 describe('GET /api/options/:optionId/notes returns user department name', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('includes department name on each option note', async () => {
@@ -196,6 +199,7 @@ describe('GET /api/options/:optionId/notes returns user department name', () => 
 describe('POST /api/options/:optionId/notes returns user department name', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('includes department name on created option note', async () => {
@@ -233,6 +237,7 @@ describe('POST /api/options/:optionId/notes returns user department name', () =>
 describe('GET /api/elements/:elementId/notes returns null department for unassigned user', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns department as null when user has no department assignment', async () => {
@@ -270,6 +275,7 @@ describe('GET /api/elements/:elementId/notes returns null department for unassig
 describe('POST /api/elements/:elementId/notes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('creates note and returns 201', async () => {
@@ -358,6 +364,7 @@ describe('POST /api/elements/:elementId/notes', () => {
 describe('GET /api/elements/:elementId/notes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns notes with user info', async () => {
@@ -403,6 +410,7 @@ describe('GET /api/elements/:elementId/notes', () => {
 describe('POST /api/options/:optionId/notes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('creates option note and returns 201', async () => {
@@ -446,6 +454,7 @@ describe('POST /api/options/:optionId/notes', () => {
 describe('GET /api/options/:optionId/notes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns option notes with user info', async () => {

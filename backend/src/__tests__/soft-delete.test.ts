@@ -101,6 +101,7 @@ function authHeader() {
 describe('Element soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('DELETE /api/elements/:id sets deletedAt instead of hard-deleting', async () => {
@@ -147,6 +148,7 @@ describe('Element soft-delete (Sprint 17)', () => {
 describe('ProductionMember soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('DELETE /api/productions/:id/members/:memberId sets deletedAt', async () => {
@@ -196,6 +198,7 @@ describe('ProductionMember soft-delete (Sprint 17)', () => {
 describe('Department soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('DELETE /api/productions/:id/departments/:departmentId sets deletedAt', async () => {
@@ -244,6 +247,7 @@ describe('Department soft-delete (Sprint 17)', () => {
 describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('GET /api/productions/:id excludes soft-deleted members', async () => {
@@ -474,6 +478,7 @@ describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
 describe('Notes department enrichment soft-delete filtering (Sprint 21)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('enrichNotesWithDepartment excludes soft-deleted production members', async () => {

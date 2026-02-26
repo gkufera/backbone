@@ -281,6 +281,7 @@ describe('GET /api/auth/me', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -308,7 +309,7 @@ describe('GET /api/auth/me', () => {
     expect(res.body).toHaveProperty('error');
   });
 
-  it('returns 404 when user no longer exists', async () => {
+  it('returns 401 when user no longer exists (middleware rejects)', async () => {
     mockedPrisma.user.findUnique.mockResolvedValue(null);
 
     const token = signToken({
@@ -318,7 +319,7 @@ describe('GET /api/auth/me', () => {
 
     const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('error');
   });
 });
@@ -354,7 +355,10 @@ describe('Error handling', () => {
   });
 
   it('returns 500 when Prisma throws on /me', async () => {
-    mockedPrisma.user.findUnique.mockRejectedValue(new Error('DB connection failed'));
+    // First call: middleware's tokenVersion check — must succeed
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'test-id-123', tokenVersion: 0 } as any);
+    // Second call: route handler's user lookup — throws DB error
+    mockedPrisma.user.findUnique.mockRejectedValueOnce(new Error('DB connection failed'));
 
     const token = signToken({
       userId: 'test-id-123',
@@ -788,6 +792,7 @@ describe('GET /api/auth/me includes emailVerified', () => {
       passwordHash: 'hashed-pw',
       emailVerified: true,
       emailNotificationsEnabled: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -819,6 +824,7 @@ describe('PATCH /api/auth/me', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -850,6 +856,7 @@ describe('PATCH /api/auth/me', () => {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -878,6 +885,7 @@ describe('PATCH /api/auth/me', () => {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -905,6 +913,7 @@ describe('PATCH /api/auth/me', () => {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -929,6 +938,7 @@ describe('PATCH /api/auth/me', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -960,6 +970,7 @@ describe('PATCH /api/auth/me', () => {
       passwordHash: 'hashed-pw',
       emailVerified: true,
       emailNotificationsEnabled: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1036,6 +1047,8 @@ describe('POST /api/auth/send-phone-code', () => {
   });
 
   it('returns 400 for invalid phone format', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+
     const token = signToken({ userId: 'user-1', email: 'test@example.com' });
 
     const res = await request(app)
@@ -1054,6 +1067,7 @@ describe('POST /api/auth/send-phone-code', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1086,6 +1100,8 @@ describe('POST /api/auth/send-phone-code', () => {
   });
 
   it('returns 400 when phone field is missing', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+
     const token = signToken({ userId: 'user-1', email: 'test@example.com' });
 
     const res = await request(app)
@@ -1104,6 +1120,7 @@ describe('POST /api/auth/send-phone-code', () => {
       email: 'test@example.com',
       passwordHash: 'hashed-pw',
       emailVerified: true,
+      tokenVersion: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1148,6 +1165,7 @@ describe('POST /api/auth/verify-phone', () => {
   });
 
   it('returns 400 for invalid/unknown code', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
     mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(null);
 
     const token = signToken({ userId: 'user-1', email: 'test@example.com' });
@@ -1162,6 +1180,8 @@ describe('POST /api/auth/verify-phone', () => {
   });
 
   it('succeeds with valid code', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+
     const mockCode = {
       id: 'pvc-1',
       userId: 'user-1',
@@ -1187,6 +1207,8 @@ describe('POST /api/auth/verify-phone', () => {
   });
 
   it('returns 400 when code field is missing', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+
     const token = signToken({ userId: 'user-1', email: 'test@example.com' });
 
     const res = await request(app)
@@ -1199,6 +1221,7 @@ describe('POST /api/auth/verify-phone', () => {
   });
 
   it('returns 400 for already-used code', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
     // Code with usedAt set should not be found by the query (usedAt: null filter)
     mockedPrisma.phoneVerificationCode.findFirst.mockResolvedValue(null);
 
@@ -1214,6 +1237,8 @@ describe('POST /api/auth/verify-phone', () => {
   });
 
   it('returns 400 for expired code', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+
     const mockCode = {
       id: 'pvc-1',
       userId: 'user-1',

@@ -1,11 +1,16 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyToken, type JwtPayload } from '../lib/jwt';
+import { prisma } from '../lib/prisma';
 
 export interface AuthenticatedRequest extends Request {
   user: JwtPayload;
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export async function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -23,6 +28,18 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
   try {
     const payload = verifyToken(token);
+
+    // Verify tokenVersion against DB to support JWT revocation
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { tokenVersion: true },
+    });
+
+    if (!user || user.tokenVersion !== (payload.tokenVersion ?? 0)) {
+      res.status(401).json({ error: 'Authentication required: invalid or expired token' });
+      return;
+    }
+
     (req as AuthenticatedRequest).user = payload;
     next();
   } catch {

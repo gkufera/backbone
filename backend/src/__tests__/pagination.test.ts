@@ -54,6 +54,7 @@ function authHeader() {
 describe('Pagination on list endpoints', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   describe('GET /api/productions/:productionId/notifications', () => {
@@ -138,6 +139,7 @@ describe('Pagination on list endpoints', () => {
 describe('Resource creation limits', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('rejects option creation with more than 20 assets', async () => {

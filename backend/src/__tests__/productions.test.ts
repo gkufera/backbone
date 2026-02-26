@@ -59,6 +59,7 @@ function authHeader() {
 describe('POST /api/productions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 201 with production, ADMIN membership, and seeds default departments', async () => {
@@ -297,6 +298,7 @@ describe('POST /api/productions', () => {
 describe('GET /api/productions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it("returns 200 with user's productions via membership", async () => {
@@ -347,6 +349,7 @@ describe('GET /api/productions', () => {
 describe('GET /api/productions/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with production details including members with titles and departments', async () => {
@@ -423,6 +426,7 @@ describe('GET /api/productions/:id', () => {
 describe('PATCH /api/productions/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns updated production for ADMIN', async () => {
@@ -561,6 +565,7 @@ describe('PATCH /api/productions/:id', () => {
 describe('POST /api/productions/:id/members — notification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('triggers MEMBER_INVITED notification for the invited user', async () => {
@@ -575,11 +580,14 @@ describe('POST /api/productions/:id/members — notification', () => {
       // Check if already a member — not found
       .mockResolvedValueOnce(null);
 
-    // Find user by email
-    mockedPrisma.user.findUnique.mockResolvedValue({
-      id: 'user-2',
-      email: 'invited@example.com',
-    } as any);
+    // First call: middleware auth check (token version validation)
+    mockedPrisma.user.findUnique
+      .mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any)
+      // Second call: find user by email in route handler
+      .mockResolvedValueOnce({
+        id: 'user-2',
+        email: 'invited@example.com',
+      } as any);
 
     // Production lookup for title
     mockedPrisma.production.findUnique.mockResolvedValue({
@@ -614,6 +622,7 @@ describe('POST /api/productions/:id/members — notification', () => {
 describe('GET /api/productions/:id/element-stats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns element workflow state counts', async () => {

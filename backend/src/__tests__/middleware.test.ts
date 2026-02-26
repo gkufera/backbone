@@ -1,8 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { signToken } from '../lib/jwt';
+import { prisma } from '../lib/prisma';
+
+vi.mock('../lib/prisma', () => ({
+  prisma: {
+    user: {
+      findUnique: vi.fn(),
+    },
+  },
+}));
+
+const mockedPrisma = vi.mocked(prisma);
 
 // Create a test app with a protected route
 function createTestApp() {
@@ -22,6 +33,12 @@ describe('requireAuth middleware', () => {
 
   beforeEach(() => {
     testApp = createTestApp();
+    vi.clearAllMocks();
+    // Default: user exists with tokenVersion 0 (matches signToken default)
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      id: 'test-user-id',
+      tokenVersion: 0,
+    } as any);
   });
 
   it('rejects requests with no Authorization header', async () => {

@@ -95,6 +95,7 @@ function mockScriptWithMembership() {
 describe('POST /api/scripts/:scriptId/elements', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 201 with element (source: MANUAL)', async () => {
@@ -158,6 +159,7 @@ describe('POST /api/scripts/:scriptId/elements', () => {
 describe('PATCH /api/elements/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with updated element', async () => {
@@ -225,6 +227,7 @@ describe('PATCH /api/elements/:id', () => {
 describe('GET /api/scripts/:scriptId/elements', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns elements excluding ARCHIVED by default', async () => {
@@ -313,6 +316,7 @@ describe('GET /api/scripts/:scriptId/elements', () => {
 describe('DELETE /api/elements/:id (safety check)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 409 when element has options', async () => {
@@ -343,6 +347,7 @@ describe('DELETE /api/elements/:id (safety check)', () => {
 describe('PATCH /api/elements/:id (archive/soft-delete)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('archives element via status change (never hard-deletes)', async () => {

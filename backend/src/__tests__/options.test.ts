@@ -91,6 +91,7 @@ function authHeader() {
 describe('POST /api/options/upload-url', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with upload URL for image/jpeg', async () => {
@@ -195,6 +196,7 @@ describe('POST /api/options/upload-url', () => {
 describe('GET /api/options/download-url', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with download URL when user is a member', async () => {
@@ -269,6 +271,7 @@ function mockElementWithMembership() {
 describe('POST /api/elements/:elementId/options', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 201 when creating IMAGE option with assets', async () => {
@@ -477,6 +480,7 @@ describe('POST /api/elements/:elementId/options', () => {
 describe('GET /api/elements/:elementId/options', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with active options', async () => {
@@ -546,6 +550,7 @@ describe('GET /api/elements/:elementId/options', () => {
 describe('PATCH /api/options/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 when toggling readyForReview', async () => {
@@ -632,6 +637,7 @@ describe('PATCH /api/options/:id', () => {
 describe('POST /api/elements/:elementId/options (no locking)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('creates option with assets array', async () => {

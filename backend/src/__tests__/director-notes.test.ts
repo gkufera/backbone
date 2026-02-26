@@ -79,6 +79,7 @@ function mockScriptAndMembership(role: string, userId: string) {
 describe('GET /api/scripts/:scriptId/director-notes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-decider', tokenVersion: 0 } as any);
   });
 
   it('returns non-deleted notes for members', async () => {
@@ -132,6 +133,7 @@ describe('GET /api/scripts/:scriptId/director-notes', () => {
 describe('POST /api/scripts/:scriptId/director-notes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-decider', tokenVersion: 0 } as any);
   });
 
   it('creates a note for DECIDER', async () => {
@@ -173,6 +175,7 @@ describe('POST /api/scripts/:scriptId/director-notes', () => {
 describe('PATCH /api/director-notes/:noteId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-decider', tokenVersion: 0 } as any);
   });
 
   it('updates note for author', async () => {
@@ -243,6 +246,7 @@ describe('PATCH /api/director-notes/:noteId', () => {
 describe('DELETE /api/director-notes/:noteId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-decider', tokenVersion: 0 } as any);
   });
 
   it('soft-deletes note for author (sets deletedAt)', async () => {

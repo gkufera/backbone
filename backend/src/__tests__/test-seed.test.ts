@@ -32,6 +32,9 @@ vi.mock('../lib/prisma', () => ({
       create: vi.fn(),
       findMany: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
 }));
@@ -51,6 +54,7 @@ function authHeader() {
 describe('POST /api/test/seed-production', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 401 without auth token', async () => {

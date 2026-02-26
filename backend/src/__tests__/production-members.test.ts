@@ -53,6 +53,7 @@ function authHeader(user = ownerUser) {
 describe('POST /api/productions/:id/members', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
   });
 
   it('returns 201 when adding existing user by email', async () => {
@@ -66,16 +67,18 @@ describe('POST /api/productions/:id/members', () => {
       updatedAt: new Date(),
     } as any);
 
-    // Find user by email
-    mockedPrisma.user.findUnique.mockResolvedValue({
-      id: 'user-new',
-      name: 'New User',
-      email: 'new@example.com',
-      passwordHash: 'hash',
-      emailVerified: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as any);
+    // First call: middleware auth check; second call: find user by email in route
+    mockedPrisma.user.findUnique
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({
+        id: 'user-new',
+        name: 'New User',
+        email: 'new@example.com',
+        passwordHash: 'hash',
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any);
 
     // Check if already a member - returns null (not a member)
     mockedPrisma.productionMember.findUnique.mockResolvedValueOnce(null);
@@ -130,8 +133,10 @@ describe('POST /api/productions/:id/members', () => {
       updatedAt: new Date(),
     } as any);
 
-    // User not found
-    mockedPrisma.user.findUnique.mockResolvedValue(null);
+    // First call: middleware auth check; second call: user not found by email
+    mockedPrisma.user.findUnique
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce(null);
 
     const res = await request(app)
       .post('/api/productions/prod-1/members')
@@ -153,16 +158,18 @@ describe('POST /api/productions/:id/members', () => {
       updatedAt: new Date(),
     } as any);
 
-    // Find user by email
-    mockedPrisma.user.findUnique.mockResolvedValue({
-      id: 'user-existing',
-      name: 'Existing Member',
-      email: 'existing@example.com',
-      passwordHash: 'hash',
-      emailVerified: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as any);
+    // First call: middleware auth check; second call: find user by email
+    mockedPrisma.user.findUnique
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({
+        id: 'user-existing',
+        name: 'Existing Member',
+        email: 'existing@example.com',
+        passwordHash: 'hash',
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any);
 
     // Already a member
     mockedPrisma.productionMember.findUnique.mockResolvedValueOnce({
@@ -194,16 +201,18 @@ describe('POST /api/productions/:id/members', () => {
       updatedAt: new Date(),
     } as any);
 
-    // Find user by email
-    mockedPrisma.user.findUnique.mockResolvedValue({
-      id: 'user-new',
-      name: 'New User',
-      email: 'new@example.com',
-      passwordHash: 'hash',
-      emailVerified: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as any);
+    // First call: middleware auth check; second call: find user by email
+    mockedPrisma.user.findUnique
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({
+        id: 'user-new',
+        name: 'New User',
+        email: 'new@example.com',
+        passwordHash: 'hash',
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any);
 
     // Check if already a member
     mockedPrisma.productionMember.findUnique.mockResolvedValueOnce(null);
@@ -260,16 +269,18 @@ describe('POST /api/productions/:id/members', () => {
       updatedAt: new Date(),
     } as any);
 
-    // Find user by email
-    mockedPrisma.user.findUnique.mockResolvedValue({
-      id: 'user-new',
-      name: 'New User',
-      email: 'new@example.com',
-      passwordHash: 'hash',
-      emailVerified: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as any);
+    // First call: middleware auth check; second call: find user by email
+    mockedPrisma.user.findUnique
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({
+        id: 'user-new',
+        name: 'New User',
+        email: 'new@example.com',
+        passwordHash: 'hash',
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any);
 
     // Check if already a member
     mockedPrisma.productionMember.findUnique.mockResolvedValueOnce(null);
@@ -322,6 +333,7 @@ describe('POST /api/productions/:id/members', () => {
 describe('GET /api/productions/:id/members', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with member list including user details', async () => {
@@ -374,6 +386,7 @@ describe('GET /api/productions/:id/members', () => {
 describe('DELETE /api/productions/:id/members/:memberId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
   });
 
   it('returns 200 when removing a member', async () => {
@@ -490,6 +503,7 @@ const deciderUser = {
 describe('PATCH /api/productions/:id/members/:memberId/role', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
   });
 
   it('ADMIN can change a member role to DECIDER', async () => {
@@ -820,6 +834,7 @@ describe('PATCH /api/productions/:id/members/:memberId/role', () => {
 describe('PATCH /api/productions/:id/members/:memberId/department', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
   });
 
   it('ADMIN can set a member department', async () => {

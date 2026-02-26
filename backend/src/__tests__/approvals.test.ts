@@ -73,6 +73,7 @@ function mockOptionWithMembership() {
 describe('POST /api/options/:optionId/approvals', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 201 when creating APPROVED approval', async () => {
@@ -266,6 +267,7 @@ describe('POST /api/options/:optionId/approvals', () => {
 describe('Tentative approval logic', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('MEMBER creates tentative approval and DECIDERs are notified', async () => {
@@ -482,6 +484,7 @@ describe('Tentative approval logic', () => {
 describe('PATCH /api/approvals/:approvalId/confirm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('DECIDER can confirm a tentative approval', async () => {
@@ -692,6 +695,7 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
 describe('GET /api/options/:optionId/approvals', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with approvals including user name', async () => {
@@ -746,6 +750,7 @@ describe('GET /api/options/:optionId/approvals', () => {
 describe('GET /api/productions/:productionId/feed', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('returns 200 with elements having ready-for-review options', async () => {

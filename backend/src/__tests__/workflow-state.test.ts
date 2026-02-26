@@ -49,6 +49,7 @@ function authHeader() {
 describe('Workflow state on approval', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('does NOT set element workflowState to APPROVED when option approved (locking removed)', async () => {
@@ -230,6 +231,7 @@ describe('Workflow state on approval', () => {
 describe('Workflow state on readyForReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('sets element workflowState to OUTSTANDING when option marked readyForReview', async () => {
@@ -317,6 +319,7 @@ describe('Workflow state on readyForReview', () => {
 describe('Notification triggers on approval', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('creates notification for option uploader on APPROVED with link', async () => {
@@ -471,6 +474,7 @@ describe('Notification triggers on approval', () => {
 describe('Notification triggers on readyForReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
   });
 
   it('creates notifications for production members when option marked ready with link', async () => {
