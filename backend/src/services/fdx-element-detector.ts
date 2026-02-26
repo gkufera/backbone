@@ -1,0 +1,108 @@
+import { ElementType } from '@backbone/shared/types';
+import { ELEMENT_TYPE_DEPARTMENT_MAP } from '@backbone/shared/constants';
+import type { SceneInfo } from '@backbone/shared/types';
+import type { DetectedElement, DetectionResult } from './element-detector';
+import type { ParsedFdx } from './fdx-parser';
+
+// Map FDX TagData category names to production departments
+const TAG_CATEGORY_DEPARTMENT_MAP: Record<string, string> = {
+  Props: 'Props',
+  Vehicles: 'Props',
+  Wardrobe: 'Costume',
+  Costume: 'Costume',
+  Hair: 'Hair & Makeup',
+  Makeup: 'Hair & Makeup',
+  'Hair & Makeup': 'Hair & Makeup',
+  'Set Dressing': 'Set Design',
+  'Special Effects': 'VFX',
+  'Visual Effects': 'VFX',
+  'Sound Effects': 'Sound',
+  Music: 'Sound',
+};
+
+// Parenthetical extensions like (V.O.), (O.S.), (CONT'D)
+const PARENTHETICAL_REGEX = /\s*\(.*?\)\s*$/;
+
+export function detectFdxElements(parsed: ParsedFdx): DetectionResult {
+  const elementMap = new Map<string, DetectedElement>();
+  const sceneData: SceneInfo[] = [];
+  let currentScene: SceneInfo | null = null;
+
+  // Process structured paragraphs
+  for (const para of parsed.paragraphs) {
+    switch (para.type) {
+      case 'Scene Heading': {
+        const name = para.text.trim();
+        if (!name) break;
+
+        addElement(elementMap, name, ElementType.LOCATION, para.page, para.text);
+
+        currentScene = {
+          sceneNumber: sceneData.length + 1,
+          location: name,
+          characters: [],
+        };
+        sceneData.push(currentScene);
+        break;
+      }
+
+      case 'Character': {
+        // Strip parenthetical extensions: (V.O.), (O.S.), (CONT'D)
+        let name = para.text.trim().replace(PARENTHETICAL_REGEX, '').trim();
+        if (!name) break;
+
+        addElement(elementMap, name, ElementType.CHARACTER, para.page, para.text);
+
+        if (currentScene && !currentScene.characters.includes(name)) {
+          currentScene.characters.push(name);
+        }
+        break;
+      }
+
+      // Action, Dialogue, Parenthetical, Transition — no element detection needed
+      default:
+        break;
+    }
+  }
+
+  // Process TagData tagged elements
+  for (const tag of parsed.taggedElements) {
+    const department = TAG_CATEGORY_DEPARTMENT_MAP[tag.category] ?? null;
+    const name = tag.name.toUpperCase();
+
+    if (elementMap.has(name)) continue;
+
+    elementMap.set(name, {
+      name,
+      type: ElementType.OTHER,
+      highlightPage: 1,
+      highlightText: tag.name,
+      suggestedDepartment: department,
+    });
+  }
+
+  const elements = Array.from(elementMap.values()).sort((a, b) => {
+    if (a.highlightPage !== b.highlightPage) return a.highlightPage - b.highlightPage;
+    return a.name.localeCompare(b.name);
+  });
+
+  return { elements, sceneData };
+}
+
+function addElement(
+  map: Map<string, DetectedElement>,
+  name: string,
+  type: ElementType.CHARACTER | ElementType.LOCATION,
+  page: number,
+  lineText: string,
+): void {
+  if (map.has(name)) return;
+
+  map.set(name, {
+    name,
+    type,
+    highlightPage: page,
+    highlightText: lineText,
+    suggestedDepartment: ELEMENT_TYPE_DEPARTMENT_MAP[type] ?? null,
+  });
+}
