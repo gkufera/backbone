@@ -919,7 +919,7 @@ describe('Production dashboard', () => {
     render(<ProductionDashboard />);
 
     expect(await screen.findByText('Film One')).toBeInTheDocument();
-    expect(screen.getByText('Scripts')).toBeInTheDocument();
+    expect(screen.getAllByText('Scripts').length).toBeGreaterThan(0);
     expect(screen.queryByText('PENDING APPROVAL')).not.toBeInTheDocument();
   });
 });

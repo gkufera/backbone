@@ -75,13 +75,13 @@ describe('Productions page', () => {
     expect(await screen.findByText(/no productions yet/i)).toBeInTheDocument();
   });
 
-  it('renders "New Production" link with correct href', async () => {
+  it('renders "Request Production" link with correct href', async () => {
     mockedProductionsApi.list.mockResolvedValue({ productions: [] });
 
     render(<ProductionsPage />);
 
     await screen.findByText(/no productions yet/i);
-    const link = screen.getByRole('link', { name: /new production/i });
+    const link = screen.getByRole('link', { name: /request production/i });
     expect(link).toHaveAttribute('href', '/productions/new');
   });
 

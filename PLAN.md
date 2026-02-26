@@ -1,41 +1,69 @@
 # Current Plan
 
-## Sprint 30 — QA & Polish Check (COMPLETE)
+## Sprint 31 — Production Gating (COMPLETE)
 
-**Goal:** Review Sprint 30 changes, fix issues found, refile SES. 949 Tier 1 tests passing.
+**Goal:** Gate production creation behind sales team approval. 976 Tier 1 tests passing (494 frontend + 482 backend).
 
 ---
 
-### Step 1: Fix design system test regex whitespace
-- [x] Fix line 171: space before `.test()` removed
-- [x] COMMIT (6ed838c)
+### Step 1: Schema migration + shared types
+- [x] Added ProductionStatus enum (PENDING/ACTIVE) to Prisma schema
+- [x] Added Production fields: status, studioName, budget, contactName, contactEmail
+- [x] Added ProductionApprovalToken model
+- [x] Updated shared types and constants
+- [x] COMMIT (1b91bc4)
 
-### Step 2: Add client-side validation to auth forms (TDD)
-- [x] Write failing tests for login (2), signup (3), forgot-password (1), reset-password (2) = 8 new tests
-- [x] Verify all 7 new tests fail (red phase)
-- [x] Add early-return validation to all 4 form handlers
-- [x] Verify all tests pass (green phase)
-- [x] Full suite: 481 frontend + 468 backend = 949 total
-- [x] COMMIT (c76d4f6)
+### Step 2+3: Backend routes + email templates
+- [x] POST /api/productions requires studioName, contactName, contactEmail; creates PENDING
+- [x] Generates approval token, sends approval emails to PRODUCTION_APPROVAL_EMAILS
+- [x] POST /api/productions/approve (public) validates token, activates production
+- [x] sendProductionApprovalEmail + sendProductionApprovedEmail templates
+- [x] 11 new backend tests (TDD)
+- [x] COMMIT (2976076)
 
-### Step 3: SES production access refile
-- [x] Attempted refile via CLI — ConflictException (API blocks after denial)
-- [x] Attempted AWS Support case — IAM user lacks support:CreateCase permission
-- [ ] Must refile via AWS Console manually (backup plan: Resend.com)
+### Step 4: Frontend /approve-production page
+- [x] Token-based approval page following verify-email pattern
+- [x] 4 new frontend tests
+- [x] COMMIT (14984dc)
 
-### Step 4: Update roadmap and PLAN.md
-- [x] Updated test counts (949)
-- [x] Updated SES status (denied, manual refile needed)
-- [x] Added form validation and regex fix to Sprint 30 items
-- [x] Added Resend.com as backup email provider
+### Step 5: Redesign New Production form
+- [x] "Request a Production" with sales team messaging
+- [x] Fields: Title, Studio Name, Budget, Your Name, Contact Email
+- [x] 8 new frontend tests
+- [x] COMMIT (56540f7)
+
+### Step 6: Productions list shows PENDING status
+- [x] PENDING badge (badge-outstanding), "Request Production" button
+- [x] 2 new frontend tests
+- [x] COMMIT (ef39ca4)
+
+### Step 7: Gate production dashboard for PENDING
+- [x] PENDING shows title + badge + "being reviewed" message
+- [x] 2 new frontend tests
+- [x] COMMIT (2045506)
+
+### Step 8: Block mutations on PENDING productions
+- [x] requireActiveProduction guard on productions, departments, scripts routes
+- [x] 3 new backend tests + updated 6 test files
+- [x] COMMIT (c792046)
+
+### Step 9: Fix test seed + existing tests
+- [x] Added guard to elements and options mutation routes
+- [x] Updated test-seed and prisma seed with status: 'ACTIVE'
+- [x] Fixed mocks across 6 additional test files
+- [x] COMMIT (5b0c39b)
+
+### Step 10: Full suite + docs
+- [x] 494 frontend + 482 backend = 976 total tests passing
+- [x] Updated roadmap.md and PLAN.md
 
 ---
 
 ## Previously Completed
 
-### Sprint 30 — QA & Polish (COMPLETE)
+### Sprint 30 — QA & Polish Check (COMPLETE)
 
-**Result: noValidate on all forms, tooltip fixes, hamburger menu fix, alert readability. 949 total tests.**
+**Result: noValidate on all forms, tooltip fixes, hamburger menu fix, alert readability, client-side auth validation. 949 total tests.**
 
 ### Sprint 29 — Production Security (COMPLETE)
 
