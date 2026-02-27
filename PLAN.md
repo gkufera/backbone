@@ -1,5 +1,17 @@
 # Current Plan
 
+## Security Audit: Authorization Hardening (COMPLETE)
+
+**Goal:** Deep-dive security audit of all backend routes. Fix exploitable gaps in upload flow and harden input validation.
+
+### Fixes
+- [x] Fix 1 (P0): Require production membership for S3 upload URL generation
+- [x] Fix 2 (P1): Validate s3Key production prefix on option and script creation
+- [x] Fix 3 (P2): Sanitize filenames in S3 key generation
+- [x] Fix 4 (P2): Validate FDX magic bytes before parsing
+
+**Final counts:** 527 frontend + 605 backend = 1,132 Tier 1 tests passing.
+
 ## Sprint 37 Check: Code Review Fixes (COMPLETE)
 
 **Goal:** Address 5 actionable items from Sprint 37 code review.
