@@ -192,6 +192,7 @@ describe('Element detection', () => {
     expect(revolver).toBeDefined();
     expect(revolver!.type).toBe('OTHER');
     expect(revolver!.suggestedDepartment).toBe('Props');
+    expect(revolver!.highlightText).toBe('REVOLVER');
   });
 
   it('detects multi-word capitalized props', () => {
@@ -205,6 +206,7 @@ describe('Element detection', () => {
     expect(watch).toBeDefined();
     expect(watch!.type).toBe('OTHER');
     expect(watch!.suggestedDepartment).toBe('Props');
+    expect(watch!.highlightText).toBe('GOLDEN WATCH');
   });
 
   it('does not detect single-letter caps words as props', () => {

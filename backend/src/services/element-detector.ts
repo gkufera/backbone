@@ -188,7 +188,7 @@ export function detectProps(
     // Skip if it starts with INT. or EXT.
     if (/^(INT\.|EXT\.|I\/E\.)/.test(propName)) continue;
 
-    addElement(map, propName, ElementType.OTHER, pageNumber, line);
+    addElement(map, propName, ElementType.OTHER, pageNumber, propName);
   }
 }
 
