@@ -1,5 +1,17 @@
 # Current Plan
 
+## Element Highlighting Accuracy & FDX PDF Quality (COMPLETE)
+
+**Goal:** Fix element highlighting bugs in PDF viewer and improve FDX-generated PDF quality.
+
+### Fixes
+- [x] Bug 1 (HIGH): Props never highlight — `highlightText` stored full action line instead of prop name
+- [x] Bug 2 (MEDIUM): FDX TagData elements had hardcoded page 1 and mixed-case `highlightText`
+- [x] Bug 3 (QUALITY): Generated PDF had no page numbers — added "2.", "3." etc. on page 2+
+- [x] Bug 4 (QUALITY): Character names used full ACTION_WIDTH (6") instead of standard 2.5" column
+
+**Final counts:** 527 frontend + 610 backend = 1,137 Tier 1 tests passing.
+
 ## Security Audit: Authorization Hardening (COMPLETE)
 
 **Goal:** Deep-dive security audit of all backend routes. Fix exploitable gaps in upload flow and harden input validation.
