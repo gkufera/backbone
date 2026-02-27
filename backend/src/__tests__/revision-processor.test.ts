@@ -590,6 +590,63 @@ describe('Revision Processor', () => {
     );
   });
 
+  it('FDX revision includes action props in element matching as NEW', async () => {
+    mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Character', text: 'JOHN', page: 1 },
+        { type: 'Action', text: 'John picks up the BRIEFCASE.', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 1,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'JOHN', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JOHN', suggestedDepartment: 'Cast' },
+      ],
+      sceneData: [],
+    });
+    // Action prop detection returns BRIEFCASE
+    mockedDetectFdxPropsFromActions.mockReturnValue([
+      { name: 'BRIEFCASE', type: 'PROP' as any, highlightPage: 1, highlightText: 'BRIEFCASE' },
+    ]);
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('pdf'));
+    mockedPutFileBuffer.mockResolvedValue();
+
+    // Existing element matches JOHN exactly, BRIEFCASE is new
+    mockedPrisma.element.findMany.mockResolvedValue([
+      { id: 'elem-1', name: 'JOHN', type: 'CHARACTER', status: 'ACTIVE', source: 'AUTO', highlightPage: 1, highlightText: 'JOHN', scriptId: 'parent-script', createdAt: new Date(), updatedAt: new Date() },
+    ] as any);
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processRevision('new-script', 'parent-script', 'scripts/uuid/v2.fdx');
+
+    // JOHN should be migrated as exact match
+    expect(mockedPrisma.element.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'elem-1' },
+        data: expect.objectContaining({ scriptId: 'new-script' }),
+      }),
+    );
+
+    // BRIEFCASE should be created as a NEW element
+    expect(mockedPrisma.element.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.arrayContaining([
+          expect.objectContaining({ scriptId: 'new-script', name: 'BRIEFCASE' }),
+        ]),
+      }),
+    );
+
+    // Script should be READY (exact + new, no fuzzy/missing)
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'new-script' },
+        data: expect.objectContaining({ status: 'READY' }),
+      }),
+    );
+  });
+
   it('FDX revision element matching works with detected elements', async () => {
     mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
     mockedParseFdx.mockReturnValue({
