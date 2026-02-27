@@ -379,6 +379,9 @@ function ScriptHeader({
       <div className="flex items-center gap-3">
         <h1 className="text-3xl">{script.title}</h1>
         {script.version && <span className="badge badge-default">v{script.version}</span>}
+        {script.episodeNumber != null && script.episodeTitle && (
+          <span className="badge badge-default">EP {script.episodeNumber}: {script.episodeTitle}</span>
+        )}
       </div>
       <div className="mt-2 flex items-center gap-3">
         <span className="badge badge-default uppercase">{script.status}</span>

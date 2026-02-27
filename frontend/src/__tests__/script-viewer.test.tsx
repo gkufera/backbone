@@ -687,4 +687,55 @@ describe('Script viewer', () => {
 
     expect(await screen.findByTestId('director-notes-panel')).toBeInTheDocument();
   });
+
+  it('shows episode badge when script has episode fields', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Pilot Script',
+        fileName: 'pilot.pdf',
+        s3Key: 'scripts/uuid/pilot.pdf',
+        pageCount: 120,
+        status: 'READY',
+        version: 1,
+        episodeNumber: 1,
+        episodeTitle: 'Pilot',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    expect(await screen.findByText(/EP 1: Pilot/)).toBeInTheDocument();
+  });
+
+  it('does not show episode badge when script has no episode fields', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Test Script',
+        fileName: 'test.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: 120,
+        status: 'READY',
+        version: 1,
+        episodeNumber: null,
+        episodeTitle: null,
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+      },
+    });
+
+    render(<ScriptViewerPage />);
+
+    await screen.findByText('Test Script');
+    expect(screen.queryByText(/EP \d+:/)).not.toBeInTheDocument();
+  });
 });
