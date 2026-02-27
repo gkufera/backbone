@@ -1,6 +1,7 @@
 import { ElementType } from '@backbone/shared/types';
 import { ELEMENT_TYPE_DEPARTMENT_MAP } from '@backbone/shared/constants';
 import type { SceneInfo } from '@backbone/shared/types';
+import { detectProps } from './element-detector';
 import type { DetectedElement, DetectionResult } from './element-detector';
 import type { ParsedFdx } from './fdx-parser';
 
@@ -87,6 +88,22 @@ export function detectFdxElements(parsed: ParsedFdx): DetectionResult {
   });
 
   return { elements, sceneData };
+}
+
+export function detectFdxPropsFromActions(parsed: ParsedFdx): DetectedElement[] {
+  const propMap = new Map<string, DetectedElement>();
+
+  for (const para of parsed.paragraphs) {
+    if (para.type !== 'Action') continue;
+
+    // Scan each line in the action paragraph for embedded ALL-CAPS words
+    const lines = para.text.split('\n');
+    for (const line of lines) {
+      detectProps(propMap, line, para.page);
+    }
+  }
+
+  return Array.from(propMap.values());
 }
 
 function addElement(

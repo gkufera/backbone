@@ -31,6 +31,7 @@ vi.mock('../services/fdx-parser', () => ({
 
 vi.mock('../services/fdx-element-detector', () => ({
   detectFdxElements: vi.fn(),
+  detectFdxPropsFromActions: vi.fn(),
 }));
 
 vi.mock('../services/screenplay-pdf-generator', () => ({
@@ -46,7 +47,7 @@ import { prisma } from '../lib/prisma';
 import { getFileBuffer, putFileBuffer } from '../lib/s3';
 import { parsePdf } from '../services/pdf-parser';
 import { parseFdx } from '../services/fdx-parser';
-import { detectFdxElements } from '../services/fdx-element-detector';
+import { detectFdxElements, detectFdxPropsFromActions } from '../services/fdx-element-detector';
 import { generateScreenplayPdf } from '../services/screenplay-pdf-generator';
 import { processScript } from '../services/script-processor';
 import { setProgress, clearProgress } from '../services/processing-progress';
@@ -57,6 +58,7 @@ const mockedPutFileBuffer = vi.mocked(putFileBuffer);
 const mockedParsePdf = vi.mocked(parsePdf);
 const mockedParseFdx = vi.mocked(parseFdx);
 const mockedDetectFdxElements = vi.mocked(detectFdxElements);
+const mockedDetectFdxPropsFromActions = vi.mocked(detectFdxPropsFromActions);
 const mockedGenerateScreenplayPdf = vi.mocked(generateScreenplayPdf);
 
 describe('Script Processor', () => {
@@ -70,6 +72,8 @@ describe('Script Processor', () => {
     } as any);
     // Default: no departments
     mockedPrisma.department.findMany.mockResolvedValue([]);
+    // Default: no props from action text
+    mockedDetectFdxPropsFromActions.mockReturnValue([]);
   });
 
   it('full pipeline: fetch → parse → detect → save elements', async () => {

@@ -3,7 +3,7 @@ import { getFileBuffer, putFileBuffer } from '../lib/s3';
 import { parsePdf } from './pdf-parser';
 import { parseFdx } from './fdx-parser';
 import { detectElements } from './element-detector';
-import { detectFdxElements } from './fdx-element-detector';
+import { detectFdxElements, detectFdxPropsFromActions } from './fdx-element-detector';
 import { generateScreenplayPdf } from './screenplay-pdf-generator';
 import { setProgress, clearProgress } from './processing-progress';
 import { ElementStatus, ElementSource, ScriptStatus, ScriptFormat } from '@backbone/shared/types';
@@ -27,6 +27,18 @@ export async function parseAndDetect(
     setProgress(scriptId, 60, 'Detecting elements');
     // FDX always uses structured detection (characters + locations + tagger tags)
     const result = detectFdxElements(parsed);
+
+    // When extractElements=true, also detect props from Action paragraphs
+    if (extractElements) {
+      const actionProps = detectFdxPropsFromActions(parsed);
+      const existingNames = new Set(result.elements.map((e) => e.name));
+      for (const prop of actionProps) {
+        if (!existingNames.has(prop.name)) {
+          result.elements.push(prop);
+          existingNames.add(prop.name);
+        }
+      }
+    }
 
     return { result, pageCount: parsed.pageCount, fdxParagraphs: parsed.paragraphs };
   } else {

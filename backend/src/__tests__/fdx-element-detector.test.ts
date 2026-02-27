@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectFdxElements } from '../services/fdx-element-detector';
+import { detectFdxElements, detectFdxPropsFromActions } from '../services/fdx-element-detector';
 import { ElementType } from '@backbone/shared/types';
 import type { ParsedFdx } from '../services/fdx-parser';
 
@@ -179,6 +179,64 @@ describe('FDX Element Detector', () => {
       expect(elem).toHaveProperty('highlightText');
       expect(elem).toHaveProperty('suggestedDepartment');
     }
+  });
+
+  it('detects props from Action paragraphs with embedded ALL-CAPS words', () => {
+    const parsed = makeParsedFdx({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Action', text: 'She picks up the REVOLVER and aims.', page: 1 },
+      ],
+    });
+
+    const props = detectFdxPropsFromActions(parsed);
+
+    expect(props).toHaveLength(1);
+    expect(props[0].name).toBe('REVOLVER');
+    expect(props[0].type).toBe(ElementType.OTHER);
+    expect(props[0].suggestedDepartment).toBe('Props');
+  });
+
+  it('detectFdxPropsFromActions returns empty array when no Action paragraphs have caps', () => {
+    const parsed = makeParsedFdx({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Action', text: 'She walks across the room quietly.', page: 1 },
+        { type: 'Dialogue', text: 'Hello there.', page: 1 },
+      ],
+    });
+
+    const props = detectFdxPropsFromActions(parsed);
+
+    expect(props).toHaveLength(0);
+  });
+
+  it('FDX with extractElements=true includes props from action text in final elements', () => {
+    const parsed = makeParsedFdx({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Character', text: 'JOHN', page: 1 },
+        { type: 'Action', text: 'John grabs the BRIEFCASE and heads out.', page: 2 },
+      ],
+    });
+
+    // Structured detection gives characters + locations
+    const structured = detectFdxElements(parsed);
+    // Prop detection gives embedded caps from Action
+    const props = detectFdxPropsFromActions(parsed);
+
+    // Merge (dedup by name) — simulating what parseAndDetect does
+    const existingNames = new Set(structured.elements.map((e) => e.name));
+    for (const prop of props) {
+      if (!existingNames.has(prop.name)) {
+        structured.elements.push(prop);
+        existingNames.add(prop.name);
+      }
+    }
+
+    expect(structured.elements.some((e) => e.name === 'BRIEFCASE')).toBe(true);
+    expect(structured.elements.some((e) => e.name === 'JOHN')).toBe(true);
+    expect(structured.elements.some((e) => e.name === 'INT. OFFICE - DAY')).toBe(true);
   });
 
   it('strips parenthetical extensions from character names', () => {

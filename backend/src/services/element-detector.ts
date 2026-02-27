@@ -164,7 +164,7 @@ export function detectElements(pages: PageText[]): DetectionResult {
   return { elements, sceneData };
 }
 
-function detectProps(
+export function detectProps(
   map: Map<string, DetectedElement>,
   line: string,
   pageNumber: number,
