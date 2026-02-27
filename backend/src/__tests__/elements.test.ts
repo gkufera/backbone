@@ -30,6 +30,7 @@ vi.mock('../lib/prisma', () => ({
     element: {
       create: vi.fn(),
       createMany: vi.fn(),
+      findFirst: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -154,6 +155,66 @@ describe('POST /api/scripts/:scriptId/elements', () => {
       .send({ name: 'JOHN', type: 'CHARACTER' });
 
     expect(res.status).toBe(403);
+  });
+
+  it('returns 409 when element with same name already exists', async () => {
+    mockScriptWithMembership();
+    mockedPrisma.element.findFirst.mockResolvedValue({
+      id: 'elem-existing',
+      scriptId: 'script-1',
+      name: 'CUSTOM PROP',
+      deletedAt: null,
+    } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/elements')
+      .set(authHeader())
+      .send({ name: 'CUSTOM PROP', type: 'OTHER' });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/already exists/i);
+  });
+
+  it('returns 409 for case-insensitive duplicate name', async () => {
+    mockScriptWithMembership();
+    mockedPrisma.element.findFirst.mockResolvedValue({
+      id: 'elem-existing',
+      scriptId: 'script-1',
+      name: 'CUSTOM PROP',
+      deletedAt: null,
+    } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/elements')
+      .set(authHeader())
+      .send({ name: 'custom prop', type: 'OTHER' });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/already exists/i);
+  });
+
+  it('allows creation when only a deleted element with same name exists', async () => {
+    mockScriptWithMembership();
+    // No active element with this name (findFirst returns null)
+    mockedPrisma.element.findFirst.mockResolvedValue(null);
+    mockedPrisma.element.create.mockResolvedValue({
+      id: 'elem-new',
+      scriptId: 'script-1',
+      name: 'CUSTOM PROP',
+      type: 'OTHER',
+      status: 'ACTIVE',
+      source: 'MANUAL',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/elements')
+      .set(authHeader())
+      .send({ name: 'CUSTOM PROP', type: 'OTHER' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.element.name).toBe('CUSTOM PROP');
   });
 });
 

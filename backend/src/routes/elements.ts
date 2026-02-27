@@ -60,6 +60,20 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
       return;
     }
 
+    // Check for duplicate element name (case-insensitive, non-deleted only)
+    const trimmedName = String(name).trim();
+    const existingElement = await prisma.element.findFirst({
+      where: {
+        scriptId,
+        deletedAt: null,
+        name: { equals: trimmedName, mode: 'insensitive' },
+      },
+    });
+    if (existingElement) {
+      res.status(409).json({ error: 'An element with this name already exists on this script' });
+      return;
+    }
+
     const element = await prisma.element.create({
       data: {
         scriptId,
