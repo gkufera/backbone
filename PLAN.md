@@ -6,11 +6,11 @@
 
 ### Phases
 - [x] Phase 1: Archive Sprints 23-34 to `roadmap-archive-v2.md`, clean up roadmap.md
-- [ ] Phase 2: Security — Rate limit public production approval endpoint (TDD)
-- [ ] Phase 3: Security — Auth middleware rejects unverified email users (TDD)
-- [ ] Phase 4: Refactor — Extract member and approval services from productions route (TDD)
-- [ ] Phase 5: Refactor — Split frontend api.ts into domain modules (TDD)
-- [ ] Phase 6: Full Tier 1 test pass + deploy
+- [x] Phase 2: Security — Rate limit public production approval endpoint (TDD) — 3 new tests
+- [x] Phase 3: Security — Auth middleware rejects unverified email users (TDD) — 1 new test
+- [x] Phase 4: Refactor — Extract member and approval services from productions route — 789→608 lines
+- [x] Phase 5: Refactor — Split frontend api.ts into domain modules — 714→35 lines (barrel)
+- [x] Phase 6: Full Tier 1 test pass — 510 frontend + 565 backend = 1,075 total
 
 ## Previously Completed
 

@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 510 frontend + 561 backend = 1,071 unit/integration, 57 E2E
+**Test counts:** 510 frontend + 565 backend = 1,075 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 Sprints 23-34 archived in `roadmap-archive-v2.md`.
@@ -25,12 +25,12 @@ Sprints 23-34 archived in `roadmap-archive-v2.md`.
 
 **Goal:** Archive completed sprints, run deep code review for security and code organization, fix findings.
 
-- [ ] Archive Sprints 23-34 to `roadmap-archive-v2.md`
-- [ ] Security: Rate limit public production approval endpoint (TDD)
-- [ ] Security: Auth middleware rejects unverified email users (TDD)
-- [ ] Refactor: Extract member and approval services from productions route (TDD)
-- [ ] Refactor: Split frontend api.ts into domain modules (TDD)
-- [ ] Full Tier 1 test pass + deploy
+- [x] Archive Sprints 23-34 to `roadmap-archive-v2.md`
+- [x] Security: Rate limit public production approval endpoint (TDD) — `createTokenLimiter()` 5 req/min
+- [x] Security: Auth middleware rejects unverified email users (TDD) — 403 on `emailVerified: false`
+- [x] Refactor: Extract member and approval services from productions route — 789→608 lines
+- [x] Refactor: Split frontend api.ts into 12 domain modules — 714→35 lines (barrel)
+- [x] Full Tier 1 test pass — 510 frontend + 565 backend = 1,075 total
 
 ---
 
