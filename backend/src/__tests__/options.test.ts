@@ -830,6 +830,33 @@ describe('PATCH /api/options/:id', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 404 when element has deletedAt set', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        deletedAt: new Date(),
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/options/opt-1')
+      .set(authHeader())
+      .send({ description: 'Updated' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/option not found/i);
+  });
+
   it('returns 200 when archiving via status', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',

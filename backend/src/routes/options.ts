@@ -366,6 +366,11 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
       return;
     }
 
+    if (option.element.deletedAt) {
+      res.status(404).json({ error: 'Option not found' });
+      return;
+    }
+
     // Check membership
     const membership = await prisma.productionMember.findUnique({
       where: {
