@@ -14,6 +14,16 @@ function isFdx(s3Key: string): boolean {
   return s3Key.toLowerCase().endsWith('.fdx');
 }
 
+/**
+ * Parse a script file and detect elements.
+ *
+ * `extractElements` behaves differently per format:
+ * - **PDF**: `false` skips element detection entirely (zero elements).
+ *   `true` runs AI-based detection on extracted text.
+ * - **FDX**: `false` still returns structured elements (characters, locations,
+ *   tagger tags) since these are parsed directly from the XML. `true` additionally
+ *   detects props from Action paragraphs via AI.
+ */
 export async function parseAndDetect(
   buffer: Buffer,
   s3Key: string,
@@ -32,12 +42,14 @@ export async function parseAndDetect(
     if (extractElements) {
       const actionProps = detectFdxPropsFromActions(parsed);
       const existingNames = new Set(result.elements.map((e) => e.name));
+      const mergedElements = [...result.elements];
       for (const prop of actionProps) {
         if (!existingNames.has(prop.name)) {
-          result.elements.push(prop);
+          mergedElements.push(prop);
           existingNames.add(prop.name);
         }
       }
+      return { result: { ...result, elements: mergedElements }, pageCount: parsed.pageCount, fdxParagraphs: parsed.paragraphs };
     }
 
     return { result, pageCount: parsed.pageCount, fdxParagraphs: parsed.paragraphs };
