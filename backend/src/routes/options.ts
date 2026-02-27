@@ -9,7 +9,7 @@ import {
   OPTION_ALLOWED_CONTENT_TYPES,
   OPTION_DESCRIPTION_MAX_LENGTH,
 } from '@backbone/shared/constants';
-import { ElementWorkflowState, MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
+import { ElementStatus, ElementWorkflowState, MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
 import { notifyProductionMembers, notifyDeciders } from '../services/notification-service';
 import { requireActiveProduction } from '../lib/require-active-production';
 import { validateS3KeyForProduction } from '../lib/s3-validation';
@@ -139,7 +139,7 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       include: { script: { select: { productionId: true } } },
     });
 
-    if (!element) {
+    if (!element || element.deletedAt) {
       res.status(404).json({ error: 'Element not found' });
       return;
     }
@@ -161,6 +161,11 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
 
     // Block mutations on PENDING productions
     if (!(await requireActiveProduction(element.script.productionId, res))) return;
+
+    if (element.status === ElementStatus.ARCHIVED) {
+      res.status(400).json({ error: 'Cannot add options to an archived element' });
+      return;
+    }
 
     // Validate mediaType
     if (!mediaType || !Object.values(MediaType).includes(mediaType)) {
@@ -299,7 +304,7 @@ optionsRouter.get('/api/elements/:elementId/options', requireAuth, async (req, r
       include: { script: { select: { productionId: true } } },
     });
 
-    if (!element) {
+    if (!element || element.deletedAt) {
       res.status(404).json({ error: 'Element not found' });
       return;
     }

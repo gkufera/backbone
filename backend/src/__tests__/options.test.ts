@@ -432,6 +432,56 @@ describe('POST /api/elements/:elementId/options', () => {
     expect(res.status).toBe(404);
   });
 
+  it('returns 404 when element has deletedAt set', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'DELETED ELEMENT',
+      status: 'ACTIVE',
+      deletedAt: new Date(),
+      script: { productionId: 'prod-1' },
+    } as any);
+
+    const res = await request(app)
+      .post('/api/elements/elem-1/options')
+      .set(authHeader())
+      .send({
+        mediaType: 'IMAGE',
+        assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/element not found/i);
+  });
+
+  it('returns 400 when element status is ARCHIVED', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'ARCHIVED ELEMENT',
+      status: 'ARCHIVED',
+      deletedAt: null,
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/elements/elem-1/options')
+      .set(authHeader())
+      .send({
+        mediaType: 'IMAGE',
+        assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/archived/i);
+  });
+
   it('returns 400 when asset s3Key does not match production prefix', async () => {
     mockElementWithMembership();
 
@@ -589,6 +639,22 @@ describe('GET /api/elements/:elementId/options', () => {
     const res = await request(app).get('/api/elements/elem-1/options').set(authHeader());
 
     expect(res.status).toBe(403);
+  });
+
+  it('returns 404 when element has deletedAt set', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'DELETED ELEMENT',
+      status: 'ACTIVE',
+      deletedAt: new Date(),
+      script: { productionId: 'prod-1' },
+    } as any);
+
+    const res = await request(app).get('/api/elements/elem-1/options').set(authHeader());
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/element not found/i);
   });
 });
 

@@ -224,6 +224,25 @@ describe('PATCH /api/elements/:id', () => {
 
     expect(res.status).toBe(404);
   });
+
+  it('returns 404 when element has deletedAt set', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'DELETED ELEMENT',
+      status: 'ACTIVE',
+      deletedAt: new Date(),
+      script: { productionId: 'prod-1' },
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/elements/elem-1')
+      .set(authHeader())
+      .send({ name: 'NEW NAME' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/element not found/i);
+  });
 });
 
 describe('GET /api/scripts/:scriptId/elements', () => {
