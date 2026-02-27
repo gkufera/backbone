@@ -18,6 +18,7 @@ const DIALOGUE_INDENT = 180; // 2.5" from left edge
 const DIALOGUE_WIDTH = 252; // 3.5" wide
 const PARENTHETICAL_INDENT = 223; // ~3.1" from left edge
 const PARENTHETICAL_WIDTH = 144; // 2" wide
+const CHARACTER_WIDTH = 180; // 2.5" wide — standard character name column
 const TRANSITION_RIGHT_MARGIN = MARGIN_RIGHT;
 
 export async function generateScreenplayPdf(paragraphs: FdxParagraph[]): Promise<Buffer> {
@@ -73,7 +74,7 @@ export async function generateScreenplayPdf(paragraphs: FdxParagraph[]): Promise
         case 'Character':
           doc.moveDown(0.5);
           doc.text(para.text.toUpperCase(), CHARACTER_INDENT, undefined, {
-            width: ACTION_WIDTH,
+            width: CHARACTER_WIDTH,
           });
           break;
 
