@@ -248,6 +248,7 @@ describe('Script upload page', () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     expect(screen.getByText(/element tagging on PDF import is beta/i)).toBeInTheDocument();
+    expect(screen.getByText(/tagger tags/i)).toBeInTheDocument();
   });
 
   it('renders extract elements checkbox unchecked by default after file selected', async () => {
