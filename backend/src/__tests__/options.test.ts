@@ -135,6 +135,23 @@ describe('POST /api/options/upload-url', () => {
     expect(res.body.error).toMatch(/not a member/i);
   });
 
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/options/upload-url')
+      .set(authHeader())
+      .send({ fileName: 'photo.jpg', contentType: 'image/jpeg', productionId: 'prod-1' });
+
+    expect(res.status).toBe(403);
+  });
+
   it('returns 200 with upload URL for video/mp4', async () => {
     mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
     mockedGenerateMediaUploadUrl.mockResolvedValue({
@@ -270,6 +287,33 @@ describe('GET /api/options/download-url', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/s3Key/i);
+  });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.optionAsset.findFirst.mockResolvedValue({
+      id: 'asset-1',
+      optionId: 'opt-1',
+      s3Key: 'options/prod-1/uuid/photo.jpg',
+      option: {
+        element: {
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .get('/api/options/download-url')
+      .set(authHeader())
+      .query({ s3Key: 'options/prod-1/uuid/photo.jpg' });
+
+    expect(res.status).toBe(403);
   });
 });
 
@@ -409,6 +453,30 @@ describe('POST /api/elements/:elementId/options', () => {
       script: { productionId: 'prod-1' },
     } as any);
     mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+    });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      status: 'ACTIVE',
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
@@ -641,6 +709,27 @@ describe('GET /api/elements/:elementId/options', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      status: 'ACTIVE',
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app).get('/api/elements/elem-1/options').set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
+
   it('returns 404 when element has deletedAt set', async () => {
     mockedPrisma.element.findUnique.mockResolvedValue({
       id: 'elem-1',
@@ -717,6 +806,28 @@ describe('PATCH /api/options/:id', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/description/i);
+  });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: { script: { productionId: 'prod-1' } },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/options/opt-1')
+      .set(authHeader())
+      .send({ description: 'Updated' });
+
+    expect(res.status).toBe(403);
   });
 
   it('returns 200 when archiving via status', async () => {
@@ -875,6 +986,32 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
     expect(res.status).toBe(201);
     expect(res.body.asset.s3Key).toBe('options/prod-1/uuid/photo2.jpg');
     expect(res.body.asset.sortOrder).toBe(1);
+  });
+
+  it('returns 403 when member has been soft-deleted on asset addition', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
+      s3Key: 'options/prod-1/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+      mediaType: 'IMAGE',
+    });
+
+    expect(res.status).toBe(403);
   });
 
   it('rejects asset creation for non-member', async () => {

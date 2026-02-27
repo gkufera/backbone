@@ -38,7 +38,7 @@ optionsRouter.post('/api/options/upload-url', requireAuth, uploadLimiter, async 
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -113,7 +113,7 @@ optionsRouter.get('/api/options/download-url', requireAuth, async (req, res) => 
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -154,7 +154,7 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -319,7 +319,7 @@ optionsRouter.get('/api/elements/:elementId/options', requireAuth, async (req, r
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -376,7 +376,7 @@ optionsRouter.patch('/api/options/:id', requireAuth, async (req, res) => {
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -470,7 +470,7 @@ optionsRouter.post('/api/options/:id/assets', requireAuth, async (req, res) => {
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }

@@ -79,7 +79,7 @@ notesRouter.post('/api/elements/:elementId/notes', requireAuth, async (req, res)
       include: { department: { select: { name: true } } },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -141,7 +141,7 @@ notesRouter.get('/api/elements/:elementId/notes', requireAuth, async (req, res) 
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -240,7 +240,7 @@ notesRouter.post('/api/options/:optionId/notes', requireAuth, async (req, res) =
       include: { department: { select: { name: true } } },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -312,7 +312,7 @@ notesRouter.get('/api/options/:optionId/notes', requireAuth, async (req, res) =>
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -391,7 +391,7 @@ notesRouter.get('/api/notes/attachment-download-url', requireAuth, async (req, r
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }

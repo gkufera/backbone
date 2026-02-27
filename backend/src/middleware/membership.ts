@@ -30,7 +30,7 @@ export function requireMembership(...allowedRoles: string[]) {
         },
       });
 
-      if (!member) {
+      if (!member || member.deletedAt) {
         // Check if production exists to give correct error
         const production = await prisma.production.findUnique({
           where: { id: productionId },

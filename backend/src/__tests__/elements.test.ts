@@ -157,6 +157,27 @@ describe('POST /api/scripts/:scriptId/elements', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/script-1/elements')
+      .set(authHeader())
+      .send({ name: 'JOHN', type: 'CHARACTER' });
+
+    expect(res.status).toBe(403);
+  });
+
   it('returns 409 when element with same name already exists', async () => {
     mockScriptWithMembership();
     mockedPrisma.element.findFirst.mockResolvedValue({
@@ -304,6 +325,30 @@ describe('PATCH /api/elements/:id', () => {
     expect(res.status).toBe(404);
     expect(res.body.error).toMatch(/element not found/i);
   });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      status: 'ACTIVE',
+      script: { productionId: 'prod-1' },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/elements/elem-1')
+      .set(authHeader())
+      .send({ name: 'NEW NAME' });
+
+    expect(res.status).toBe(403);
+  });
 });
 
 describe('GET /api/scripts/:scriptId/elements', () => {
@@ -360,6 +405,24 @@ describe('GET /api/scripts/:scriptId/elements', () => {
         where: expect.not.objectContaining({ status: 'ACTIVE' }),
       }),
     );
+  });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app).get('/api/scripts/script-1/elements').set(authHeader());
+
+    expect(res.status).toBe(403);
   });
 
   it('includes option count (ACTIVE only) in response', async () => {
@@ -424,6 +487,29 @@ describe('DELETE /api/elements/:id (safety check)', () => {
 
     expect(res.status).toBe(409);
     expect(res.body.error).toMatch(/options/i);
+  });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'JOHN',
+      script: { productionId: 'prod-1', status: 'REVIEWING' },
+      _count: { options: 0 },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .delete('/api/elements/elem-1')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
   });
 });
 

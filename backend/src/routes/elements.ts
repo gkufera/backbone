@@ -34,7 +34,7 @@ elementsRouter.post('/api/scripts/:scriptId/elements', requireAuth, async (req, 
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -121,7 +121,7 @@ elementsRouter.get('/api/scripts/:scriptId/elements', requireAuth, async (req, r
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -179,7 +179,7 @@ elementsRouter.patch('/api/elements/:id', requireAuth, async (req, res) => {
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -253,7 +253,7 @@ elementsRouter.delete('/api/elements/:id', requireAuth, async (req, res) => {
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }

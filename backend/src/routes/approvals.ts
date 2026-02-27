@@ -71,7 +71,7 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -163,7 +163,7 @@ approvalsRouter.patch('/api/approvals/:approvalId/confirm', requireAuth, async (
       },
     });
 
-    if (!membership || membership.role !== MemberRole.DECIDER) {
+    if (!membership || membership.deletedAt || membership.role !== MemberRole.DECIDER) {
       res.status(403).json({ error: 'Only a DECIDER can confirm tentative approvals' });
       return;
     }
@@ -227,7 +227,7 @@ approvalsRouter.get('/api/options/:optionId/approvals', requireAuth, async (req,
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }
@@ -264,7 +264,7 @@ approvalsRouter.get('/api/productions/:productionId/feed', requireAuth, async (r
       },
     });
 
-    if (!membership) {
+    if (!membership || membership.deletedAt) {
       res.status(403).json({ error: 'You are not a member of this production' });
       return;
     }

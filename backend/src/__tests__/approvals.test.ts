@@ -288,6 +288,34 @@ describe('POST /api/options/:optionId/approvals', () => {
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/pending/i);
   });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(403);
+  });
 });
 
 // ── Tentative approval logic ──────────────────────────────────────
@@ -759,6 +787,40 @@ describe('PATCH /api/approvals/:approvalId/confirm', () => {
     expect(res.status).toBe(403);
     expect(res.body.error).toMatch(/pending/i);
   });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.approval.findUnique.mockResolvedValue({
+      id: 'appr-1',
+      optionId: 'opt-1',
+      userId: 'user-2',
+      decision: 'APPROVED',
+      tentative: true,
+      option: {
+        id: 'opt-1',
+        elementId: 'elem-1',
+        element: {
+          id: 'elem-1',
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+      deletedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .patch('/api/approvals/appr-1/confirm')
+      .set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
 });
 
 // ── GET /api/options/:optionId/approvals ──────────────────────────
@@ -809,6 +871,25 @@ describe('GET /api/options/:optionId/approvals', () => {
       element: { script: { productionId: 'prod-1' } },
     } as any);
     mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).get('/api/options/opt-1/approvals').set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: { script: { productionId: 'prod-1' } },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+      deletedAt: new Date(),
+    } as any);
 
     const res = await request(app).get('/api/options/opt-1/approvals').set(authHeader());
 
@@ -993,6 +1074,20 @@ describe('GET /api/productions/:productionId/feed', () => {
 
   it('returns 403 when not a production member', async () => {
     mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).get('/api/productions/prod-1/feed').set(authHeader());
+
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when member has been soft-deleted', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+      deletedAt: new Date(),
+    } as any);
 
     const res = await request(app).get('/api/productions/prod-1/feed').set(authHeader());
 
