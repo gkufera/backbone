@@ -12,12 +12,22 @@ const s3Client = new S3Client({
 
 const BUCKET = process.env.S3_BUCKET_NAME ?? 'slugmax-uploads';
 
+export function sanitizeFileName(fileName: string): string {
+  // Strip null bytes, path separators, and parent directory references
+  const sanitized = fileName
+    .replace(/\0/g, '')
+    .replace(/\.\./g, '')
+    .replace(/[/\\]/g, '')
+    .replace(/^\.+$/, ''); // all-dots result → empty
+  return sanitized || 'upload';
+}
+
 export async function generateUploadUrl(
   fileName: string,
   contentType: string,
   productionId: string,
 ): Promise<{ uploadUrl: string; s3Key: string }> {
-  const s3Key = `scripts/${productionId}/${randomUUID()}/${fileName}`;
+  const s3Key = `scripts/${productionId}/${randomUUID()}/${sanitizeFileName(fileName)}`;
 
   const command = new PutObjectCommand({
     Bucket: BUCKET,
@@ -35,7 +45,7 @@ export async function generateMediaUploadUrl(
   contentType: string,
   productionId: string,
 ): Promise<{ uploadUrl: string; s3Key: string }> {
-  const s3Key = `options/${productionId}/${randomUUID()}/${fileName}`;
+  const s3Key = `options/${productionId}/${randomUUID()}/${sanitizeFileName(fileName)}`;
 
   const command = new PutObjectCommand({
     Bucket: BUCKET,
