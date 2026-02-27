@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateScreenplayPdf } from '../services/screenplay-pdf-generator';
+import { parsePdf } from '../services/pdf-parser';
 import type { FdxParagraph } from '../services/fdx-parser';
 
 function makeParagraphs(...items: Array<[string, string]>): FdxParagraph[] {
@@ -70,6 +71,46 @@ describe('Screenplay PDF Generator', () => {
 
     // Even empty PDF has valid header
     expect(buffer.length).toBeGreaterThan(0);
+    expect(buffer.subarray(0, 5).toString()).toBe('%PDF-');
+  });
+
+  it('adds page numbers on page 2+ (format: "2.")', async () => {
+    // Generate enough content to force multiple pages
+    const paragraphs: FdxParagraph[] = [];
+    for (let i = 0; i < 60; i++) {
+      paragraphs.push({
+        type: 'Scene Heading',
+        text: `INT. LOCATION ${i} - DAY`,
+        page: 1,
+      });
+      paragraphs.push({
+        type: 'Action',
+        text: 'A long action paragraph that takes up space on the page to ensure we get multiple pages in the output.',
+        page: 1,
+      });
+    }
+
+    const buffer = await generateScreenplayPdf(paragraphs);
+    const parsed = await parsePdf(buffer);
+
+    // Should produce multiple pages
+    expect(parsed.pageCount).toBeGreaterThan(1);
+    // Page 2+ should contain page numbers like "2."
+    const page2 = parsed.pages.find((p) => p.pageNumber === 2);
+    expect(page2).toBeDefined();
+    expect(page2!.text).toContain('2.');
+  });
+
+  it('generates valid PDF with long character name (no crash)', async () => {
+    const paragraphs = makeParagraphs(
+      ['Scene Heading', 'INT. OFFICE - DAY'],
+      ['Character', 'EXTREMELY LONG CHARACTER NAME THAT MIGHT OVERFLOW'],
+      ['Dialogue', 'Hello there.'],
+    );
+
+    const buffer = await generateScreenplayPdf(paragraphs);
+
+    expect(Buffer.isBuffer(buffer)).toBe(true);
     expect(buffer.subarray(0, 5).toString()).toBe('%PDF-');
   });
 });

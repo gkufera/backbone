@@ -40,6 +40,19 @@ export async function generateScreenplayPdf(paragraphs: FdxParagraph[]): Promise
 
     doc.font('Courier').fontSize(FONT_SIZE);
 
+    // Add page numbers on page 2+ (format: "2.", "3.", etc.) in top-right corner
+    let pageNum = 1;
+    doc.on('pageAdded', () => {
+      pageNum++;
+      const savedY = doc.y;
+      doc.font('Courier').fontSize(FONT_SIZE);
+      doc.text(`${pageNum}.`, MARGIN_LEFT, MARGIN_TOP - LINE_HEIGHT * 2, {
+        width: ACTION_WIDTH,
+        align: 'right',
+      });
+      doc.y = savedY;
+    });
+
     for (const para of paragraphs) {
       // Check if we need a new page
       if (doc.y > PAGE_HEIGHT - MARGIN_BOTTOM - LINE_HEIGHT * 2) {
