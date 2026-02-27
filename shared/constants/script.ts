@@ -6,3 +6,4 @@ export const SCRIPT_ALLOWED_MIME_TYPES = [
   'application/octet-stream',
 ] as const;
 export const SCRIPT_ALLOWED_EXTENSIONS = ['.pdf', '.fdx'] as const;
+export const EPISODE_TITLE_MAX_LENGTH = 200;
