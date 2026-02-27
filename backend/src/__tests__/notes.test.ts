@@ -783,6 +783,35 @@ describe('GET /api/notes/attachment-download-url', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('returns download URL for element-level note attachment', async () => {
+    mockedPrisma.noteAttachment.findFirst.mockResolvedValue({
+      id: 'att-1',
+      noteId: 'note-1',
+      s3Key: 'uploads/img.jpg',
+      fileName: 'img.jpg',
+      mediaType: 'IMAGE',
+      createdAt: new Date(),
+      note: {
+        option: null,
+        element: {
+          script: { productionId: 'prod-1' },
+        },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+    } as any);
+
+    const res = await request(app)
+      .get('/api/notes/attachment-download-url?s3Key=uploads/img.jpg')
+      .set(authHeader());
+
+    expect(res.status).toBe(200);
+    expect(res.body.downloadUrl).toBe('https://s3.example.com/presigned-url');
+  });
 });
 
 // ── GET notes includes attachments ───────────────────────────────────

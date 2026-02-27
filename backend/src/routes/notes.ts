@@ -365,6 +365,11 @@ notesRouter.get('/api/notes/attachment-download-url', requireAuth, async (req, r
                 },
               },
             },
+            element: {
+              include: {
+                script: { select: { productionId: true } },
+              },
+            },
           },
         },
       },
@@ -375,8 +380,9 @@ notesRouter.get('/api/notes/attachment-download-url', requireAuth, async (req, r
       return;
     }
 
-    // Walk note → option → element → script → production for membership check
-    const productionId = attachment.note.option?.element.script.productionId;
+    // Walk note → option → element → script OR note → element → script for production
+    const productionId = attachment.note.option?.element.script.productionId
+      ?? attachment.note.element?.script.productionId;
     if (!productionId) {
       res.status(404).json({ error: 'Attachment not found' });
       return;
