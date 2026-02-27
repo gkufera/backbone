@@ -10,10 +10,11 @@ export const scriptsApi = {
   getUploadUrl(
     fileName: string,
     contentType: string,
+    productionId: string,
   ): Promise<{ uploadUrl: string; s3Key: string }> {
     return request('/api/scripts/upload-url', {
       method: 'POST',
-      body: JSON.stringify({ fileName, contentType }),
+      body: JSON.stringify({ fileName, contentType, productionId }),
     });
   },
 

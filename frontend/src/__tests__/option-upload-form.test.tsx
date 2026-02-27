@@ -53,7 +53,7 @@ describe('OptionUploadForm', () => {
   });
 
   it('renders file and link mode buttons', () => {
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     expect(screen.getByRole('button', { name: /^file$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^link$/i })).toBeInTheDocument();
@@ -62,7 +62,7 @@ describe('OptionUploadForm', () => {
   it('shows link input in link mode', async () => {
     const user = userEvent.setup();
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     await user.click(screen.getByText(/link/i));
     expect(screen.getByPlaceholderText(/url/i)).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('OptionUploadForm', () => {
       },
     });
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     await user.click(screen.getByText(/link/i));
     await user.type(screen.getByPlaceholderText(/url/i), 'https://example.com');
@@ -105,7 +105,7 @@ describe('OptionUploadForm', () => {
     const user = userEvent.setup();
     mockedOptionsApi.create.mockRejectedValue(new Error('Server error'));
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     await user.click(screen.getByText(/link/i));
     await user.type(screen.getByPlaceholderText(/url/i), 'https://example.com');
@@ -119,7 +119,7 @@ describe('OptionUploadForm', () => {
     // Make the create call hang
     mockedOptionsApi.create.mockImplementation(() => new Promise(() => {}));
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     await user.click(screen.getByText(/link/i));
     await user.type(screen.getByPlaceholderText(/url/i), 'https://example.com');
@@ -146,7 +146,7 @@ describe('OptionUploadForm', () => {
       },
     });
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     await user.click(screen.getByText(/link/i));
     await user.type(screen.getByPlaceholderText(/url/i), 'https://example.com');
@@ -158,7 +158,7 @@ describe('OptionUploadForm', () => {
   it('validates URL is required for link mode', async () => {
     const user = userEvent.setup();
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     await user.click(screen.getByText(/link/i));
     await user.click(screen.getByRole('button', { name: /upload|submit|add/i }));
@@ -185,7 +185,7 @@ describe('OptionUploadForm', () => {
       thumbnailS3Key: 'options/uuid/thumb.jpg',
     });
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -198,7 +198,7 @@ describe('OptionUploadForm', () => {
   });
 
   it('drop zone renders with dashed border', () => {
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const dropZone = screen.getByText(/drop file here/i).closest('div');
     expect(dropZone).toHaveClass('border-dashed');
@@ -207,7 +207,7 @@ describe('OptionUploadForm', () => {
   it('dropping a file sets the file in form state', () => {
     const { fireEvent } = require('@testing-library/react');
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const dropZone = screen.getByText(/drop file here/i).closest('div')!;
     const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });
@@ -224,7 +224,7 @@ describe('OptionUploadForm', () => {
   });
 
   it('drop zone shows inverted style during drag-over', async () => {
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const dropZone = screen.getByText(/drop file here/i).closest('div')!;
 
@@ -238,7 +238,7 @@ describe('OptionUploadForm', () => {
   });
 
   it('clicking the drop zone opens native file picker', () => {
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     // The hidden file input should exist
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -252,7 +252,7 @@ describe('OptionUploadForm', () => {
   it('rejects file exceeding max size', async () => {
     const user = userEvent.setup();
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     // Create a file mock with size > 200MB
     const bigFile = new File(['x'], 'huge.jpg', { type: 'image/jpeg' });
@@ -269,7 +269,7 @@ describe('OptionUploadForm', () => {
   it('rejects unsupported file type via file picker', () => {
     const { fireEvent } = require('@testing-library/react');
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const zipFile = new File(['test'], 'archive.zip', { type: 'application/zip' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -284,7 +284,7 @@ describe('OptionUploadForm', () => {
   it('rejects unsupported file type on drop', () => {
     const { fireEvent } = require('@testing-library/react');
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const dropZone = screen.getByText(/drop file here/i).closest('div')!;
     const zipFile = new File(['test'], 'archive.zip', { type: 'application/zip' });
@@ -331,7 +331,7 @@ describe('OptionUploadForm', () => {
       },
     });
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -354,7 +354,7 @@ describe('OptionUploadForm', () => {
   });
 
   it('allows selecting multiple files', async () => {
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const file1 = new File(['test-image-1'], 'photo1.jpg', { type: 'image/jpeg' });
     const file2 = new File(['test-image-2'], 'photo2.jpg', { type: 'image/jpeg' });
@@ -370,7 +370,7 @@ describe('OptionUploadForm', () => {
   it('can remove a file from the list before upload', async () => {
     const user = userEvent.setup();
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     const file1 = new File(['test-image-1'], 'photo1.jpg', { type: 'image/jpeg' });
     const file2 = new File(['test-image-2'], 'photo2.jpg', { type: 'image/jpeg' });
@@ -424,7 +424,7 @@ describe('OptionUploadForm', () => {
       },
     });
 
-    render(<OptionUploadForm elementId={elementId} onOptionCreated={mockOnOptionCreated} />);
+    render(<OptionUploadForm elementId={elementId} productionId="prod-1" onOptionCreated={mockOnOptionCreated} />);
 
     // Upload an image file
     const file = new File(['test-image'], 'photo.jpg', { type: 'image/jpeg' });

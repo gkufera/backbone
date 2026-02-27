@@ -12,6 +12,7 @@ export const optionsApi = {
   getUploadUrl(
     fileName: string,
     contentType: string,
+    productionId: string,
     thumbnailFileName?: string,
   ): Promise<{
     uploadUrl: string;
@@ -22,7 +23,7 @@ export const optionsApi = {
   }> {
     return request('/api/options/upload-url', {
       method: 'POST',
-      body: JSON.stringify({ fileName, contentType, thumbnailFileName }),
+      body: JSON.stringify({ fileName, contentType, thumbnailFileName, productionId }),
     });
   },
 

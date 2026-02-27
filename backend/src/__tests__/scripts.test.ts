@@ -101,52 +101,81 @@ describe('POST /api/scripts/upload-url', () => {
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
-  it('returns 200 with presigned URL and S3 key', async () => {
+  it('returns 200 with presigned URL and S3 key when user is production member', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
     mockedGenerateUploadUrl.mockResolvedValue({
-      uploadUrl: 'https://s3.amazonaws.com/bucket/scripts/uuid/test.pdf?signed',
-      s3Key: 'scripts/uuid/test.pdf',
+      uploadUrl: 'https://s3.amazonaws.com/bucket/scripts/prod-1/uuid/test.pdf?signed',
+      s3Key: 'scripts/prod-1/uuid/test.pdf',
     });
 
     const res = await request(app)
       .post('/api/scripts/upload-url')
       .set(authHeader())
-      .send({ fileName: 'test.pdf', contentType: 'application/pdf' });
+      .send({ fileName: 'test.pdf', contentType: 'application/pdf', productionId: 'prod-1' });
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('uploadUrl');
     expect(res.body).toHaveProperty('s3Key');
+    expect(mockedGenerateUploadUrl).toHaveBeenCalledWith('test.pdf', 'application/pdf', 'prod-1');
   });
 
-  it('returns 400 when fileName is missing', async () => {
+  it('returns 400 when productionId is missing', async () => {
     const res = await request(app)
       .post('/api/scripts/upload-url')
       .set(authHeader())
-      .send({ contentType: 'application/pdf' });
+      .send({ fileName: 'test.pdf', contentType: 'application/pdf' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/productionId/i);
+  });
+
+  it('returns 403 when user is not a production member', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/scripts/upload-url')
+      .set(authHeader())
+      .send({ fileName: 'test.pdf', contentType: 'application/pdf', productionId: 'prod-1' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/not a member/i);
+  });
+
+  it('returns 400 when fileName is missing', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
+
+    const res = await request(app)
+      .post('/api/scripts/upload-url')
+      .set(authHeader())
+      .send({ contentType: 'application/pdf', productionId: 'prod-1' });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/fileName/i);
   });
 
   it('returns 400 when contentType is not allowed', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
+
     const res = await request(app)
       .post('/api/scripts/upload-url')
       .set(authHeader())
-      .send({ fileName: 'test.doc', contentType: 'application/msword' });
+      .send({ fileName: 'test.doc', contentType: 'application/msword', productionId: 'prod-1' });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/pdf|fdx/i);
   });
 
   it('accepts application/xml contentType for FDX files', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
     mockedGenerateUploadUrl.mockResolvedValue({
-      uploadUrl: 'https://s3.amazonaws.com/bucket/scripts/uuid/test.fdx?signed',
-      s3Key: 'scripts/uuid/test.fdx',
+      uploadUrl: 'https://s3.amazonaws.com/bucket/scripts/prod-1/uuid/test.fdx?signed',
+      s3Key: 'scripts/prod-1/uuid/test.fdx',
     });
 
     const res = await request(app)
       .post('/api/scripts/upload-url')
       .set(authHeader())
-      .send({ fileName: 'test.fdx', contentType: 'application/xml' });
+      .send({ fileName: 'test.fdx', contentType: 'application/xml', productionId: 'prod-1' });
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('uploadUrl');
@@ -156,7 +185,7 @@ describe('POST /api/scripts/upload-url', () => {
   it('returns 401 when not authenticated', async () => {
     const res = await request(app)
       .post('/api/scripts/upload-url')
-      .send({ fileName: 'test.pdf', contentType: 'application/pdf' });
+      .send({ fileName: 'test.pdf', contentType: 'application/pdf', productionId: 'prod-1' });
 
     expect(res.status).toBe(401);
   });

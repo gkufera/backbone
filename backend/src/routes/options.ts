@@ -19,7 +19,28 @@ const uploadLimiter = createUploadLimiter();
 // Generate presigned upload URL for option media
 optionsRouter.post('/api/options/upload-url', requireAuth, uploadLimiter, async (req, res) => {
   try {
-    const { fileName, contentType, thumbnailFileName } = req.body;
+    const authReq = req as AuthenticatedRequest;
+    const { fileName, contentType, thumbnailFileName, productionId } = req.body;
+
+    if (!productionId) {
+      res.status(400).json({ error: 'productionId is required' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
 
     if (!fileName) {
       res.status(400).json({ error: 'fileName is required' });
@@ -32,12 +53,12 @@ optionsRouter.post('/api/options/upload-url', requireAuth, uploadLimiter, async 
     }
 
     const mediaType = mediaTypeFromMime(contentType);
-    const { uploadUrl, s3Key } = await generateMediaUploadUrl(fileName, contentType);
+    const { uploadUrl, s3Key } = await generateMediaUploadUrl(fileName, contentType, productionId);
 
     const result: Record<string, string | null> = { uploadUrl, s3Key, mediaType };
 
     if (thumbnailFileName) {
-      const thumbnail = await generateMediaUploadUrl(thumbnailFileName, 'image/jpeg');
+      const thumbnail = await generateMediaUploadUrl(thumbnailFileName, 'image/jpeg', productionId);
       result.thumbnailUploadUrl = thumbnail.uploadUrl;
       result.thumbnailS3Key = thumbnail.s3Key;
     }

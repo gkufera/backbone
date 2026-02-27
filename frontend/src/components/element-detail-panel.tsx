@@ -307,7 +307,7 @@ export function ElementDetailPanel({
 
         {showUploadForm && (
           <div className="mb-3">
-            <OptionUploadForm elementId={elementId} onOptionCreated={handleOptionCreated} />
+            <OptionUploadForm elementId={elementId} productionId={productionId} onOptionCreated={handleOptionCreated} />
           </div>
         )}
 
@@ -334,6 +334,7 @@ export function ElementDetailPanel({
       {lightboxOption && (
         <OptionLightbox
           option={lightboxOption}
+          productionId={productionId}
           onClose={() => setLightboxOption(null)}
           onApprove={handleApprove}
           disableApproval={submittingApproval}

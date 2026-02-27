@@ -18,7 +18,28 @@ const scriptsRouter = Router();
 // Generate presigned upload URL
 scriptsRouter.post('/api/scripts/upload-url', requireAuth, async (req, res) => {
   try {
-    const { fileName, contentType } = req.body;
+    const authReq = req as AuthenticatedRequest;
+    const { fileName, contentType, productionId } = req.body;
+
+    if (!productionId) {
+      res.status(400).json({ error: 'productionId is required' });
+      return;
+    }
+
+    // Check membership
+    const membership = await prisma.productionMember.findUnique({
+      where: {
+        productionId_userId: {
+          productionId,
+          userId: authReq.user.userId,
+        },
+      },
+    });
+
+    if (!membership) {
+      res.status(403).json({ error: 'You are not a member of this production' });
+      return;
+    }
 
     if (!fileName) {
       res.status(400).json({ error: 'fileName is required' });
@@ -30,7 +51,7 @@ scriptsRouter.post('/api/scripts/upload-url', requireAuth, async (req, res) => {
       return;
     }
 
-    const result = await generateUploadUrl(fileName, contentType);
+    const result = await generateUploadUrl(fileName, contentType, productionId);
     res.json(result);
   } catch (error) {
     console.error('Generate upload URL error:', error);

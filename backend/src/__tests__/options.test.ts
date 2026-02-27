@@ -94,68 +94,96 @@ describe('POST /api/options/upload-url', () => {
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
-  it('returns 200 with upload URL for image/jpeg', async () => {
+  it('returns 200 with upload URL for image/jpeg when user is production member', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
     mockedGenerateMediaUploadUrl.mockResolvedValue({
-      uploadUrl: 'https://s3.amazonaws.com/bucket/options/uuid/photo.jpg?signed',
-      s3Key: 'options/uuid/photo.jpg',
+      uploadUrl: 'https://s3.amazonaws.com/bucket/options/prod-1/uuid/photo.jpg?signed',
+      s3Key: 'options/prod-1/uuid/photo.jpg',
     });
 
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader())
-      .send({ fileName: 'photo.jpg', contentType: 'image/jpeg' });
+      .send({ fileName: 'photo.jpg', contentType: 'image/jpeg', productionId: 'prod-1' });
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('uploadUrl');
     expect(res.body).toHaveProperty('s3Key');
     expect(res.body.mediaType).toBe('IMAGE');
+    expect(mockedGenerateMediaUploadUrl).toHaveBeenCalledWith('photo.jpg', 'image/jpeg', 'prod-1');
+  });
+
+  it('returns 400 when productionId is missing', async () => {
+    const res = await request(app)
+      .post('/api/options/upload-url')
+      .set(authHeader())
+      .send({ fileName: 'photo.jpg', contentType: 'image/jpeg' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/productionId/i);
+  });
+
+  it('returns 403 when user is not a production member', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/options/upload-url')
+      .set(authHeader())
+      .send({ fileName: 'photo.jpg', contentType: 'image/jpeg', productionId: 'prod-1' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/not a member/i);
   });
 
   it('returns 200 with upload URL for video/mp4', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
     mockedGenerateMediaUploadUrl.mockResolvedValue({
-      uploadUrl: 'https://s3.amazonaws.com/bucket/options/uuid/clip.mp4?signed',
-      s3Key: 'options/uuid/clip.mp4',
+      uploadUrl: 'https://s3.amazonaws.com/bucket/options/prod-1/uuid/clip.mp4?signed',
+      s3Key: 'options/prod-1/uuid/clip.mp4',
     });
 
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader())
-      .send({ fileName: 'clip.mp4', contentType: 'video/mp4' });
+      .send({ fileName: 'clip.mp4', contentType: 'video/mp4', productionId: 'prod-1' });
 
     expect(res.status).toBe(200);
     expect(res.body.mediaType).toBe('VIDEO');
   });
 
   it('returns 200 with upload URL for audio/mpeg', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
     mockedGenerateMediaUploadUrl.mockResolvedValue({
-      uploadUrl: 'https://s3.amazonaws.com/bucket/options/uuid/track.mp3?signed',
-      s3Key: 'options/uuid/track.mp3',
+      uploadUrl: 'https://s3.amazonaws.com/bucket/options/prod-1/uuid/track.mp3?signed',
+      s3Key: 'options/prod-1/uuid/track.mp3',
     });
 
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader())
-      .send({ fileName: 'track.mp3', contentType: 'audio/mpeg' });
+      .send({ fileName: 'track.mp3', contentType: 'audio/mpeg', productionId: 'prod-1' });
 
     expect(res.status).toBe(200);
     expect(res.body.mediaType).toBe('AUDIO');
   });
 
   it('returns 200 with thumbnail URLs when thumbnailFileName is provided', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
     mockedGenerateMediaUploadUrl
       .mockResolvedValueOnce({
-        uploadUrl: 'https://s3.amazonaws.com/bucket/options/uuid/photo.jpg?signed',
-        s3Key: 'options/uuid/photo.jpg',
+        uploadUrl: 'https://s3.amazonaws.com/bucket/options/prod-1/uuid/photo.jpg?signed',
+        s3Key: 'options/prod-1/uuid/photo.jpg',
       })
       .mockResolvedValueOnce({
-        uploadUrl: 'https://s3.amazonaws.com/bucket/options/uuid/thumb.jpg?signed',
-        s3Key: 'options/uuid/thumb.jpg',
+        uploadUrl: 'https://s3.amazonaws.com/bucket/options/prod-1/uuid/thumb.jpg?signed',
+        s3Key: 'options/prod-1/uuid/thumb.jpg',
       });
 
     const res = await request(app).post('/api/options/upload-url').set(authHeader()).send({
       fileName: 'photo.jpg',
       contentType: 'image/jpeg',
       thumbnailFileName: 'thumb.jpg',
+      productionId: 'prod-1',
     });
 
     expect(res.status).toBe(200);
@@ -165,20 +193,24 @@ describe('POST /api/options/upload-url', () => {
   });
 
   it('returns 400 when fileName is missing', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
+
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader())
-      .send({ contentType: 'image/jpeg' });
+      .send({ contentType: 'image/jpeg', productionId: 'prod-1' });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/fileName/i);
   });
 
   it('returns 400 when contentType is not allowed', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({ id: 'member-1' } as any);
+
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader())
-      .send({ fileName: 'doc.exe', contentType: 'application/x-msdownload' });
+      .send({ fileName: 'doc.exe', contentType: 'application/x-msdownload', productionId: 'prod-1' });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/content type/i);
@@ -187,7 +219,7 @@ describe('POST /api/options/upload-url', () => {
   it('returns 401 when not authenticated', async () => {
     const res = await request(app)
       .post('/api/options/upload-url')
-      .send({ fileName: 'photo.jpg', contentType: 'image/jpeg' });
+      .send({ fileName: 'photo.jpg', contentType: 'image/jpeg', productionId: 'prod-1' });
 
     expect(res.status).toBe(401);
   });

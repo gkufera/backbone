@@ -172,6 +172,7 @@ describe('Revision upload page', () => {
       expect(mockedScriptsApi.getUploadUrl).toHaveBeenCalledWith(
         'script-v2.fdx',
         'application/xml',
+        'prod-1',
       );
     });
   });

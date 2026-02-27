@@ -15,8 +15,9 @@ const BUCKET = process.env.S3_BUCKET_NAME ?? 'slugmax-uploads';
 export async function generateUploadUrl(
   fileName: string,
   contentType: string,
+  productionId: string,
 ): Promise<{ uploadUrl: string; s3Key: string }> {
-  const s3Key = `scripts/${randomUUID()}/${fileName}`;
+  const s3Key = `scripts/${productionId}/${randomUUID()}/${fileName}`;
 
   const command = new PutObjectCommand({
     Bucket: BUCKET,
@@ -32,8 +33,9 @@ export async function generateUploadUrl(
 export async function generateMediaUploadUrl(
   fileName: string,
   contentType: string,
+  productionId: string,
 ): Promise<{ uploadUrl: string; s3Key: string }> {
-  const s3Key = `options/${randomUUID()}/${fileName}`;
+  const s3Key = `options/${productionId}/${randomUUID()}/${fileName}`;
 
   const command = new PutObjectCommand({
     Bucket: BUCKET,

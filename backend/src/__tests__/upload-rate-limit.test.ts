@@ -18,6 +18,9 @@ vi.mock('../lib/prisma', () => ({
     user: {
       findUnique: vi.fn(),
     },
+    productionMember: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -37,13 +40,14 @@ describe('Per-user upload URL rate limiting', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
+    (mockedPrisma as any).productionMember.findUnique.mockResolvedValue({ id: 'member-1' });
   });
 
   it('allows up to 30 upload URL requests per minute per user', async () => {
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader())
-      .send({ fileName: 'test.jpg', contentType: 'image/jpeg' });
+      .send({ fileName: 'test.jpg', contentType: 'image/jpeg', productionId: 'prod-1' });
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('uploadUrl');
@@ -55,13 +59,13 @@ describe('Per-user upload URL rate limiting', () => {
       await request(app)
         .post('/api/options/upload-url')
         .set(authHeader())
-        .send({ fileName: `test-${i}.jpg`, contentType: 'image/jpeg' });
+        .send({ fileName: `test-${i}.jpg`, contentType: 'image/jpeg', productionId: 'prod-1' });
     }
 
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader())
-      .send({ fileName: 'test-over-limit.jpg', contentType: 'image/jpeg' });
+      .send({ fileName: 'test-over-limit.jpg', contentType: 'image/jpeg', productionId: 'prod-1' });
 
     expect(res.status).toBe(429);
   });
@@ -72,7 +76,7 @@ describe('Per-user upload URL rate limiting', () => {
       await request(app)
         .post('/api/options/upload-url')
         .set(authHeader(user1))
-        .send({ fileName: `test-${i}.jpg`, contentType: 'image/jpeg' });
+        .send({ fileName: `test-${i}.jpg`, contentType: 'image/jpeg', productionId: 'prod-1' });
     }
 
     // user2 should still be able to make requests
@@ -80,7 +84,7 @@ describe('Per-user upload URL rate limiting', () => {
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader(user2))
-      .send({ fileName: 'test.jpg', contentType: 'image/jpeg' });
+      .send({ fileName: 'test.jpg', contentType: 'image/jpeg', productionId: 'prod-1' });
 
     expect(res.status).toBe(200);
   });

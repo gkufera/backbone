@@ -48,7 +48,7 @@ describe('OptionNotes', () => {
       notes: mockNotes,
     });
 
-    render(<OptionNotes optionId="opt-1" />);
+    render(<OptionNotes optionId="opt-1" productionId="prod-1" />);
 
     await waitFor(() => {
       expect(screen.getByText('Jane Director')).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe('OptionNotes', () => {
     });
 
     const user = userEvent.setup();
-    render(<OptionNotes optionId="opt-1" />);
+    render(<OptionNotes optionId="opt-1" productionId="prod-1" />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/add a note/i)).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe('OptionNotes', () => {
       notes: [],
     });
 
-    render(<OptionNotes optionId="opt-1" />);
+    render(<OptionNotes optionId="opt-1" productionId="prod-1" />);
 
     await waitFor(() => {
       expect(screen.getByText(/no notes yet/i)).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe('OptionNotes', () => {
       ],
     });
 
-    render(<OptionNotes optionId="opt-1" />);
+    render(<OptionNotes optionId="opt-1" productionId="prod-1" />);
 
     await waitFor(() => {
       expect(screen.getByText(/Jane Director/)).toBeInTheDocument();
@@ -135,6 +135,7 @@ describe('OptionNotes', () => {
     render(
       <OptionNotes
         optionId="opt-1"
+        productionId="prod-1"
         composerName="Alex Kim"
         composerDepartment="Props"
       />,
@@ -152,7 +153,7 @@ describe('OptionNotes', () => {
       notes: [],
     });
 
-    render(<OptionNotes optionId="opt-1" />);
+    render(<OptionNotes optionId="opt-1" productionId="prod-1" />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/add a note/i)).toBeInTheDocument();
@@ -179,7 +180,7 @@ describe('OptionNotes', () => {
     } as Response);
 
     const user = userEvent.setup();
-    render(<OptionNotes optionId="opt-1" />);
+    render(<OptionNotes optionId="opt-1" productionId="prod-1" />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/add a note/i)).toBeInTheDocument();
@@ -224,7 +225,7 @@ describe('OptionNotes', () => {
     } as Response);
 
     const user = userEvent.setup();
-    render(<OptionNotes optionId="opt-1" />);
+    render(<OptionNotes optionId="opt-1" productionId="prod-1" />);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/add a note/i)).toBeInTheDocument();

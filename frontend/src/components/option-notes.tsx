@@ -8,11 +8,12 @@ import { NoteAttachmentUpload } from './note-attachment-upload';
 
 interface OptionNotesProps {
   optionId: string;
+  productionId: string;
   composerName?: string;
   composerDepartment?: string;
 }
 
-export function OptionNotes({ optionId, composerName, composerDepartment }: OptionNotesProps) {
+export function OptionNotes({ optionId, productionId, composerName, composerDepartment }: OptionNotesProps) {
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [content, setContent] = useState('');
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
@@ -51,6 +52,7 @@ export function OptionNotes({ optionId, composerName, composerDepartment }: Opti
           const { uploadUrl, s3Key, mediaType } = await optionsApi.getUploadUrl(
             file.name,
             file.type,
+            productionId,
           );
 
           const uploadResponse = await fetch(uploadUrl, {

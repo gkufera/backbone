@@ -217,7 +217,7 @@ export default function ElementDetailPage() {
 
         {showUploadForm && (
           <div className="mb-4">
-            <OptionUploadForm elementId={elementId} onOptionCreated={handleOptionCreated} />
+            <OptionUploadForm elementId={elementId} productionId={productionId} onOptionCreated={handleOptionCreated} />
           </div>
         )}
 

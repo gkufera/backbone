@@ -32,6 +32,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -47,6 +48,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={onClose}
         onApprove={vi.fn()}
       />,
@@ -63,6 +65,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={onClose}
         onApprove={vi.fn()}
       />,
@@ -79,6 +82,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -95,6 +99,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -118,6 +123,7 @@ describe('OptionLightbox', () => {
     const { container } = render(
       <OptionLightbox
         option={videoOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -141,6 +147,7 @@ describe('OptionLightbox', () => {
     const { container } = render(
       <OptionLightbox
         option={audioOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -163,6 +170,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={linkOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -178,6 +186,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -201,6 +210,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={multiOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -223,6 +233,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={linkOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -249,6 +260,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={multiAssetOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -264,6 +276,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -279,6 +292,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={multiAssetOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -298,6 +312,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={multiAssetOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -318,6 +333,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={multiAssetOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -347,6 +363,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={multiAssetOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
       />,
@@ -378,6 +395,7 @@ describe('OptionLightbox', () => {
     render(
       <OptionLightbox
         option={baseOption}
+        productionId="prod-1"
         onClose={vi.fn()}
         onApprove={vi.fn()}
         approvals={approvals}

@@ -12,12 +12,13 @@ import { MediaType } from '@backbone/shared/types';
 
 interface OptionUploadFormProps {
   elementId: string;
+  productionId: string;
   onOptionCreated: () => void;
 }
 
 type Mode = 'file' | 'link';
 
-export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFormProps) {
+export function OptionUploadForm({ elementId, productionId, onOptionCreated }: OptionUploadFormProps) {
   const [mode, setMode] = useState<Mode>('file');
   const [description, setDescription] = useState('');
   const [externalUrl, setExternalUrl] = useState('');
@@ -125,6 +126,7 @@ export function OptionUploadForm({ elementId, onOptionCreated }: OptionUploadFor
         const uploadResult = await optionsApi.getUploadUrl(
           file.name,
           file.type,
+          productionId,
           thumbnailFileName,
         );
 

@@ -9,6 +9,7 @@ import { OptionNotes } from './option-notes';
 
 interface OptionLightboxProps {
   option: OptionResponse;
+  productionId: string;
   onClose: () => void;
   onApprove: (decision: string, note?: string) => void;
   disableApproval?: boolean;
@@ -20,6 +21,7 @@ interface OptionLightboxProps {
 
 export function OptionLightbox({
   option,
+  productionId,
   onClose,
   onApprove,
   disableApproval,
@@ -203,7 +205,7 @@ export function OptionLightbox({
           )}
 
           {/* Option notes */}
-          <OptionNotes optionId={option.id} composerName={composerName} composerDepartment={composerDepartment} />
+          <OptionNotes optionId={option.id} productionId={productionId} composerName={composerName} composerDepartment={composerDepartment} />
 
           {/* Approval buttons */}
           <div className="border-t-2 border-black pt-3">

@@ -67,7 +67,7 @@ export default function RevisionUploadPage() {
       const contentType = getContentType(file.name);
 
       // Step 1: Get presigned URL
-      const { uploadUrl, s3Key } = await scriptsApi.getUploadUrl(file.name, contentType);
+      const { uploadUrl, s3Key } = await scriptsApi.getUploadUrl(file.name, contentType, productionId);
 
       // Step 2: Upload to S3
       const uploadResponse = await fetch(uploadUrl, {

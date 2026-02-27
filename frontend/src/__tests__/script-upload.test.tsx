@@ -110,6 +110,7 @@ describe('Script upload page', () => {
       expect(mockedScriptsApi.getUploadUrl).toHaveBeenCalledWith(
         'test-script.pdf',
         'application/pdf',
+        'prod-1',
       );
     });
   });
@@ -225,6 +226,7 @@ describe('Script upload page', () => {
       expect(mockedScriptsApi.getUploadUrl).toHaveBeenCalledWith(
         'test.fdx',
         'application/xml',
+        'prod-1',
       );
     });
   });
