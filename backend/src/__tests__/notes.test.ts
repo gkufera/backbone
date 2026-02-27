@@ -393,6 +393,25 @@ describe('POST /api/elements/:elementId/notes', () => {
     expect(res.status).toBe(404);
   });
 
+  it('returns 404 when element has deletedAt set', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'DELETED ELEMENT',
+      status: 'ACTIVE',
+      deletedAt: new Date(),
+      script: { productionId: 'prod-1' },
+    } as any);
+
+    const res = await request(app)
+      .post('/api/elements/elem-1/notes')
+      .set(authHeader())
+      .send({ content: 'test' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/element not found/i);
+  });
+
   it('returns 403 when production is PENDING', async () => {
     mockedPrisma.element.findUnique.mockResolvedValue({
       id: 'elem-1',
@@ -479,6 +498,24 @@ describe('GET /api/elements/:elementId/notes', () => {
       .set(authHeader());
 
     expect(res.status).toBe(403);
+  });
+
+  it('returns 404 when element has deletedAt set', async () => {
+    mockedPrisma.element.findUnique.mockResolvedValue({
+      id: 'elem-1',
+      scriptId: 'script-1',
+      name: 'DELETED ELEMENT',
+      status: 'ACTIVE',
+      deletedAt: new Date(),
+      script: { productionId: 'prod-1' },
+    } as any);
+
+    const res = await request(app)
+      .get('/api/elements/elem-1/notes')
+      .set(authHeader());
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/element not found/i);
   });
 });
 

@@ -61,7 +61,7 @@ notesRouter.post('/api/elements/:elementId/notes', requireAuth, async (req, res)
       include: { script: { select: { productionId: true } } },
     });
 
-    if (!element) {
+    if (!element || element.deletedAt) {
       res.status(404).json({ error: 'Element not found' });
       return;
     }
@@ -127,7 +127,7 @@ notesRouter.get('/api/elements/:elementId/notes', requireAuth, async (req, res) 
       include: { script: { select: { productionId: true } } },
     });
 
-    if (!element) {
+    if (!element || element.deletedAt) {
       res.status(404).json({ error: 'Element not found' });
       return;
     }
