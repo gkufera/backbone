@@ -1,5 +1,20 @@
 # Current Plan
 
+## Pipeline Data Integrity & Security Fixes — Sprint 2 (COMPLETE)
+
+**Goal:** Fix 7 bugs found during deep audit of the script → elements → options → approvals pipeline: 1 security vulnerability, 5 data integrity issues, 1 functionality bug.
+
+### Fixes
+- [x] Bug A (SECURITY): Reject soft-deleted members in all 19 pipeline membership checks across 5 files
+- [x] Bug B: Exclude soft-deleted elements from director's feed query (add `deletedAt: null`)
+- [x] Bug C: Reject notes on soft-deleted elements (POST and GET)
+- [x] Bug D: Resolve productionId for element-level note attachment downloads (add element include path)
+- [x] Bug E: Block approval creation when element is soft-deleted
+- [x] Bug F: Block option updates (PATCH) when parent element is soft-deleted
+- [x] Bug G: Block asset addition when parent element is soft-deleted or archived
+
+**Final counts:** 528 frontend + 644 backend = 1,172 Tier 1 tests passing. 27 new tests added.
+
 ## Element Highlighting Accuracy & FDX PDF Quality (COMPLETE)
 
 **Goal:** Fix element highlighting bugs in PDF viewer and improve FDX-generated PDF quality.

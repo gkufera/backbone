@@ -133,7 +133,7 @@ The app is deployed on **Railway** with **Cloudflare** handling DNS (DNS-only mo
    git checkout main
    ```
 6. Railway auto-detects the push and rebuilds both services
-7. After deploy, verify with `railway logs --service backend` and `railway logs --service frontend`
+7. After deploy, verify with `HOME=/tmp railway logs --service backend` and `HOME=/tmp railway logs --service frontend` (see [Railway CLI Access](#railway-cli-access-from-claude-code-container) for setup)
 
 ### Deployment Failure Prevention
 
@@ -182,6 +182,29 @@ The goal: no deployment failure should ever happen twice for the same reason.
 **Database Service:**
 
 - Railway-managed PostgreSQL
+
+### Railway CLI Access (from Claude Code Container)
+
+The Railway auth token is mounted **read-only** at `/home/node/.railway/config.json`. The `railway` CLI writes to `$HOME/.railway/`, so commands like `railway link` fail with a read-only filesystem error. Workaround:
+
+```bash
+# 1. Copy config to writable location (once per session)
+mkdir -p /tmp/.railway
+cp /home/node/.railway/config.json /tmp/.railway/config.json
+
+# 2. Link to the project (once per session)
+HOME=/tmp railway link -p "Slug Max" -e production
+
+# 3. Check logs
+HOME=/tmp railway logs --service backend --lines 30
+HOME=/tmp railway logs --service frontend --lines 30
+```
+
+**Railway IDs** (for reference):
+- Project: `09603abf-cb61-42c5-bbcf-463b364e012b`
+- Environment (production): `3a39a547-b6e7-4044-833b-44f752a6be2f`
+- Backend service: `4a2331bc-ef86-4f61-8bab-a2abafe20a69`
+- Frontend service: `a6de3274-bb76-41b4-9a8e-4c4e94aee4b8`
 
 ### Cloudflare DNS
 
