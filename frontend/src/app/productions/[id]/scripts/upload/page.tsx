@@ -30,6 +30,8 @@ export default function ScriptUploadPage() {
 
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
+  const [episodeNumber, setEpisodeNumber] = useState('');
+  const [episodeTitle, setEpisodeTitle] = useState('');
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
@@ -56,6 +58,21 @@ export default function ScriptUploadPage() {
     e.preventDefault();
     if (!file) return;
 
+    // Validate episode fields: both or neither
+    const hasEpNum = episodeNumber.trim() !== '';
+    const hasEpTitle = episodeTitle.trim() !== '';
+    if (hasEpNum !== hasEpTitle) {
+      setError('Episode number and episode title must both be provided or both left empty');
+      return;
+    }
+    if (hasEpNum) {
+      const parsed = parseInt(episodeNumber, 10);
+      if (isNaN(parsed) || parsed < 1 || !Number.isInteger(parsed)) {
+        setError('Episode number must be a positive integer');
+        return;
+      }
+    }
+
     setError('');
     setIsUploading(true);
 
@@ -80,6 +97,7 @@ export default function ScriptUploadPage() {
         title: title || file.name.replace(/\.(pdf|fdx)$/i, ''),
         fileName: file.name,
         s3Key,
+        ...(hasEpNum ? { episodeNumber: parseInt(episodeNumber, 10), episodeTitle: episodeTitle.trim() } : {}),
       });
 
       router.push(`/productions/${productionId}/scripts/${script.id}`);
@@ -129,6 +147,37 @@ export default function ScriptUploadPage() {
             onChange={(e) => setTitle(e.target.value)}
             className="mt-1 w-full border-2 border-black p-2"
           />
+        </div>
+
+        <div className="flex gap-3">
+          <div className="w-1/3">
+            <label htmlFor="episode-number" className="block text-sm">
+              Episode Number
+            </label>
+            <input
+              id="episode-number"
+              type="number"
+              min="1"
+              value={episodeNumber}
+              onChange={(e) => setEpisodeNumber(e.target.value)}
+              placeholder="#"
+              className="mt-1 w-full border-2 border-black p-2"
+            />
+          </div>
+          <div className="flex-1">
+            <label htmlFor="episode-title" className="block text-sm">
+              Episode Title
+            </label>
+            <input
+              id="episode-title"
+              type="text"
+              value={episodeTitle}
+              onChange={(e) => setEpisodeTitle(e.target.value)}
+              placeholder="Optional"
+              maxLength={200}
+              className="mt-1 w-full border-2 border-black p-2"
+            />
+          </div>
         </div>
 
         {error && (

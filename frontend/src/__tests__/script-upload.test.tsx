@@ -100,7 +100,7 @@ describe('Script upload page', () => {
     const fileInput = screen.getByLabelText(/script file/i);
     await user.upload(fileInput, file);
 
-    const titleInput = screen.getByLabelText(/title/i);
+    const titleInput = screen.getByLabelText(/^title$/i);
     await user.clear(titleInput);
     await user.type(titleInput, 'My Script');
 
@@ -185,7 +185,7 @@ describe('Script upload page', () => {
 
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    const titleInput = screen.getByLabelText(/title/i) as HTMLInputElement;
+    const titleInput = screen.getByLabelText(/^title$/i) as HTMLInputElement;
     expect(titleInput.value).toBe('my-screenplay');
   });
 
@@ -238,5 +238,83 @@ describe('Script upload page', () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     expect(screen.getByText(/significantly more accurate/i)).toBeInTheDocument();
+  });
+
+  it('renders episode number and episode title fields', () => {
+    render(<ScriptUploadPage />);
+
+    expect(screen.getByLabelText(/episode number/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/episode title/i)).toBeInTheDocument();
+  });
+
+  it('shows validation error when only episode number is filled', async () => {
+    const user = userEvent.setup();
+    render(<ScriptUploadPage />);
+
+    const file = new File(['dummy'], 'test.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    await user.upload(fileInput, file);
+
+    const epNumberInput = screen.getByLabelText(/episode number/i);
+    await user.type(epNumberInput, '1');
+
+    await user.click(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/episode/i);
+    });
+
+    expect(mockedScriptsApi.getUploadUrl).not.toHaveBeenCalled();
+  });
+
+  it('passes episode fields to API when both are provided', async () => {
+    const user = userEvent.setup();
+
+    mockedScriptsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'scripts/uuid/pilot.pdf',
+    });
+
+    mockedScriptsApi.create.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Pilot',
+        fileName: 'pilot.pdf',
+        s3Key: 'scripts/uuid/pilot.pdf',
+        pageCount: null,
+        status: 'PROCESSING',
+        episodeNumber: 1,
+        episodeTitle: 'Pilot',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<ScriptUploadPage />);
+
+    const file = new File(['dummy'], 'pilot.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    await user.upload(fileInput, file);
+
+    const titleInput = screen.getByLabelText(/^title$/i);
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Pilot');
+
+    const epNumberInput = screen.getByLabelText(/episode number/i);
+    await user.type(epNumberInput, '1');
+
+    const epTitleInput = screen.getByLabelText(/episode title/i);
+    await user.type(epTitleInput, 'Pilot');
+
+    await user.click(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(mockedScriptsApi.create).toHaveBeenCalledWith('prod-1', expect.objectContaining({
+        episodeNumber: 1,
+        episodeTitle: 'Pilot',
+      }));
+    });
   });
 });
