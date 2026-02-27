@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import type { Request } from 'express';
 import type { AuthenticatedRequest } from './auth';
 
@@ -36,7 +36,7 @@ export function createUploadLimiter(options?: { max?: number; windowMs?: number 
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     keyGenerator: (req: Request) => {
-      return (req as AuthenticatedRequest).user?.userId ?? req.ip ?? 'unknown';
+      return (req as AuthenticatedRequest).user?.userId ?? ipKeyGenerator(req.ip ?? 'unknown');
     },
   });
 }

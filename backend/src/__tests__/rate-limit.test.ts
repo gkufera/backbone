@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { createGeneralLimiter, createAuthLimiter, createTokenLimiter } from '../middleware/rate-limit';
+import { createGeneralLimiter, createAuthLimiter, createTokenLimiter, createUploadLimiter } from '../middleware/rate-limit';
 
 function createTestApp(limiter: ReturnType<typeof createGeneralLimiter>) {
   const app = express();
@@ -60,5 +60,25 @@ describe('Rate Limiting', () => {
 
     const res3 = await request(app).get('/test');
     expect(res3.status).toBe(429);
+  });
+
+  it('upload limiter creates without IPv6 validation warning', () => {
+    // express-rate-limit v8 logs a ValidationError if keyGenerator uses req.ip
+    // without ipKeyGenerator. This test ensures createUploadLimiter is clean.
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    createUploadLimiter();
+    const ipv6Error = errorSpy.mock.calls.find((call) =>
+      String(call[0]).includes('ERR_ERL_KEY_GEN_IPV6'),
+    );
+    expect(ipv6Error).toBeUndefined();
+    errorSpy.mockRestore();
+  });
+
+  it('upload limiter exposes 30/min limit header', async () => {
+    const app = createTestApp(createUploadLimiter());
+    const res = await request(app).get('/test');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['ratelimit-policy']).toBe('30;w=60');
   });
 });
