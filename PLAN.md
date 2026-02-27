@@ -1,6 +1,19 @@
 # Current Plan
 
-## Sprint 37: UX Fixes + Extract Elements Checkbox
+## Sprint 37 Check: Code Review Fixes (COMPLETE)
+
+**Goal:** Address 5 actionable items from Sprint 37 code review.
+
+### Fixes
+- [x] Fix 1: Explicit `extractElements=true` in revision-processor
+- [x] Fix 2: Document PDF vs FDX asymmetry + fix array mutation in script-processor
+- [x] Fix 3: Add FDX revision test for action props (1 new test)
+- [x] Fix 4: Strengthen FDX description test assertion (tagger tags)
+- [x] Fix 5: Update PLAN.md
+
+**Final counts:** 527 frontend + 583 backend = 1,110 Tier 1 tests passing.
+
+## Sprint 37: UX Fixes + Extract Elements Checkbox (COMPLETE)
 
 **Goal:** Fix three user-reported issues from production testing.
 
