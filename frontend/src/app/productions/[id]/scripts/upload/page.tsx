@@ -32,6 +32,7 @@ export default function ScriptUploadPage() {
   const [title, setTitle] = useState('');
   const [episodeNumber, setEpisodeNumber] = useState('');
   const [episodeTitle, setEpisodeTitle] = useState('');
+  const [extractElements, setExtractElements] = useState(false);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
@@ -97,6 +98,7 @@ export default function ScriptUploadPage() {
         title: title || file.name.replace(/\.(pdf|fdx)$/i, ''),
         fileName: file.name,
         s3Key,
+        extractElements,
         ...(hasEpNum ? { episodeNumber: parseInt(episodeNumber, 10), episodeTitle: episodeTitle.trim() } : {}),
       });
 
@@ -127,12 +129,31 @@ export default function ScriptUploadPage() {
             className="mt-1 w-full"
           />
           {file && <p className="mt-1 text-sm text-black">{file.name}</p>}
-          {isFdxFile && (
+          {file && (
             <p className="mt-2 text-xs font-mono">
-              FDX import detects elements directly from Final Draft&apos;s paragraph types and
-              tagger tags. This is significantly more accurate than PDF text extraction, which uses
-              pattern matching and may miss or misidentify elements.
+              Automatic element tagging on PDF import is beta and may produce false positives. FDX
+              import extracts characters and locations directly from Final Draft&apos;s structure and
+              tagger tags for much more accurate results.
             </p>
+          )}
+          {file && (
+            <div className="mt-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={extractElements}
+                  onChange={(e) => setExtractElements(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                Extract elements using AI
+              </label>
+              {extractElements && isFdxFile && (
+                <p className="mt-1 text-xs font-mono font-bold">
+                  Only check this if you haven&apos;t tagged elements using Final Draft&apos;s
+                  Tagger feature, as it may create duplicate elements.
+                </p>
+              )}
+            </div>
           )}
         </div>
 

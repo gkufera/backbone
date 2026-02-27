@@ -229,15 +229,150 @@ describe('Script upload page', () => {
     });
   });
 
-  it('shows FDX accuracy info text when FDX selected', async () => {
+  it('shows description text for both PDF and FDX files after selection', async () => {
+    render(<ScriptUploadPage />);
+
+    // Select a PDF file
+    const pdfFile = new File(['dummy'], 'test.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    fireEvent.change(fileInput, { target: { files: [pdfFile] } });
+
+    expect(screen.getByText(/element tagging on PDF import is beta/i)).toBeInTheDocument();
+  });
+
+  it('shows description text for FDX files after selection', async () => {
     render(<ScriptUploadPage />);
 
     const file = new File(['<FinalDraft/>'], 'test.fdx', { type: 'application/xml' });
     const fileInput = screen.getByLabelText(/script file/i);
-
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    expect(screen.getByText(/significantly more accurate/i)).toBeInTheDocument();
+    expect(screen.getByText(/element tagging on PDF import is beta/i)).toBeInTheDocument();
+  });
+
+  it('renders extract elements checkbox unchecked by default after file selected', async () => {
+    render(<ScriptUploadPage />);
+
+    const file = new File(['dummy'], 'test.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    const checkbox = screen.getByLabelText(/extract elements/i);
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('shows FDX duplicate warning only when checkbox checked + FDX selected', async () => {
+    const user = userEvent.setup();
+    render(<ScriptUploadPage />);
+
+    const file = new File(['<FinalDraft/>'], 'test.fdx', { type: 'application/xml' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    // Warning should not show initially
+    expect(screen.queryByText(/duplicate elements/i)).not.toBeInTheDocument();
+
+    // Check the checkbox
+    const checkbox = screen.getByLabelText(/extract elements/i);
+    await user.click(checkbox);
+
+    // Warning should show now
+    expect(screen.getByText(/duplicate elements/i)).toBeInTheDocument();
+  });
+
+  it('does not show FDX duplicate warning for PDF files even when checkbox checked', async () => {
+    const user = userEvent.setup();
+    render(<ScriptUploadPage />);
+
+    const file = new File(['dummy'], 'test.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    const checkbox = screen.getByLabelText(/extract elements/i);
+    await user.click(checkbox);
+
+    expect(screen.queryByText(/duplicate elements/i)).not.toBeInTheDocument();
+  });
+
+  it('submit with checkbox unchecked sends extractElements: false', async () => {
+    const user = userEvent.setup();
+
+    mockedScriptsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'scripts/uuid/test.pdf',
+    });
+
+    mockedScriptsApi.create.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'test-script',
+        fileName: 'test-script.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: null,
+        status: 'PROCESSING',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<ScriptUploadPage />);
+
+    const file = new File(['dummy'], 'test-script.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    await user.upload(fileInput, file);
+
+    await user.click(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(mockedScriptsApi.create).toHaveBeenCalledWith('prod-1', expect.objectContaining({
+        extractElements: false,
+      }));
+    });
+  });
+
+  it('submit with checkbox checked sends extractElements: true', async () => {
+    const user = userEvent.setup();
+
+    mockedScriptsApi.getUploadUrl.mockResolvedValue({
+      uploadUrl: 'https://s3.example.com/upload',
+      s3Key: 'scripts/uuid/test.pdf',
+    });
+
+    mockedScriptsApi.create.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'test-script',
+        fileName: 'test-script.pdf',
+        s3Key: 'scripts/uuid/test.pdf',
+        pageCount: null,
+        status: 'PROCESSING',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<ScriptUploadPage />);
+
+    const file = new File(['dummy'], 'test-script.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/script file/i);
+    await user.upload(fileInput, file);
+
+    // Check the extract elements checkbox
+    const checkbox = screen.getByLabelText(/extract elements/i);
+    await user.click(checkbox);
+
+    await user.click(screen.getByRole('button', { name: /upload/i }));
+
+    await waitFor(() => {
+      expect(mockedScriptsApi.create).toHaveBeenCalledWith('prod-1', expect.objectContaining({
+        extractElements: true,
+      }));
+    });
   });
 
   it('renders episode number and episode title fields', () => {
