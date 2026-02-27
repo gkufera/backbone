@@ -45,7 +45,7 @@ function mockMembership() {
 describe('GET /api/productions/:id/notification-preferences', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns defaults when no preference record exists', async () => {
@@ -114,7 +114,7 @@ describe('GET /api/productions/:id/notification-preferences', () => {
 describe('PATCH /api/productions/:id/notification-preferences', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('creates preferences if none exist (upsert)', async () => {

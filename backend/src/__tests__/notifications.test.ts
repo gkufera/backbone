@@ -48,7 +48,7 @@ function mockMembership() {
 describe('GET /api/productions/:productionId/notifications', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns notifications for the authenticated user', async () => {
@@ -128,7 +128,7 @@ describe('GET /api/productions/:productionId/notifications', () => {
 describe('PATCH /api/notifications/:id/read', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('marks a notification as read', async () => {
@@ -180,7 +180,7 @@ describe('PATCH /api/notifications/:id/read', () => {
 describe('GET /api/productions/:productionId/notifications/unread-count', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns count of unread notifications', async () => {

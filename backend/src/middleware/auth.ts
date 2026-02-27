@@ -32,11 +32,16 @@ export async function requireAuth(
     // Verify tokenVersion against DB to support JWT revocation
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { tokenVersion: true },
+      select: { tokenVersion: true, emailVerified: true },
     });
 
     if (!user || user.tokenVersion !== (payload.tokenVersion ?? 0)) {
       res.status(401).json({ error: 'Authentication required: invalid or expired token' });
+      return;
+    }
+
+    if (!user.emailVerified) {
+      res.status(403).json({ error: 'Email verification required' });
       return;
     }
 

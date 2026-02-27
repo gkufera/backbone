@@ -97,7 +97,7 @@ function authHeader() {
 describe('Element soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -145,7 +145,7 @@ describe('Element soft-delete (Sprint 17)', () => {
 describe('ProductionMember soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -196,7 +196,7 @@ describe('ProductionMember soft-delete (Sprint 17)', () => {
 describe('Department soft-delete (Sprint 17)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -246,7 +246,7 @@ describe('Department soft-delete (Sprint 17)', () => {
 describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -478,7 +478,7 @@ describe('Soft-delete query filtering (Sprint 15-20 check)', () => {
 describe('Notes department enrichment soft-delete filtering (Sprint 21)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('enrichNotesWithDepartment excludes soft-deleted production members', async () => {

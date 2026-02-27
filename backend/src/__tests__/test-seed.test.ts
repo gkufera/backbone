@@ -55,7 +55,7 @@ function authHeader() {
 describe('POST /api/test/seed-production', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 401 without auth token', async () => {
@@ -188,7 +188,7 @@ describe('POST /api/test/seed-production', () => {
 describe('POST /api/test/activate-production/:id', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 401 without auth token', async () => {

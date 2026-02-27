@@ -41,11 +41,13 @@ describe('requireAuth tokenVersion check', () => {
       userId: 'user-1',
       email: 'test@example.com',
       tokenVersion: 0,
+      emailVerified: true,
     });
 
     mockedPrisma.user.findUnique.mockResolvedValue({
       id: 'user-1',
       tokenVersion: 0,
+      emailVerified: true,
     } as any);
 
     const res = await request(testApp)
@@ -61,6 +63,7 @@ describe('requireAuth tokenVersion check', () => {
       userId: 'user-1',
       email: 'test@example.com',
       tokenVersion: 0,
+      emailVerified: true,
     });
 
     mockedPrisma.user.findUnique.mockResolvedValue({
@@ -81,6 +84,7 @@ describe('requireAuth tokenVersion check', () => {
       userId: 'deleted-user',
       email: 'test@example.com',
       tokenVersion: 0,
+      emailVerified: true,
     });
 
     mockedPrisma.user.findUnique.mockResolvedValue(null);

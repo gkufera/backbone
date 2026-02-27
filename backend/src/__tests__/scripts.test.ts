@@ -86,7 +86,7 @@ function authHeader() {
 describe('POST /api/scripts/upload-url', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 200 with presigned URL and S3 key', async () => {
@@ -153,7 +153,7 @@ describe('POST /api/scripts/upload-url', () => {
 describe('POST /api/productions/:id/scripts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -301,7 +301,7 @@ describe('POST /api/productions/:id/scripts', () => {
 describe('GET /api/productions/:id/scripts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 200 with scripts list', async () => {
@@ -340,7 +340,7 @@ describe('GET /api/productions/:id/scripts', () => {
 describe('GET /api/productions/:id/scripts/:scriptId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 200 with script and elements', async () => {
@@ -411,7 +411,7 @@ describe('GET /api/productions/:id/scripts/:scriptId', () => {
 describe('GET /api/scripts/:scriptId/download-url', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 200 with download URL', async () => {
@@ -470,7 +470,7 @@ describe('GET /api/scripts/:scriptId/download-url', () => {
 describe('GET /api/scripts/:scriptId/processing-status', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns progress when script is PROCESSING', async () => {
@@ -502,7 +502,7 @@ describe('GET /api/scripts/:scriptId/processing-status', () => {
 describe('POST /api/scripts/:scriptId/accept-elements', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('transitions REVIEWING to READY', async () => {
@@ -621,7 +621,7 @@ describe('POST /api/scripts/:scriptId/accept-elements', () => {
 describe('POST /api/scripts/:scriptId/generate-implied', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('creates per-character wardrobe/H&M elements', async () => {
@@ -713,7 +713,7 @@ describe('POST /api/scripts/:scriptId/generate-implied', () => {
 describe('POST /api/scripts/:scriptId/generate-implied (dedup)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('does not create duplicate elements when called twice', async () => {
@@ -764,7 +764,7 @@ describe('POST /api/scripts/:scriptId/generate-implied (dedup)', () => {
 describe('GET /api/productions/:id/scripts/:scriptId approvalTemperature', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('includes approvalTemperature for elements with approvals', async () => {
@@ -839,7 +839,7 @@ describe('GET /api/productions/:id/scripts/:scriptId approvalTemperature', () =>
 describe('DELETE /api/elements/:id (soft-delete)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('soft-deletes when script is REVIEWING', async () => {
@@ -904,7 +904,7 @@ describe('DELETE /api/elements/:id (soft-delete)', () => {
 describe('POST /api/productions/:id/scripts — notification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 

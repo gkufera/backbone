@@ -107,7 +107,7 @@ describe('JSON body size limit (S3)', () => {
 describe('GET /api/options/download-url authorization (S4)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 403 when user is not a member of the option production', async () => {
@@ -181,7 +181,7 @@ describe('GET /api/options/download-url authorization (S4)', () => {
 describe('ElementType/ElementStatus enum validation (S5)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -290,7 +290,7 @@ const mockedBcryptCompare = vi.mocked(bcrypt.compare);
 describe('Login timing attack prevention (S8)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('performs bcrypt comparison even when user does not exist', async () => {

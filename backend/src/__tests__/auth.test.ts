@@ -353,7 +353,7 @@ describe('Error handling', () => {
 
   it('returns 500 when Prisma throws on /me', async () => {
     // First call: middleware's tokenVersion check — must succeed
-    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'test-id-123', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValueOnce({ id: 'test-id-123', tokenVersion: 0, emailVerified: true } as any);
     // Second call: route handler's user lookup — throws DB error
     mockedPrisma.user.findUnique.mockRejectedValueOnce(new Error('DB connection failed'));
 
@@ -1085,7 +1085,7 @@ describe('Signup auto-verify in test mode', () => {
 describe('POST /api/auth/logout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 200 and increments tokenVersion', async () => {

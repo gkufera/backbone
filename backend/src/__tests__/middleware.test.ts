@@ -34,10 +34,11 @@ describe('requireAuth middleware', () => {
   beforeEach(() => {
     testApp = createTestApp();
     vi.clearAllMocks();
-    // Default: user exists with tokenVersion 0 (matches signToken default)
+    // Default: user exists with tokenVersion 0, verified email (matches signToken default)
     mockedPrisma.user.findUnique.mockResolvedValue({
       id: 'test-user-id',
       tokenVersion: 0,
+      emailVerified: true,
     } as any);
   });
 
@@ -68,6 +69,12 @@ describe('requireAuth middleware', () => {
   });
 
   it('allows requests with valid JWT and attaches user to request', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      id: 'test-user-id',
+      tokenVersion: 0,
+      emailVerified: true,
+    } as any);
+
     const token = signToken({
       userId: 'test-user-id',
       email: 'test@example.com',
@@ -78,5 +85,23 @@ describe('requireAuth middleware', () => {
     expect(res.status).toBe(200);
     expect(res.body.userId).toBe('test-user-id');
     expect(res.body.email).toBe('test@example.com');
+  });
+
+  it('rejects requests from users with unverified email', async () => {
+    mockedPrisma.user.findUnique.mockResolvedValue({
+      id: 'test-user-id',
+      tokenVersion: 0,
+      emailVerified: false,
+    } as any);
+
+    const token = signToken({
+      userId: 'test-user-id',
+      email: 'test@example.com',
+    });
+
+    const res = await request(testApp).get('/protected').set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toMatch(/email.*verif/i);
   });
 });

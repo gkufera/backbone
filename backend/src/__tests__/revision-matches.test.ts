@@ -69,7 +69,7 @@ const mockMembership = {
 describe('POST /api/productions/:id/scripts/:scriptId/revisions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -155,7 +155,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions', () => {
 describe('GET /api/scripts/:scriptId/revision-matches', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 403 for non-member', async () => {
@@ -230,7 +230,7 @@ describe('GET /api/scripts/:scriptId/revision-matches', () => {
 describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 403 for non-member', async () => {
@@ -438,7 +438,7 @@ describe('POST /api/scripts/:scriptId/revision-matches/resolve', () => {
 describe('GET /api/productions/:id/scripts/:scriptId/versions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns version chain in order', async () => {

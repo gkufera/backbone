@@ -36,7 +36,7 @@ function authHeader(user = user1) {
 describe('Per-user upload URL rate limiting', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('allows up to 30 upload URL requests per minute per user', async () => {
@@ -76,7 +76,7 @@ describe('Per-user upload URL rate limiting', () => {
     }
 
     // user2 should still be able to make requests
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-2', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-2', tokenVersion: 0, emailVerified: true } as any);
     const res = await request(app)
       .post('/api/options/upload-url')
       .set(authHeader(user2))

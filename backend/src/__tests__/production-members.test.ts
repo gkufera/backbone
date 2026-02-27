@@ -53,7 +53,7 @@ function authHeader(user = ownerUser) {
 describe('POST /api/productions/:id/members', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', title: 'Test Film', status: 'ACTIVE' } as any);
   });
 
@@ -70,7 +70,7 @@ describe('POST /api/productions/:id/members', () => {
 
     // First call: middleware auth check; second call: find user by email in route
     mockedPrisma.user.findUnique
-      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any)
       .mockResolvedValueOnce({
         id: 'user-new',
         name: 'New User',
@@ -136,7 +136,7 @@ describe('POST /api/productions/:id/members', () => {
 
     // First call: middleware auth check; second call: user not found by email
     mockedPrisma.user.findUnique
-      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any)
       .mockResolvedValueOnce(null);
 
     const res = await request(app)
@@ -161,7 +161,7 @@ describe('POST /api/productions/:id/members', () => {
 
     // First call: middleware auth check; second call: find user by email
     mockedPrisma.user.findUnique
-      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any)
       .mockResolvedValueOnce({
         id: 'user-existing',
         name: 'Existing Member',
@@ -204,7 +204,7 @@ describe('POST /api/productions/:id/members', () => {
 
     // First call: middleware auth check; second call: find user by email
     mockedPrisma.user.findUnique
-      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any)
       .mockResolvedValueOnce({
         id: 'user-new',
         name: 'New User',
@@ -272,7 +272,7 @@ describe('POST /api/productions/:id/members', () => {
 
     // First call: middleware auth check; second call: find user by email
     mockedPrisma.user.findUnique
-      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0 } as any)
+      .mockResolvedValueOnce({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any)
       .mockResolvedValueOnce({
         id: 'user-new',
         name: 'New User',
@@ -334,7 +334,7 @@ describe('POST /api/productions/:id/members', () => {
 describe('GET /api/productions/:id/members', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any);
   });
 
   it('returns 200 with member list including user details', async () => {
@@ -387,7 +387,7 @@ describe('GET /api/productions/:id/members', () => {
 describe('DELETE /api/productions/:id/members/:memberId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -505,7 +505,7 @@ const deciderUser = {
 describe('PATCH /api/productions/:id/members/:memberId/role', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
@@ -837,7 +837,7 @@ describe('PATCH /api/productions/:id/members/:memberId/role', () => {
 describe('PATCH /api/productions/:id/members/:memberId/department', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0 } as any);
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-owner', tokenVersion: 0, emailVerified: true } as any);
     mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
   });
 
