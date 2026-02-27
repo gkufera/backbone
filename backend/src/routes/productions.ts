@@ -17,6 +17,7 @@ import { MemberRole, NotificationType, ElementStatus, ElementWorkflowState } fro
 import { createNotification } from '../services/notification-service';
 import { sendProductionApprovalEmail, sendProductionApprovedEmail } from '../services/email-service';
 import { requireActiveProduction } from '../lib/require-active-production';
+import { createTokenLimiter } from '../middleware/rate-limit';
 
 const productionsRouter = Router();
 
@@ -160,7 +161,10 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
 });
 
 // Approve a production (public token endpoint — no auth required)
-productionsRouter.post('/api/productions/approve', async (req, res) => {
+// Rate limit token endpoint to prevent brute-force token guessing (5 req/min per IP)
+const approveMiddleware =
+  process.env.NODE_ENV !== 'test' ? [createTokenLimiter()] : [];
+productionsRouter.post('/api/productions/approve', ...approveMiddleware, async (req, res) => {
   try {
     const { token } = req.body;
 

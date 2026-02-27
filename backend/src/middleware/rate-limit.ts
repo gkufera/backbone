@@ -20,6 +20,15 @@ export function createAuthLimiter(options?: { max?: number; windowMs?: number })
   });
 }
 
+export function createTokenLimiter(options?: { max?: number; windowMs?: number }) {
+  return rateLimit({
+    windowMs: options?.windowMs ?? 60 * 1000, // 1 minute
+    max: options?.max ?? 5,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+  });
+}
+
 export function createUploadLimiter(options?: { max?: number; windowMs?: number }) {
   return rateLimit({
     windowMs: options?.windowMs ?? 60 * 1000, // 1 minute

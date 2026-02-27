@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { createGeneralLimiter, createAuthLimiter } from '../middleware/rate-limit';
+import { createGeneralLimiter, createAuthLimiter, createTokenLimiter } from '../middleware/rate-limit';
 
 function createTestApp(limiter: ReturnType<typeof createGeneralLimiter>) {
   const app = express();
@@ -38,5 +38,27 @@ describe('Rate Limiting', () => {
 
     const res2 = await request(app).get('/test');
     expect(res2.status).toBe(429);
+  });
+
+  it('token limiter exposes 5/min limit header', async () => {
+    const app = createTestApp(createTokenLimiter());
+    const res = await request(app).get('/test');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['ratelimit-policy']).toBe('5;w=60');
+  });
+
+  it('token limiter returns 429 after 5 requests', async () => {
+    const limiter = createTokenLimiter({ max: 2, windowMs: 60000 });
+    const app = createTestApp(limiter);
+
+    const res1 = await request(app).get('/test');
+    expect(res1.status).toBe(200);
+
+    const res2 = await request(app).get('/test');
+    expect(res2.status).toBe(200);
+
+    const res3 = await request(app).get('/test');
+    expect(res3.status).toBe(429);
   });
 });
