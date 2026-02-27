@@ -279,6 +279,7 @@ approvalsRouter.get('/api/productions/:productionId/feed', requireAuth, async (r
       where: {
         script: { productionId },
         status: ElementStatus.ACTIVE,
+        deletedAt: null,
         options: {
           some: {
             readyForReview: true,

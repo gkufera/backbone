@@ -1145,4 +1145,21 @@ describe('GET /api/productions/:productionId/feed', () => {
       }),
     );
   });
+
+  it('queries with deletedAt: null to exclude soft-deleted elements', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+    } as any);
+    mockedPrisma.element.findMany.mockResolvedValue([]);
+
+    await request(app).get('/api/productions/prod-1/feed').set(authHeader());
+
+    expect(mockedPrisma.element.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          deletedAt: null,
+        }),
+      }),
+    );
+  });
 });
