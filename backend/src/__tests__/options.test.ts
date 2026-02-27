@@ -236,7 +236,7 @@ describe('GET /api/options/download-url', () => {
     mockedPrisma.optionAsset.findFirst.mockResolvedValue({
       id: 'asset-1',
       optionId: 'opt-1',
-      s3Key: 'options/uuid/photo.jpg',
+      s3Key: 'options/prod-1/uuid/photo.jpg',
       option: {
         element: {
           script: { productionId: 'prod-1' },
@@ -259,7 +259,7 @@ describe('GET /api/options/download-url', () => {
     const res = await request(app)
       .get('/api/options/download-url')
       .set(authHeader())
-      .query({ s3Key: 'options/uuid/photo.jpg' });
+      .query({ s3Key: 'options/prod-1/uuid/photo.jpg' });
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('downloadUrl');
@@ -321,7 +321,7 @@ describe('POST /api/elements/:elementId/options', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       assets: [
-        { id: 'a1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+        { id: 'a1', s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
       ],
     } as any);
 
@@ -329,7 +329,7 @@ describe('POST /api/elements/:elementId/options', () => {
       mediaType: 'IMAGE',
       description: 'Costume reference',
       assets: [
-        { s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' },
+        { s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' },
       ],
     });
 
@@ -371,7 +371,7 @@ describe('POST /api/elements/:elementId/options', () => {
     mockElementWithMembership();
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
-      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(400);
@@ -412,7 +412,7 @@ describe('POST /api/elements/:elementId/options', () => {
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
-      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(403);
@@ -426,10 +426,22 @@ describe('POST /api/elements/:elementId/options', () => {
       .set(authHeader())
       .send({
         mediaType: 'IMAGE',
-        assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+        assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
       });
 
     expect(res.status).toBe(404);
+  });
+
+  it('returns 400 when asset s3Key does not match production prefix', async () => {
+    mockElementWithMembership();
+
+    const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
+      mediaType: 'IMAGE',
+      assets: [{ s3Key: 'options/prod-OTHER/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/s3Key/i);
   });
 
   it('returns 400 when description exceeds max length', async () => {
@@ -439,7 +451,7 @@ describe('POST /api/elements/:elementId/options', () => {
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
       description: longDescription,
-      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(400);
@@ -469,7 +481,7 @@ describe('POST /api/elements/:elementId/options', () => {
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
-      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(201);
@@ -489,14 +501,14 @@ describe('POST /api/elements/:elementId/options', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       assets: [
-        { id: 'a1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+        { id: 'a1', s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
       ],
     } as any);
     mockedNotifyDeciders.mockResolvedValue([]);
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
-      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(201);
@@ -689,8 +701,8 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       assets: [
-        { id: 'asset-1', s3Key: 'options/uuid/photo1.jpg', fileName: 'photo1.jpg', mediaType: 'IMAGE', sortOrder: 0 },
-        { id: 'asset-2', s3Key: 'options/uuid/photo2.jpg', fileName: 'photo2.jpg', mediaType: 'IMAGE', sortOrder: 1 },
+        { id: 'asset-1', s3Key: 'options/prod-1/uuid/photo1.jpg', fileName: 'photo1.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+        { id: 'asset-2', s3Key: 'options/prod-1/uuid/photo2.jpg', fileName: 'photo2.jpg', mediaType: 'IMAGE', sortOrder: 1 },
       ],
     } as any);
 
@@ -698,8 +710,8 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
       mediaType: 'IMAGE',
       description: 'Multi-photo option',
       assets: [
-        { s3Key: 'options/uuid/photo1.jpg', fileName: 'photo1.jpg', mediaType: 'IMAGE' },
-        { s3Key: 'options/uuid/photo2.jpg', fileName: 'photo2.jpg', mediaType: 'IMAGE' },
+        { s3Key: 'options/prod-1/uuid/photo1.jpg', fileName: 'photo1.jpg', mediaType: 'IMAGE' },
+        { s3Key: 'options/prod-1/uuid/photo2.jpg', fileName: 'photo2.jpg', mediaType: 'IMAGE' },
       ],
     });
 
@@ -747,7 +759,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
         readyForReview: false,
         uploadedBy: { id: 'user-1', name: 'Test User' },
         assets: [
-          { id: 'asset-1', s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
+          { id: 'asset-1', s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE', sortOrder: 0 },
         ],
       },
     ] as any);
@@ -756,7 +768,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.options[0].assets).toHaveLength(1);
-    expect(res.body.options[0].assets[0].s3Key).toBe('options/uuid/photo.jpg');
+    expect(res.body.options[0].assets[0].s3Key).toBe('options/prod-1/uuid/photo.jpg');
   });
 
   it('adds asset to existing option', async () => {
@@ -781,7 +793,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
     mockedPrisma.optionAsset.create.mockResolvedValue({
       id: 'asset-2',
       optionId: 'opt-1',
-      s3Key: 'options/uuid/photo2.jpg',
+      s3Key: 'options/prod-1/uuid/photo2.jpg',
       fileName: 'photo2.jpg',
       mediaType: 'IMAGE',
       sortOrder: 1,
@@ -789,13 +801,13 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
     } as any);
 
     const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
-      s3Key: 'options/uuid/photo2.jpg',
+      s3Key: 'options/prod-1/uuid/photo2.jpg',
       fileName: 'photo2.jpg',
       mediaType: 'IMAGE',
     });
 
     expect(res.status).toBe(201);
-    expect(res.body.asset.s3Key).toBe('options/uuid/photo2.jpg');
+    expect(res.body.asset.s3Key).toBe('options/prod-1/uuid/photo2.jpg');
     expect(res.body.asset.sortOrder).toBe(1);
   });
 
@@ -811,12 +823,39 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
     mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
 
     const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
-      s3Key: 'options/uuid/photo.jpg',
+      s3Key: 'options/prod-1/uuid/photo.jpg',
       fileName: 'photo.jpg',
       mediaType: 'IMAGE',
     });
 
     expect(res.status).toBe(403);
+  });
+
+  it('rejects asset addition with wrong production s3Key prefix', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
+    const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
+      s3Key: 'options/prod-OTHER/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+      mediaType: 'IMAGE',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/s3Key/i);
   });
 
   it('returns 400 when asset mediaType is invalid in create option', async () => {
@@ -826,7 +865,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
       mediaType: 'IMAGE',
       description: 'Bad asset type',
       assets: [
-        { s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'INVALID' },
+        { s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'INVALID' },
       ],
     });
 
@@ -852,7 +891,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
     } as any);
 
     const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
-      s3Key: 'options/uuid/photo.jpg',
+      s3Key: 'options/prod-1/uuid/photo.jpg',
       fileName: 'photo.jpg',
       mediaType: 'BOGUS',
     });
@@ -873,7 +912,7 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
 
     const res = await request(app).post('/api/elements/elem-1/options').set(authHeader()).send({
       mediaType: 'IMAGE',
-      assets: [{ s3Key: 'options/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
+      assets: [{ s3Key: 'options/prod-1/uuid/photo.jpg', fileName: 'photo.jpg', mediaType: 'IMAGE' }],
     });
 
     expect(res.status).toBe(201);

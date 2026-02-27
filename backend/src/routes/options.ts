@@ -12,6 +12,7 @@ import {
 import { ElementWorkflowState, MediaType, NotificationType, OptionStatus } from '@backbone/shared/types';
 import { notifyProductionMembers, notifyDeciders } from '../services/notification-service';
 import { requireActiveProduction } from '../lib/require-active-production';
+import { validateS3KeyForProduction } from '../lib/s3-validation';
 
 const optionsRouter = Router();
 const uploadLimiter = createUploadLimiter();
@@ -212,6 +213,17 @@ optionsRouter.post('/api/elements/:elementId/options', requireAuth, async (req, 
       for (const asset of assets) {
         if (!asset.mediaType || !Object.values(MediaType).includes(asset.mediaType)) {
           res.status(400).json({ error: 'Each asset must have a valid mediaType' });
+          return;
+        }
+      }
+    }
+
+    // Validate s3Key prefix matches the production
+    if (hasAssets) {
+      const productionId = element.script.productionId;
+      for (const asset of assets) {
+        if (!validateS3KeyForProduction(asset.s3Key, productionId, 'options')) {
+          res.status(400).json({ error: 's3Key does not match expected production prefix' });
           return;
         }
       }
@@ -460,6 +472,12 @@ optionsRouter.post('/api/options/:id/assets', requireAuth, async (req, res) => {
 
     // Block mutations on PENDING productions
     if (!(await requireActiveProduction(option.element.script.productionId, res))) return;
+
+    // Validate s3Key prefix matches the production
+    if (!validateS3KeyForProduction(s3Key, option.element.script.productionId, 'options')) {
+      res.status(400).json({ error: 's3Key does not match expected production prefix' });
+      return;
+    }
 
     // Determine next sortOrder
     const lastAsset = await prisma.optionAsset.findFirst({

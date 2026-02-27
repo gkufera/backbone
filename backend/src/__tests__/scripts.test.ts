@@ -214,7 +214,7 @@ describe('POST /api/productions/:id/scripts', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       pageCount: null,
       status: 'PROCESSING',
       uploadedById: 'user-1',
@@ -225,7 +225,7 @@ describe('POST /api/productions/:id/scripts', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
     });
 
     expect(res.status).toBe(201);
@@ -258,10 +258,28 @@ describe('POST /api/productions/:id/scripts', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
     });
 
     expect(res.status).toBe(403);
+  });
+
+  it('returns 400 when s3Key does not match production prefix', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/prod-OTHER/uuid/script.pdf',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/s3Key/i);
   });
 
   it('stores format=FDX for .fdx fileName', async () => {
@@ -277,7 +295,7 @@ describe('POST /api/productions/:id/scripts', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script.fdx',
-      s3Key: 'scripts/uuid/script.fdx',
+      s3Key: 'scripts/prod-1/uuid/script.fdx',
       status: 'PROCESSING',
       format: 'FDX',
       uploadedById: 'user-1',
@@ -288,7 +306,7 @@ describe('POST /api/productions/:id/scripts', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.fdx',
-      s3Key: 'scripts/uuid/script.fdx',
+      s3Key: 'scripts/prod-1/uuid/script.fdx',
     });
 
     expect(res.status).toBe(201);
@@ -314,7 +332,7 @@ describe('POST /api/productions/:id/scripts', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       status: 'PROCESSING',
       format: 'PDF',
       uploadedById: 'user-1',
@@ -325,7 +343,7 @@ describe('POST /api/productions/:id/scripts', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
     });
 
     expect(res.status).toBe(201);
@@ -361,7 +379,7 @@ describe('GET /api/productions/:id/scripts', () => {
         productionId: 'prod-1',
         title: 'Script One',
         fileName: 'script.pdf',
-        s3Key: 'scripts/uuid/script.pdf',
+        s3Key: 'scripts/prod-1/uuid/script.pdf',
         pageCount: 120,
         status: 'READY',
         uploadedById: 'user-1',
@@ -399,7 +417,7 @@ describe('GET /api/productions/:id/scripts/:scriptId', () => {
       productionId: 'prod-1',
       title: 'Script One',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       pageCount: 120,
       status: 'READY',
       uploadedById: 'user-1',
@@ -459,7 +477,7 @@ describe('GET /api/scripts/:scriptId/download-url', () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-1',
       productionId: 'prod-1',
-      s3Key: 'scripts/uuid/test.pdf',
+      s3Key: 'scripts/prod-1/uuid/test.pdf',
     } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue({
@@ -495,7 +513,7 @@ describe('GET /api/scripts/:scriptId/download-url', () => {
     mockedPrisma.script.findUnique.mockResolvedValue({
       id: 'script-1',
       productionId: 'prod-1',
-      s3Key: 'scripts/uuid/test.pdf',
+      s3Key: 'scripts/prod-1/uuid/test.pdf',
     } as any);
 
     mockedPrisma.productionMember.findUnique.mockResolvedValue(null);
@@ -823,7 +841,7 @@ describe('GET /api/productions/:id/scripts/:scriptId approvalTemperature', () =>
       productionId: 'prod-1',
       title: 'Script One',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       pageCount: 120,
       status: 'READY',
       uploadedById: 'user-1',
@@ -962,7 +980,7 @@ describe('POST /api/productions/:id/scripts — episode fields', () => {
       productionId: 'prod-1',
       title: 'Pilot',
       fileName: 'pilot.pdf',
-      s3Key: 'scripts/uuid/pilot.pdf',
+      s3Key: 'scripts/prod-1/uuid/pilot.pdf',
       status: 'PROCESSING',
       format: 'PDF',
       episodeNumber: 1,
@@ -975,7 +993,7 @@ describe('POST /api/productions/:id/scripts — episode fields', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'Pilot',
       fileName: 'pilot.pdf',
-      s3Key: 'scripts/uuid/pilot.pdf',
+      s3Key: 'scripts/prod-1/uuid/pilot.pdf',
       episodeNumber: 1,
       episodeTitle: 'Pilot',
     });
@@ -1004,7 +1022,7 @@ describe('POST /api/productions/:id/scripts — episode fields', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'Pilot',
       fileName: 'pilot.pdf',
-      s3Key: 'scripts/uuid/pilot.pdf',
+      s3Key: 'scripts/prod-1/uuid/pilot.pdf',
       episodeNumber: 1,
     });
 
@@ -1023,7 +1041,7 @@ describe('POST /api/productions/:id/scripts — episode fields', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'Pilot',
       fileName: 'pilot.pdf',
-      s3Key: 'scripts/uuid/pilot.pdf',
+      s3Key: 'scripts/prod-1/uuid/pilot.pdf',
       episodeTitle: 'Pilot',
     });
 
@@ -1042,7 +1060,7 @@ describe('POST /api/productions/:id/scripts — episode fields', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'Pilot',
       fileName: 'pilot.pdf',
-      s3Key: 'scripts/uuid/pilot.pdf',
+      s3Key: 'scripts/prod-1/uuid/pilot.pdf',
       episodeNumber: -1,
       episodeTitle: 'Pilot',
     });
@@ -1064,7 +1082,7 @@ describe('POST /api/productions/:id/scripts — episode fields', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       status: 'PROCESSING',
       format: 'PDF',
       episodeNumber: null,
@@ -1077,7 +1095,7 @@ describe('POST /api/productions/:id/scripts — episode fields', () => {
     const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
     });
 
     expect(res.status).toBe(201);
@@ -1116,7 +1134,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions — episode inhe
       productionId: 'prod-1',
       title: 'Pilot',
       fileName: 'pilot-v2.pdf',
-      s3Key: 'scripts/uuid/pilot-v2.pdf',
+      s3Key: 'scripts/prod-1/uuid/pilot-v2.pdf',
       status: 'PROCESSING',
       format: 'PDF',
       version: 2,
@@ -1134,7 +1152,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions — episode inhe
       .send({
         title: 'Pilot',
         fileName: 'pilot-v2.pdf',
-        s3Key: 'scripts/uuid/pilot-v2.pdf',
+        s3Key: 'scripts/prod-1/uuid/pilot-v2.pdf',
       });
 
     expect(res.status).toBe(201);
@@ -1169,7 +1187,7 @@ describe('POST /api/productions/:id/scripts — extractElements', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       status: 'PROCESSING',
       uploadedById: 'user-1',
       createdAt: new Date(),
@@ -1179,11 +1197,11 @@ describe('POST /api/productions/:id/scripts — extractElements', () => {
     await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       extractElements: true,
     });
 
-    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/uuid/script.pdf', true);
+    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/prod-1/uuid/script.pdf', true);
   });
 
   it('passes extractElements=false to processScript when sent', async () => {
@@ -1199,7 +1217,7 @@ describe('POST /api/productions/:id/scripts — extractElements', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       status: 'PROCESSING',
       uploadedById: 'user-1',
       createdAt: new Date(),
@@ -1209,11 +1227,11 @@ describe('POST /api/productions/:id/scripts — extractElements', () => {
     await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       extractElements: false,
     });
 
-    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/uuid/script.pdf', false);
+    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/prod-1/uuid/script.pdf', false);
   });
 
   it('defaults extractElements to true when omitted', async () => {
@@ -1229,7 +1247,7 @@ describe('POST /api/productions/:id/scripts — extractElements', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
       status: 'PROCESSING',
       uploadedById: 'user-1',
       createdAt: new Date(),
@@ -1239,10 +1257,10 @@ describe('POST /api/productions/:id/scripts — extractElements', () => {
     await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
       title: 'My Script',
       fileName: 'script.pdf',
-      s3Key: 'scripts/uuid/script.pdf',
+      s3Key: 'scripts/prod-1/uuid/script.pdf',
     });
 
-    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/uuid/script.pdf', true);
+    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/prod-1/uuid/script.pdf', true);
   });
 });
 
@@ -1266,7 +1284,7 @@ describe('POST /api/productions/:id/scripts — notification', () => {
       productionId: 'prod-1',
       title: 'Episode 1',
       fileName: 'ep1.pdf',
-      s3Key: 'scripts/uuid/ep1.pdf',
+      s3Key: 'scripts/prod-1/uuid/ep1.pdf',
       status: 'PROCESSING',
       uploadedById: 'user-1',
       createdAt: new Date(),
@@ -1279,7 +1297,7 @@ describe('POST /api/productions/:id/scripts — notification', () => {
       .send({
         title: 'Episode 1',
         fileName: 'ep1.pdf',
-        s3Key: 'scripts/uuid/ep1.pdf',
+        s3Key: 'scripts/prod-1/uuid/ep1.pdf',
       });
 
     expect(res.status).toBe(201);

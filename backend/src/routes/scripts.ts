@@ -12,6 +12,7 @@ import type { SceneInfo } from '@backbone/shared/types';
 import { notifyProductionMembers } from '../services/notification-service';
 import { generateImpliedElements } from '../services/implied-elements';
 import { requireActiveProduction } from '../lib/require-active-production';
+import { validateS3KeyForProduction } from '../lib/s3-validation';
 
 const scriptsRouter = Router();
 
@@ -91,6 +92,11 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
 
     if (!title || !fileName || !s3Key) {
       res.status(400).json({ error: 'title, fileName, and s3Key are required' });
+      return;
+    }
+
+    if (!validateS3KeyForProduction(s3Key, id, 'scripts')) {
+      res.status(400).json({ error: 's3Key does not match expected production prefix' });
       return;
     }
 
@@ -311,6 +317,11 @@ scriptsRouter.post(
 
       if (!title || !fileName || !s3Key) {
         res.status(400).json({ error: 'title, fileName, and s3Key are required' });
+        return;
+      }
+
+      if (!validateS3KeyForProduction(s3Key, id, 'scripts')) {
+        res.status(400).json({ error: 's3Key does not match expected production prefix' });
         return;
       }
 

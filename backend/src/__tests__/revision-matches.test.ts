@@ -87,7 +87,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions', () => {
       productionId: 'prod-1',
       title: 'My Script',
       fileName: 'script-v2.pdf',
-      s3Key: 'scripts/uuid/script-v2.pdf',
+      s3Key: 'scripts/prod-1/uuid/script-v2.pdf',
       pageCount: null,
       status: 'PROCESSING',
       version: 2,
@@ -103,7 +103,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions', () => {
       .send({
         title: 'My Script',
         fileName: 'script-v2.pdf',
-        s3Key: 'scripts/uuid/script-v2.pdf',
+        s3Key: 'scripts/prod-1/uuid/script-v2.pdf',
       });
 
     expect(res.status).toBe(201);
@@ -122,7 +122,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions', () => {
       .send({
         title: 'My Script',
         fileName: 'script-v2.pdf',
-        s3Key: 'scripts/uuid/script-v2.pdf',
+        s3Key: 'scripts/prod-1/uuid/script-v2.pdf',
       });
 
     expect(res.status).toBe(404);
@@ -144,7 +144,7 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions', () => {
       .send({
         title: 'My Script',
         fileName: 'script-v2.pdf',
-        s3Key: 'scripts/uuid/script-v2.pdf',
+        s3Key: 'scripts/prod-1/uuid/script-v2.pdf',
       });
 
     expect(res.status).toBe(400);

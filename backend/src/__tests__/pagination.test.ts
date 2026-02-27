@@ -151,7 +151,7 @@ describe('Resource creation limits', () => {
     } as any);
 
     const assets = Array.from({ length: 21 }, (_, i) => ({
-      s3Key: `options/uuid/photo${i}.jpg`,
+      s3Key: `options/prod-1/uuid/photo${i}.jpg`,
       fileName: `photo${i}.jpg`,
       mediaType: 'IMAGE',
     }));
@@ -185,7 +185,7 @@ describe('Resource creation limits', () => {
     } as any);
 
     const assets = Array.from({ length: 20 }, (_, i) => ({
-      s3Key: `options/uuid/photo${i}.jpg`,
+      s3Key: `options/prod-1/uuid/photo${i}.jpg`,
       fileName: `photo${i}.jpg`,
       mediaType: 'IMAGE',
     }));
