@@ -73,11 +73,21 @@ export function detectFdxElements(parsed: ParsedFdx): DetectionResult {
 
     if (elementMap.has(name)) continue;
 
+    // Search paragraphs for the tag name to find its actual page
+    let foundPage = 1;
+    const tagNameLower = tag.name.toLowerCase();
+    for (const para of parsed.paragraphs) {
+      if (para.text.toLowerCase().includes(tagNameLower)) {
+        foundPage = para.page;
+        break;
+      }
+    }
+
     elementMap.set(name, {
       name,
       type: ElementType.OTHER,
-      highlightPage: 1,
-      highlightText: tag.name,
+      highlightPage: foundPage,
+      highlightText: name,
       suggestedDepartment: department,
     });
   }

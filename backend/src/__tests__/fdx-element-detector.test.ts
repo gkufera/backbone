@@ -239,6 +239,54 @@ describe('FDX Element Detector', () => {
     expect(structured.elements.some((e) => e.name === 'INT. OFFICE - DAY')).toBe(true);
   });
 
+  it('TagData element uses uppercased name as highlightText (not mixed-case tag name)', () => {
+    const parsed = makeParsedFdx({
+      taggedElements: [{ category: 'Props', name: 'Briefcase' }],
+    });
+
+    const { elements } = detectFdxElements(parsed);
+    const briefcase = elements.find((e) => e.name === 'BRIEFCASE');
+
+    expect(briefcase).toBeDefined();
+    expect(briefcase!.highlightText).toBe('BRIEFCASE');
+  });
+
+  it('TagData element gets correct page when name appears in Action text', () => {
+    const parsed = makeParsedFdx({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Action', text: 'Nothing here.', page: 1 },
+        { type: 'Scene Heading', text: 'EXT. PARK - NIGHT', page: 5 },
+        { type: 'Action', text: 'He grabs the briefcase and runs.', page: 5 },
+      ],
+      taggedElements: [{ category: 'Props', name: 'Briefcase' }],
+    });
+
+    const { elements } = detectFdxElements(parsed);
+    const briefcase = elements.find((e) => e.name === 'BRIEFCASE');
+
+    expect(briefcase).toBeDefined();
+    expect(briefcase!.highlightPage).toBe(5);
+    expect(briefcase!.highlightText).toBe('BRIEFCASE');
+  });
+
+  it('TagData element falls back to page 1 when name not found in any paragraph', () => {
+    const parsed = makeParsedFdx({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Action', text: 'Nothing interesting happens.', page: 1 },
+      ],
+      taggedElements: [{ category: 'Props', name: 'Briefcase' }],
+    });
+
+    const { elements } = detectFdxElements(parsed);
+    const briefcase = elements.find((e) => e.name === 'BRIEFCASE');
+
+    expect(briefcase).toBeDefined();
+    expect(briefcase!.highlightPage).toBe(1);
+    expect(briefcase!.highlightText).toBe('BRIEFCASE');
+  });
+
   it('strips parenthetical extensions from character names', () => {
     const parsed = makeParsedFdx({
       paragraphs: [
