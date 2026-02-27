@@ -107,6 +107,11 @@ export default function RevisionUploadPage() {
         Uploading revision of: <strong>{parentScript.title}</strong>{' '}
         <span className="text-sm">v{parentScript.version}</span>
       </p>
+      {parentScript.episodeNumber != null && (
+        <p className="mb-4 font-mono text-sm">
+          Episode {parentScript.episodeNumber}: {parentScript.episodeTitle}
+        </p>
+      )}
 
       <form noValidate onSubmit={handleSubmit} className="space-y-4">
         <div>

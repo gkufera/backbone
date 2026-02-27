@@ -188,6 +188,32 @@ describe('Revision upload page', () => {
     expect(screen.getByText(/significantly more accurate/i)).toBeInTheDocument();
   });
 
+  it('shows episode info when parent script has episode fields', async () => {
+    mockedScriptsApi.get.mockResolvedValue({
+      script: {
+        id: 'script-1',
+        productionId: 'prod-1',
+        title: 'Pilot',
+        fileName: 'pilot.pdf',
+        s3Key: 'scripts/uuid/pilot.pdf',
+        pageCount: 120,
+        status: 'READY',
+        version: 2,
+        parentScriptId: null,
+        episodeNumber: 1,
+        episodeTitle: 'Pilot',
+        uploadedById: 'user-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        elements: [],
+      },
+    });
+
+    render(<RevisionUploadPage />);
+
+    expect(await screen.findByText(/Episode 1: Pilot/)).toBeInTheDocument();
+  });
+
   it('shows error on failure', async () => {
     const user = userEvent.setup();
 
