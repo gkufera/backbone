@@ -13,7 +13,7 @@ export async function processRevision(
   try {
     // Step 1: Fetch file from S3 and parse (format-aware)
     const buffer = await getFileBuffer(s3Key);
-    const { result, pageCount, fdxParagraphs } = await parseAndDetect(buffer, s3Key, newScriptId);
+    const { result, pageCount, fdxParagraphs } = await parseAndDetect(buffer, s3Key, newScriptId, true);
     const { elements: detectedElements, sceneData } = result;
 
     // Step 2: For FDX files, generate PDF and upload to S3
