@@ -1,23 +1,29 @@
-import crypto from 'crypto';
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import { parsePagination } from '../lib/pagination';
 import {
   PRODUCTION_TITLE_MAX_LENGTH,
-  MEMBER_TITLE_MAX_LENGTH,
   DEFAULT_DEPARTMENTS,
   DEFAULT_DEPARTMENT_COLORS,
-  PRODUCTION_APPROVAL_EMAILS,
-  PRODUCTION_APPROVAL_TOKEN_EXPIRY_DAYS,
   STUDIO_NAME_MAX_LENGTH,
   CONTACT_NAME_MAX_LENGTH,
 } from '@backbone/shared/constants';
-import { MemberRole, NotificationType, ElementStatus, ElementWorkflowState } from '@backbone/shared/types';
-import { createNotification } from '../services/notification-service';
-import { sendProductionApprovalEmail, sendProductionApprovedEmail } from '../services/email-service';
+import { MemberRole, ElementStatus, ElementWorkflowState } from '@backbone/shared/types';
 import { requireActiveProduction } from '../lib/require-active-production';
 import { createTokenLimiter } from '../middleware/rate-limit';
+import {
+  approveProductionByToken,
+  generateApprovalToken,
+  sendApprovalEmails,
+  sendApprovalConfirmationEmails,
+} from '../services/production-approval';
+import {
+  addMember,
+  removeMember,
+  changeMemberRole,
+  setMemberDepartment,
+} from '../services/production-members';
 
 const productionsRouter = Router();
 
@@ -121,37 +127,20 @@ productionsRouter.post('/api/productions', requireAuth, async (req, res) => {
         });
       }
 
-      // Generate approval token
-      const token = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + PRODUCTION_APPROVAL_TOKEN_EXPIRY_DAYS);
+      const approvalToken = await generateApprovalToken(tx, production.id);
 
-      await tx.productionApprovalToken.create({
-        data: {
-          productionId: production.id,
-          token,
-          expiresAt,
-        },
-      });
-
-      return { production, member, approvalToken: token };
+      return { production, member, approvalToken };
     });
 
     // Fire-and-forget: send approval emails
-    const frontendUrl = process.env.FRONTEND_URL ?? 'https://slugmax.com';
-    const approveUrl = `${frontendUrl}/approve-production?token=${result.approvalToken}`;
-
-    for (const email of PRODUCTION_APPROVAL_EMAILS) {
-      sendProductionApprovalEmail(
-        email,
-        result.production.title,
-        trimmedStudioName,
-        trimmedContactName,
-        trimmedContactEmail,
-        trimmedBudget,
-        approveUrl,
-      ).catch((err) => console.error('Failed to send approval email:', err));
-    }
+    sendApprovalEmails(
+      result.production.title,
+      trimmedStudioName,
+      trimmedContactName,
+      trimmedContactEmail,
+      trimmedBudget,
+      result.approvalToken,
+    );
 
     res.status(201).json({ production: result.production, member: result.member });
   } catch (error) {
@@ -173,57 +162,14 @@ productionsRouter.post('/api/productions/approve', ...approveMiddleware, async (
       return;
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const approvalToken = await tx.productionApprovalToken.findUnique({
-        where: { token: String(token) },
-        include: { production: true },
-      });
-
-      if (!approvalToken) {
-        return { error: 'Invalid approval token', status: 400 };
-      }
-
-      if (approvalToken.usedAt) {
-        return { error: 'This approval token has already been used', status: 400 };
-      }
-
-      if (approvalToken.expiresAt < new Date()) {
-        return { error: 'This approval token has expired', status: 400 };
-      }
-
-      // Mark token as used
-      await tx.productionApprovalToken.update({
-        where: { id: approvalToken.id },
-        data: { usedAt: new Date() },
-      });
-
-      // Activate production
-      await tx.production.update({
-        where: { id: approvalToken.productionId },
-        data: { status: 'ACTIVE' },
-      });
-
-      return {
-        productionTitle: approvalToken.production.title,
-        contactEmail: approvalToken.production.contactEmail,
-      };
-    });
+    const result = await approveProductionByToken(String(token));
 
     if ('error' in result) {
       res.status(result.status).json({ error: result.error });
       return;
     }
 
-    // Fire-and-forget: send confirmation emails (deduplicate if contactEmail is an approval address)
-    const approvedRecipients = new Set(PRODUCTION_APPROVAL_EMAILS);
-    if (result.contactEmail) {
-      approvedRecipients.add(result.contactEmail);
-    }
-    for (const email of approvedRecipients) {
-      sendProductionApprovedEmail(email, result.productionTitle).catch((err) =>
-        console.error('Failed to send approved email:', err),
-      );
-    }
+    sendApprovalConfirmationEmails(result.productionTitle, result.contactEmail);
 
     res.json({ message: 'Production approved successfully', productionTitle: result.productionTitle });
   } catch (error) {
@@ -400,64 +346,14 @@ productionsRouter.post('/api/productions/:id/members', requireAuth, async (req, 
     // Block mutations on PENDING productions
     if (!(await requireActiveProduction(id, res))) return;
 
-    if (!email) {
-      res.status(400).json({ error: 'Email is required' });
+    const result = await addMember({ productionId: id, email, role, title });
+
+    if ('error' in result) {
+      res.status(result.status).json({ error: result.error });
       return;
     }
 
-    const trimmedTitle = title ? String(title).trim() : null;
-    const finalTitle = trimmedTitle || null;
-
-    if (finalTitle && finalTitle.length > MEMBER_TITLE_MAX_LENGTH) {
-      res
-        .status(400)
-        .json({ error: `Title must be ${MEMBER_TITLE_MAX_LENGTH} characters or fewer` });
-      return;
-    }
-
-    // Find user by email
-    const userToAdd = await prisma.user.findUnique({ where: { email } });
-    if (!userToAdd) {
-      res.status(404).json({ error: 'No user found with that email' });
-      return;
-    }
-
-    // Check if already a member
-    const existingMember = await prisma.productionMember.findUnique({
-      where: {
-        productionId_userId: {
-          productionId: id,
-          userId: userToAdd.id,
-        },
-      },
-    });
-
-    if (existingMember) {
-      res.status(409).json({ error: 'User is already a member of this production' });
-      return;
-    }
-
-    const member = await prisma.productionMember.create({
-      data: {
-        productionId: id,
-        userId: userToAdd.id,
-        role: role || MemberRole.MEMBER,
-        title: finalTitle,
-      },
-    });
-
-    // Fire-and-forget: notify the invited user
-    const production = await prisma.production.findUnique({ where: { id }, select: { title: true } });
-    const prodTitle = production?.title ?? 'a production';
-    createNotification(
-      userToAdd.id,
-      id,
-      NotificationType.MEMBER_INVITED,
-      `You have been invited to "${prodTitle}"`,
-      `/productions/${id}`,
-    ).catch((err) => console.error('Failed to send member invite notification:', err));
-
-    res.status(201).json({ member });
+    res.status(201).json({ member: result.member });
   } catch (error) {
     console.error('Add member error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -537,27 +433,14 @@ productionsRouter.delete(
       // Block mutations on PENDING productions
       if (!(await requireActiveProduction(id, res))) return;
 
-      // Find the member to remove
-      const memberToRemove = await prisma.productionMember.findMany({
-        where: { id: memberId, productionId: id },
-      });
+      const result = await removeMember(id, memberId);
 
-      if (!memberToRemove.length) {
-        res.status(404).json({ error: 'Member not found' });
+      if ('error' in result) {
+        res.status(result.status).json({ error: result.error });
         return;
       }
 
-      if (memberToRemove[0].role === MemberRole.ADMIN) {
-        res.status(403).json({ error: 'Cannot remove an ADMIN of a production' });
-        return;
-      }
-
-      await prisma.productionMember.update({
-        where: { id: memberId },
-        data: { deletedAt: new Date() },
-      });
-
-      res.json({ message: 'Member removed' });
+      res.json(result);
     } catch (error) {
       console.error('Remove member error:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -574,12 +457,6 @@ productionsRouter.patch(
       const authReq = req as AuthenticatedRequest;
       const { id, memberId } = req.params;
       const { role } = req.body;
-
-      // Validate role
-      if (!role || !Object.values(MemberRole).includes(role)) {
-        res.status(400).json({ error: 'Valid role is required (ADMIN, DECIDER, or MEMBER)' });
-        return;
-      }
 
       // Check requester is ADMIN or DECIDER
       const requesterMembership = await prisma.productionMember.findUnique({
@@ -602,59 +479,20 @@ productionsRouter.patch(
       // Block mutations on PENDING productions
       if (!(await requireActiveProduction(id, res))) return;
 
-      // Find the target member
-      const targetMember = await prisma.productionMember.findUnique({
-        where: { id: memberId },
+      const result = await changeMemberRole({
+        productionId: id,
+        memberId,
+        requesterId: authReq.user.userId,
+        requesterRole: requesterMembership.role,
+        newRole: role,
       });
 
-      if (!targetMember || targetMember.productionId !== id) {
-        res.status(404).json({ error: 'Member not found' });
+      if ('error' in result) {
+        res.status(result.status).json({ error: result.error });
         return;
       }
 
-      // Self role-change rules: ADMIN↔DECIDER allowed, cannot demote self to MEMBER
-      if (targetMember.userId === authReq.user.userId) {
-        if (role === MemberRole.MEMBER) {
-          res.status(400).json({ error: 'Cannot demote yourself to MEMBER' });
-          return;
-        }
-      } else {
-        // DECIDER cannot set another user's role to ADMIN
-        if (requesterMembership.role === MemberRole.DECIDER && role === MemberRole.ADMIN) {
-          res.status(403).json({ error: 'Only an ADMIN can assign the ADMIN role' });
-          return;
-        }
-      }
-
-      // Protect last privileged user: block any change that could leave 0 ADMIN/DECIDER
-      const isTargetPrivileged = [MemberRole.ADMIN, MemberRole.DECIDER].includes(
-        targetMember.role as MemberRole,
-      );
-      if (isTargetPrivileged) {
-        const privilegedCount = await prisma.productionMember.count({
-          where: {
-            productionId: id,
-            role: { in: [MemberRole.ADMIN, MemberRole.DECIDER] },
-            deletedAt: null,
-          },
-        });
-        if (privilegedCount <= 1) {
-          const newRoleIsPrivileged = [MemberRole.ADMIN, MemberRole.DECIDER].includes(role);
-          if (!newRoleIsPrivileged) {
-            res
-              .status(400)
-              .json({ error: 'Need at least 1 ADMIN or DECIDER in a production' });
-            return;
-          }
-        }
-      }
-
-      const updated = await prisma.productionMember.update({
-        where: { id: memberId },
-        data: { role },
-      });
-
-      res.json({ member: updated });
+      res.json({ member: result.member });
     } catch (error) {
       console.error('Change member role error:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -693,33 +531,14 @@ productionsRouter.patch(
       // Block mutations on PENDING productions
       if (!(await requireActiveProduction(id, res))) return;
 
-      // Find the target member
-      const targetMember = await prisma.productionMember.findUnique({
-        where: { id: memberId },
-      });
+      const result = await setMemberDepartment(id, memberId, departmentId);
 
-      if (!targetMember || targetMember.productionId !== id) {
-        res.status(404).json({ error: 'Member not found' });
+      if ('error' in result) {
+        res.status(result.status).json({ error: result.error });
         return;
       }
 
-      // If setting a department, validate it belongs to this production
-      if (departmentId !== null && departmentId !== undefined) {
-        const department = await prisma.department.findUnique({
-          where: { id: departmentId, productionId: id },
-        });
-        if (!department) {
-          res.status(404).json({ error: 'Department not found in this production' });
-          return;
-        }
-      }
-
-      const updated = await prisma.productionMember.update({
-        where: { id: memberId },
-        data: { departmentId: departmentId ?? null },
-      });
-
-      res.json({ member: updated });
+      res.json({ member: result.member });
     } catch (error) {
       console.error('Set member department error:', error);
       res.status(500).json({ error: 'Internal server error' });
