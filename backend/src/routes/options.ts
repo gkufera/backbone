@@ -465,6 +465,16 @@ optionsRouter.post('/api/options/:id/assets', requireAuth, async (req, res) => {
       return;
     }
 
+    if (option.element.deletedAt) {
+      res.status(404).json({ error: 'Option not found' });
+      return;
+    }
+
+    if (option.element.status === ElementStatus.ARCHIVED) {
+      res.status(400).json({ error: 'Cannot add assets to an option on an archived element' });
+      return;
+    }
+
     // Check membership
     const membership = await prisma.productionMember.findUnique({
       where: {

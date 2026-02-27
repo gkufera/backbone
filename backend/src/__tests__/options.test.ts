@@ -1015,6 +1015,63 @@ describe('POST /api/elements/:elementId/options (no locking)', () => {
     expect(res.body.asset.sortOrder).toBe(1);
   });
 
+  it('returns 404 when element has deletedAt set on asset addition', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        deletedAt: new Date(),
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
+      s3Key: 'options/prod-1/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+      mediaType: 'IMAGE',
+    });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/option not found/i);
+  });
+
+  it('returns 400 when element status is ARCHIVED on asset addition', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      element: {
+        id: 'elem-1',
+        status: 'ARCHIVED',
+        deletedAt: null,
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+
+    const res = await request(app).post('/api/options/opt-1/assets').set(authHeader()).send({
+      s3Key: 'options/prod-1/uuid/photo.jpg',
+      fileName: 'photo.jpg',
+      mediaType: 'IMAGE',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/archived/i);
+  });
+
   it('returns 403 when member has been soft-deleted on asset addition', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',
