@@ -14,7 +14,7 @@ test.describe('Script workflow', () => {
     // File input for PDF or FDX
     await expect(page.getByLabel(/script file/i)).toBeVisible();
     // Title field
-    await expect(page.getByLabel(/title/i)).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Title', exact: true })).toBeVisible();
     // Upload button
     await expect(page.getByRole('button', { name: /upload script/i })).toBeVisible();
   });
