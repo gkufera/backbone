@@ -339,6 +339,75 @@ describe('Script Processor', () => {
     );
   });
 
+  it('PDF with extractElements=false skips element detection and saving', async () => {
+    const buffer = Buffer.from('fake pdf');
+    mockedGetFileBuffer.mockResolvedValue(buffer);
+    mockedParsePdf.mockResolvedValue({
+      text: 'INT. OFFICE - DAY\n\nJOHN\nHello.',
+      pageCount: 5,
+      pages: [{ pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' }],
+    });
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.pdf', false);
+
+    // Should NOT call element.createMany
+    expect(mockedPrisma.element.createMany).not.toHaveBeenCalled();
+    // But should still save pageCount
+    expect(mockedPrisma.script.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ pageCount: 5 }),
+      }),
+    );
+  });
+
+  it('FDX with extractElements=false still detects structured FDX elements', async () => {
+    const buffer = Buffer.from('<FinalDraft/>');
+    mockedGetFileBuffer.mockResolvedValue(buffer);
+    mockedParseFdx.mockReturnValue({
+      paragraphs: [
+        { type: 'Scene Heading', text: 'INT. OFFICE - DAY', page: 1 },
+        { type: 'Character', text: 'JOHN', page: 1 },
+      ],
+      taggedElements: [],
+      pageCount: 3,
+    });
+    mockedDetectFdxElements.mockReturnValue({
+      elements: [
+        { name: 'INT. OFFICE - DAY', type: 'LOCATION' as any, highlightPage: 1, highlightText: 'INT. OFFICE - DAY', suggestedDepartment: 'Locations' },
+        { name: 'JOHN', type: 'CHARACTER' as any, highlightPage: 1, highlightText: 'JOHN', suggestedDepartment: 'Cast' },
+      ],
+      sceneData: [{ sceneNumber: 1, location: 'INT. OFFICE - DAY', characters: ['JOHN'] }],
+    });
+    mockedGenerateScreenplayPdf.mockResolvedValue(Buffer.from('%PDF-'));
+    mockedPutFileBuffer.mockResolvedValue(undefined);
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 2 });
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.fdx', false);
+
+    // detectFdxElements should still be called
+    expect(mockedDetectFdxElements).toHaveBeenCalled();
+    // Elements should still be saved
+    expect(mockedPrisma.element.createMany).toHaveBeenCalled();
+  });
+
+  it('PDF with extractElements=true detects elements (current behavior)', async () => {
+    const buffer = Buffer.from('fake pdf');
+    mockedGetFileBuffer.mockResolvedValue(buffer);
+    mockedParsePdf.mockResolvedValue({
+      text: 'INT. OFFICE - DAY\n\nJOHN\nHello.',
+      pageCount: 1,
+      pages: [{ pageNumber: 1, text: 'INT. OFFICE - DAY\n\nJOHN\nHello.' }],
+    });
+    mockedPrisma.element.createMany.mockResolvedValue({ count: 2 });
+    mockedPrisma.script.update.mockResolvedValue({} as any);
+
+    await processScript('script-1', 'scripts/uuid/test.pdf', true);
+
+    expect(mockedPrisma.element.createMany).toHaveBeenCalled();
+  });
+
   it('shows "Parsing FDX" progress message for FDX files', async () => {
     mockedGetFileBuffer.mockResolvedValue(Buffer.from('<FinalDraft/>'));
     mockedParseFdx.mockReturnValue({

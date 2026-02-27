@@ -18,12 +18,14 @@ export async function parseAndDetect(
   buffer: Buffer,
   s3Key: string,
   scriptId: string,
+  extractElements = true,
 ): Promise<{ result: DetectionResult; pageCount: number; fdxParagraphs?: FdxParagraph[] }> {
   if (isFdx(s3Key)) {
     setProgress(scriptId, 30, 'Parsing FDX');
     const parsed = parseFdx(buffer);
 
     setProgress(scriptId, 60, 'Detecting elements');
+    // FDX always uses structured detection (characters + locations + tagger tags)
     const result = detectFdxElements(parsed);
 
     return { result, pageCount: parsed.pageCount, fdxParagraphs: parsed.paragraphs };
@@ -31,14 +33,18 @@ export async function parseAndDetect(
     setProgress(scriptId, 30, 'Parsing PDF');
     const { pages, pageCount } = await parsePdf(buffer);
 
-    setProgress(scriptId, 60, 'Detecting elements');
-    const result = detectElements(pages);
-
-    return { result, pageCount };
+    if (extractElements) {
+      setProgress(scriptId, 60, 'Detecting elements');
+      const result = detectElements(pages);
+      return { result, pageCount };
+    } else {
+      // Skip element detection for PDF — just get page count
+      return { result: { elements: [], sceneData: [] }, pageCount };
+    }
   }
 }
 
-export async function processScript(scriptId: string, s3Key: string): Promise<void> {
+export async function processScript(scriptId: string, s3Key: string, extractElements = true): Promise<void> {
   try {
     setProgress(scriptId, 10, 'Fetching PDF');
 
@@ -46,7 +52,7 @@ export async function processScript(scriptId: string, s3Key: string): Promise<vo
     const buffer = await getFileBuffer(s3Key);
 
     // Step 2+3: Parse and detect elements (format-specific)
-    const { result, pageCount, fdxParagraphs } = await parseAndDetect(buffer, s3Key, scriptId);
+    const { result, pageCount, fdxParagraphs } = await parseAndDetect(buffer, s3Key, scriptId, extractElements);
     const { elements: detectedElements, sceneData } = result;
 
     // Step 3.5: For FDX files, generate PDF and upload to S3
