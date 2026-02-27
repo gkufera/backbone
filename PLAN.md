@@ -1,18 +1,24 @@
 # Current Plan
 
-## Sprint 35: Roadmap Cleanup + Deep Code Review
+## Sprint 36: Multi-Episode Script Support
 
-**Goal:** Archive completed sprints, run deep code review for security and code organization, fix findings.
+**Goal:** Allow a single production to hold multiple episodes, each with its own script and revision chain.
 
 ### Phases
-- [x] Phase 1: Archive Sprints 23-34 to `roadmap-archive-v2.md`, clean up roadmap.md
-- [x] Phase 2: Security — Rate limit public production approval endpoint (TDD) — 3 new tests
-- [x] Phase 3: Security — Auth middleware rejects unverified email users (TDD) — 1 new test
-- [x] Phase 4: Refactor — Extract member and approval services from productions route — 789→608 lines
-- [x] Phase 5: Refactor — Split frontend api.ts into domain modules — 714→35 lines (barrel)
-- [x] Phase 6: Full Tier 1 test pass — 510 frontend + 565 backend = 1,075 total
+- [x] Phase 1: Prisma schema — add episodeNumber, episodeTitle to Script + index + migration
+- [x] Phase 2: Backend — accept/validate episode fields on creation; revisions inherit from parent (6 new tests)
+- [x] Phase 3: Shared constants + frontend API client update
+- [x] Phase 4: Script upload form — optional episode fields with validation (3 new tests)
+- [x] Phase 5: Production dashboard — group scripts by episode when episodes exist (3 new tests)
+- [x] Phase 6: Revision upload — display inherited episode info (1 new test)
+- [x] Phase 7: Script viewer — episode badge in header (2 new tests)
+- [x] Phase 8: Full Tier 1 test pass — 519 frontend + 571 backend = 1,090 total
 
 ## Previously Completed
+
+### Sprint 35: Roadmap Cleanup + Deep Code Review (COMPLETE)
+
+**Result:** Archived sprints 23-34, rate limited public approval endpoint, auth rejects unverified users, extracted services from productions route, split frontend api.ts into domain modules. 1,075 Tier 1 tests passing.
 
 ### Roadmap Completeness Audit + Performance Check (COMPLETE)
 

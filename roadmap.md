@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 510 frontend + 565 backend = 1,075 unit/integration, 57 E2E
+**Test counts:** 519 frontend + 571 backend = 1,090 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 Sprints 23-34 archived in `roadmap-archive-v2.md`.
@@ -31,6 +31,22 @@ Sprints 23-34 archived in `roadmap-archive-v2.md`.
 - [x] Refactor: Extract member and approval services from productions route — 789→608 lines
 - [x] Refactor: Split frontend api.ts into 12 domain modules — 714→35 lines (barrel)
 - [x] Full Tier 1 test pass — 510 frontend + 565 backend = 1,075 total
+
+---
+
+## Sprint 36: Multi-Episode Script Support
+
+**Goal:** Allow a single production to hold multiple episodes, each with its own script and revision chain.
+
+- [x] Prisma schema: add `episodeNumber` (Int?) and `episodeTitle` (String?) to Script model with composite index
+- [x] Backend: accept and validate episode fields on script creation; revisions inherit from parent
+- [x] Shared constants: `EPISODE_TITLE_MAX_LENGTH = 200`
+- [x] Frontend API client: `scriptsApi.create()` accepts optional episode fields
+- [x] Script upload form: optional Episode Number and Episode Title inputs with validation
+- [x] Production dashboard: group scripts by episode when episodes exist, flat list otherwise
+- [x] Revision upload: display inherited episode info (read-only)
+- [x] Script viewer: show episode badge (EP 1: Pilot) in header
+- [x] Full Tier 1 test pass — 519 frontend + 571 backend = 1,090 total
 
 ---
 
