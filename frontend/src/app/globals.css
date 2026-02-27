@@ -15,91 +15,95 @@
 }
 
 /* ── Reset & Base ──────────────────────────────────────────── */
+/* Wrapped in @layer base so Tailwind utility classes (bg-black, text-white)
+   can override these defaults via the higher-priority @layer utilities. */
 
-* {
-  border-color: #000;
-}
+@layer base {
+  * {
+    border-color: #000;
+  }
 
-body {
-  background: #fff;
-  color: #000;
-  font-family: var(--font-pixel);
-  -webkit-font-smoothing: none;
-  -moz-osx-font-smoothing: unset;
-  image-rendering: pixelated;
-}
+  body {
+    background: #fff;
+    color: #000;
+    font-family: var(--font-pixel);
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+    image-rendering: pixelated;
+  }
 
-/* ── Typography Hierarchy ─────────────────────────────────── */
+  /* ── Typography Hierarchy ─────────────────────────────────── */
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-pixel);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-pixel);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 
-p, td, th {
-  font-family: var(--font-body);
-  text-transform: none;
-  letter-spacing: normal;
-  -webkit-font-smoothing: auto;
-  -moz-osx-font-smoothing: auto;
-}
+  p, td, th {
+    font-family: var(--font-body);
+    text-transform: none;
+    letter-spacing: normal;
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+  }
 
-label {
-  font-family: var(--font-pixel);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
+  label {
+    font-family: var(--font-pixel);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 
-/* ── Links ─────────────────────────────────────────────────── */
+  /* ── Links ─────────────────────────────────────────────────── */
 
-a {
-  color: #000;
-  text-decoration: underline;
-}
-a:hover {
-  background: #000;
-  color: #fff;
-}
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+  a:hover {
+    background: #000;
+    color: #fff;
+  }
 
-/* ── Buttons ───────────────────────────────────────────────── */
+  /* ── Buttons ───────────────────────────────────────────────── */
 
-button {
-  border: 2px solid #000;
-  background: #fff;
-  color: #000;
-  font-family: var(--font-pixel);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-}
-button:hover:not(:disabled) {
-  background: #000;
-  color: #fff;
-}
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+  button {
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
+    font-family: var(--font-pixel);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+  }
+  button:hover:not(:disabled) {
+    background: #000;
+    color: #fff;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-/* ── Inputs / Textareas / Selects ──────────────────────────── */
+  /* ── Inputs / Textareas / Selects ──────────────────────────── */
 
-input,
-textarea,
-select {
-  border: 2px solid #000;
-  background: #fff;
-  color: #000;
-  font-family: var(--font-body);
-  -webkit-font-smoothing: auto;
-  -moz-osx-font-smoothing: auto;
-  outline: none;
-}
-input:focus,
-textarea:focus,
-select:focus {
-  outline: 2px solid #000;
-  outline-offset: 1px;
+  input,
+  textarea,
+  select {
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+    outline: none;
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: 2px solid #000;
+    outline-offset: 1px;
+  }
 }
 
 /* ── Mac Window Chrome ─────────────────────────────────────── */

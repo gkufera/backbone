@@ -280,15 +280,16 @@ describe('Element list', () => {
     expect(link).toHaveClass('text-white');
   });
 
-  it('active sort button includes border-2 class for visual consistency', () => {
+  it('active sort button has bg-black and text-white classes', () => {
     render(<ElementList elements={mockElements} onArchive={mockOnArchive} />);
 
     const appearanceBtn = screen.getByRole('button', { name: /by appearance/i });
     expect(appearanceBtn.className).toContain('bg-black');
+    expect(appearanceBtn.className).toContain('text-white');
     expect(appearanceBtn.className).toContain('border-2');
   });
 
-  it('active department filter chip includes border-2 class', () => {
+  it('active department filter "All" chip has bg-black and text-white classes', () => {
     const elementsWithDepts = [
       {
         ...mockElements[0],
@@ -301,7 +302,34 @@ describe('Element list', () => {
     // "All" button is active by default
     const allBtn = screen.getByRole('button', { name: /all/i });
     expect(allBtn.className).toContain('bg-black');
+    expect(allBtn.className).toContain('text-white');
     expect(allBtn.className).toContain('border-2');
+  });
+
+  it('clicking department chip gives it bg-black class and removes it from All', async () => {
+    const user = userEvent.setup();
+    const elementsWithDepts = [
+      {
+        ...mockElements[0],
+        department: { id: 'dept-cast', name: 'Cast', color: '#E63946' },
+      },
+      {
+        ...mockElements[2],
+        department: { id: 'dept-loc', name: 'Locations', color: '#264653' },
+      },
+    ];
+
+    render(<ElementList elements={elementsWithDepts} onArchive={mockOnArchive} />);
+
+    const castBtn = screen.getByRole('button', { name: /cast/i });
+    await user.click(castBtn);
+
+    expect(castBtn.className).toContain('bg-black');
+    expect(castBtn.className).toContain('text-white');
+
+    const allBtn = screen.getByRole('button', { name: /all/i });
+    expect(allBtn.className).toContain('bg-white');
+    expect(allBtn.className).toContain('text-black');
   });
 
   it('clicking department chip filters elements to that department', async () => {
