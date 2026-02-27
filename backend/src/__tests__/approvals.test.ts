@@ -240,6 +240,35 @@ describe('POST /api/options/:optionId/approvals', () => {
     expect(res.body.error).toMatch(/archived/i);
   });
 
+  it('returns 404 when element has deletedAt set', async () => {
+    mockedPrisma.option.findUnique.mockResolvedValue({
+      id: 'opt-1',
+      elementId: 'elem-1',
+      status: 'ACTIVE',
+      element: {
+        id: 'elem-1',
+        status: 'ACTIVE',
+        deletedAt: new Date(),
+        script: { productionId: 'prod-1' },
+      },
+    } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'DECIDER',
+    } as any);
+
+    const res = await request(app)
+      .post('/api/options/opt-1/approvals')
+      .set(authHeader())
+      .send({ decision: 'APPROVED' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/deleted/i);
+  });
+
   it('returns 400 when element is archived', async () => {
     mockedPrisma.option.findUnique.mockResolvedValue({
       id: 'opt-1',

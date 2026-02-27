@@ -61,6 +61,11 @@ approvalsRouter.post('/api/options/:optionId/approvals', requireAuth, async (req
       return;
     }
 
+    if (option.element.deletedAt) {
+      res.status(404).json({ error: 'Cannot approve an option on a deleted element' });
+      return;
+    }
+
     // Check membership
     const membership = await prisma.productionMember.findUnique({
       where: {
