@@ -232,21 +232,82 @@ export default function ProductionDashboard() {
 
           {production.scripts.length === 0 ? (
             <p className="text-black">No scripts uploaded yet.</p>
-          ) : (
-            <ul className="divide-y divide-black">
-              {production.scripts.map((s) => (
-                <li key={s.id}>
-                  <Link
-                    href={`/productions/${id}/scripts/${s.id}`}
-                    className="block py-3 hover:bg-black hover:text-white"
-                  >
-                    <span className="font-mono">{s.title}</span>
-                    <span className="ml-2 text-xs uppercase">{s.status}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          ) : (() => {
+            const hasEpisodes = production.scripts.some((s) => s.episodeNumber != null);
+            if (!hasEpisodes) {
+              return (
+                <ul className="divide-y divide-black">
+                  {production.scripts.map((s) => (
+                    <li key={s.id}>
+                      <Link
+                        href={`/productions/${id}/scripts/${s.id}`}
+                        className="block py-3 hover:bg-black hover:text-white"
+                      >
+                        <span className="font-mono">{s.title}</span>
+                        <span className="ml-2 text-xs uppercase">{s.status}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              );
+            }
+
+            // Group by episode
+            const episodeMap = new Map<number, typeof production.scripts>();
+            const noEpisode: typeof production.scripts = [];
+            for (const s of production.scripts) {
+              // Only show latest version per revision chain
+              if (s.parentScriptId && production.scripts.some((other) => other.parentScriptId === s.id)) continue;
+              if (s.episodeNumber != null) {
+                if (!episodeMap.has(s.episodeNumber)) episodeMap.set(s.episodeNumber, []);
+                episodeMap.get(s.episodeNumber)!.push(s);
+              } else {
+                noEpisode.push(s);
+              }
+            }
+            const sortedEpisodes = Array.from(episodeMap.entries()).sort((a, b) => a[0] - b[0]);
+
+            return (
+              <div className="space-y-4">
+                {sortedEpisodes.map(([epNum, scripts]) => (
+                  <div key={epNum}>
+                    <h3 className="text-sm mb-1">EPISODE {epNum}: {scripts[0].episodeTitle}</h3>
+                    <ul className="divide-y divide-black">
+                      {scripts.map((s) => (
+                        <li key={s.id}>
+                          <Link
+                            href={`/productions/${id}/scripts/${s.id}`}
+                            className="block py-3 pl-4 hover:bg-black hover:text-white"
+                          >
+                            <span className="font-mono">{s.title}</span>
+                            <span className="ml-2 text-xs uppercase">{s.status}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                {noEpisode.length > 0 && (
+                  <div>
+                    <h3 className="text-sm mb-1">Other</h3>
+                    <ul className="divide-y divide-black">
+                      {noEpisode.map((s) => (
+                        <li key={s.id}>
+                          <Link
+                            href={`/productions/${id}/scripts/${s.id}`}
+                            className="block py-3 pl-4 hover:bg-black hover:text-white"
+                          >
+                            <span className="font-mono">{s.title}</span>
+                            <span className="ml-2 text-xs uppercase">{s.status}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       </section>
 

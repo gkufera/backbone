@@ -898,6 +898,81 @@ describe('Production dashboard', () => {
     expect(screen.queryByText('Team Members')).not.toBeInTheDocument();
   });
 
+  it('renders flat script list when no scripts have episodes', async () => {
+    const prodWithScripts = {
+      ...mockProduction,
+      status: 'ACTIVE',
+      scripts: [
+        { id: 's1', title: 'Script One', fileName: 'script1.pdf', status: 'READY', createdAt: new Date().toISOString(), episodeNumber: null, episodeTitle: null, version: 1, parentScriptId: null },
+        { id: 's2', title: 'Script Two', fileName: 'script2.pdf', status: 'PROCESSING', createdAt: new Date().toISOString(), episodeNumber: null, episodeTitle: null, version: 1, parentScriptId: null },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: prodWithScripts });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: [] });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+    mockedProductionsApi.getElementStats.mockResolvedValue({ pending: 0, outstanding: 0, approved: 0, total: 0 });
+    mockedNotificationPreferencesApi.get.mockResolvedValue({
+      preferences: { optionEmails: true, noteEmails: true, approvalEmails: true, scriptEmails: true, memberEmails: true, scopeFilter: 'ALL' },
+    });
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText('Script One')).toBeInTheDocument();
+    expect(screen.getByText('Script Two')).toBeInTheDocument();
+    // Should NOT show episode headers
+    expect(screen.queryByText(/EPISODE 1/i)).not.toBeInTheDocument();
+  });
+
+  it('groups scripts by episode when episodes exist', async () => {
+    const prodWithEpisodes = {
+      ...mockProduction,
+      status: 'ACTIVE',
+      scripts: [
+        { id: 's1', title: 'Pilot Script', fileName: 'pilot.pdf', status: 'READY', createdAt: new Date().toISOString(), episodeNumber: 1, episodeTitle: 'Pilot', version: 1, parentScriptId: null },
+        { id: 's2', title: 'Reckoning Script', fileName: 'reckoning.pdf', status: 'PROCESSING', createdAt: new Date().toISOString(), episodeNumber: 2, episodeTitle: 'The Reckoning', version: 1, parentScriptId: null },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: prodWithEpisodes });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: [] });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+    mockedProductionsApi.getElementStats.mockResolvedValue({ pending: 0, outstanding: 0, approved: 0, total: 0 });
+    mockedNotificationPreferencesApi.get.mockResolvedValue({
+      preferences: { optionEmails: true, noteEmails: true, approvalEmails: true, scriptEmails: true, memberEmails: true, scopeFilter: 'ALL' },
+    });
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText(/EPISODE 1: Pilot/i)).toBeInTheDocument();
+    expect(screen.getByText(/EPISODE 2: The Reckoning/i)).toBeInTheDocument();
+    expect(screen.getByText('Pilot Script')).toBeInTheDocument();
+    expect(screen.getByText('Reckoning Script')).toBeInTheDocument();
+  });
+
+  it('shows non-episode scripts in separate section when mixed', async () => {
+    const prodMixed = {
+      ...mockProduction,
+      status: 'ACTIVE',
+      scripts: [
+        { id: 's1', title: 'Pilot Script', fileName: 'pilot.pdf', status: 'READY', createdAt: new Date().toISOString(), episodeNumber: 1, episodeTitle: 'Pilot', version: 1, parentScriptId: null },
+        { id: 's2', title: 'Standalone Script', fileName: 'standalone.pdf', status: 'READY', createdAt: new Date().toISOString(), episodeNumber: null, episodeTitle: null, version: 1, parentScriptId: null },
+      ],
+    };
+    mockedProductionsApi.get.mockResolvedValue({ production: prodMixed });
+    mockedDepartmentsApi.list.mockResolvedValue({ departments: [] });
+    mockedFeedApi.list.mockResolvedValue({ elements: [] });
+    mockedProductionsApi.getElementStats.mockResolvedValue({ pending: 0, outstanding: 0, approved: 0, total: 0 });
+    mockedNotificationPreferencesApi.get.mockResolvedValue({
+      preferences: { optionEmails: true, noteEmails: true, approvalEmails: true, scriptEmails: true, memberEmails: true, scopeFilter: 'ALL' },
+    });
+
+    render(<ProductionDashboard />);
+
+    expect(await screen.findByText(/EPISODE 1: Pilot/i)).toBeInTheDocument();
+    expect(screen.getByText('Standalone Script')).toBeInTheDocument();
+    // Non-episode scripts should be in an "Other" section
+    expect(screen.getByText(/Other/i)).toBeInTheDocument();
+  });
+
   it('ACTIVE production shows full dashboard', async () => {
     const activeProduction = {
       ...mockProduction,

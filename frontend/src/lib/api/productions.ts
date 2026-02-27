@@ -20,7 +20,7 @@ export type MemberResponse = JsonSerialized<
 
 export interface ProductionDetailResponse extends ProductionResponse {
   members: Array<MemberResponse & { user: { id: string; name: string; email: string } }>;
-  scripts: Array<Pick<ScriptResponse, 'id' | 'title' | 'fileName' | 'status' | 'createdAt'>>;
+  scripts: Array<Pick<ScriptResponse, 'id' | 'title' | 'fileName' | 'status' | 'createdAt' | 'episodeNumber' | 'episodeTitle' | 'version' | 'parentScriptId'>>;
   departments?: DepartmentResponse[];
 }
 
