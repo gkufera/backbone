@@ -33,6 +33,7 @@ vi.mock('../services/fdx-parser', () => ({
 
 vi.mock('../services/fdx-element-detector', () => ({
   detectFdxElements: vi.fn(),
+  detectFdxPropsFromActions: vi.fn(),
 }));
 
 vi.mock('../services/screenplay-pdf-generator', () => ({
@@ -48,7 +49,7 @@ import { prisma } from '../lib/prisma';
 import { getFileBuffer, putFileBuffer } from '../lib/s3';
 import { parsePdf } from '../services/pdf-parser';
 import { parseFdx } from '../services/fdx-parser';
-import { detectFdxElements } from '../services/fdx-element-detector';
+import { detectFdxElements, detectFdxPropsFromActions } from '../services/fdx-element-detector';
 import { generateScreenplayPdf } from '../services/screenplay-pdf-generator';
 import { processRevision } from '../services/revision-processor';
 
@@ -58,6 +59,7 @@ const mockedPutFileBuffer = vi.mocked(putFileBuffer);
 const mockedParsePdf = vi.mocked(parsePdf);
 const mockedParseFdx = vi.mocked(parseFdx);
 const mockedDetectFdxElements = vi.mocked(detectFdxElements);
+const mockedDetectFdxPropsFromActions = vi.mocked(detectFdxPropsFromActions);
 const mockedGenerateScreenplayPdf = vi.mocked(generateScreenplayPdf);
 
 describe('Revision Processor', () => {
@@ -69,6 +71,8 @@ describe('Revision Processor', () => {
     mockedPrisma.revisionMatch.createMany.mockResolvedValue({ count: 0 });
     // $transaction passes through to the same mocked prisma client
     mockedPrisma.$transaction.mockImplementation(async (fn: any) => fn(mockedPrisma));
+    // Default: no props from action text
+    mockedDetectFdxPropsFromActions.mockReturnValue([]);
   });
 
   it('all exact matches → elements migrated, script READY', async () => {

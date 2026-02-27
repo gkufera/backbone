@@ -1,6 +1,6 @@
 # Slug Max Roadmap
 
-**Test counts:** 519 frontend + 571 backend = 1,090 unit/integration, 57 E2E
+**Test counts:** 527 frontend + 582 backend = 1,109 unit/integration, 57 E2E
 
 Previous sprints (0-22) archived in `roadmap-archive-v1.md`.
 Sprints 23-34 archived in `roadmap-archive-v2.md`.
@@ -47,6 +47,20 @@ Sprints 23-34 archived in `roadmap-archive-v2.md`.
 - [x] Revision upload: display inherited episode info (read-only)
 - [x] Script viewer: show episode badge (EP 1: Pilot) in header
 - [x] Full Tier 1 test pass — 519 frontend + 571 backend = 1,090 total
+
+---
+
+## Sprint 37: UX Fixes + Extract Elements Checkbox
+
+**Goal:** Fix three user-reported issues from production testing.
+
+- [x] Remove "View Productions" button from admin approval page (useless in email link context)
+- [x] Fix element filter/sort chip active states (CSS cascade layer override — wrap base styles in `@layer base`)
+- [x] Backend: `processScript` accepts `extractElements` parameter (PDF+false=skip, FDX+false=structured only)
+- [x] Backend: FDX prop detection from Action paragraphs (export `detectProps`, new `detectFdxPropsFromActions`)
+- [x] Backend route + frontend API: accept `extractElements` in script creation
+- [x] Frontend: "Extract elements using AI" checkbox on upload page (unchecked by default, FDX warning)
+- [x] Full Tier 1 test pass — 527 frontend + 582 backend = 1,109 total
 
 ---
 

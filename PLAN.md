@@ -1,20 +1,23 @@
 # Current Plan
 
-## Sprint 36: Multi-Episode Script Support
+## Sprint 37: UX Fixes + Extract Elements Checkbox
 
-**Goal:** Allow a single production to hold multiple episodes, each with its own script and revision chain.
+**Goal:** Fix three user-reported issues from production testing.
 
 ### Phases
-- [x] Phase 1: Prisma schema — add episodeNumber, episodeTitle to Script + index + migration
-- [x] Phase 2: Backend — accept/validate episode fields on creation; revisions inherit from parent (6 new tests)
-- [x] Phase 3: Shared constants + frontend API client update
-- [x] Phase 4: Script upload form — optional episode fields with validation (3 new tests)
-- [x] Phase 5: Production dashboard — group scripts by episode when episodes exist (3 new tests)
-- [x] Phase 6: Revision upload — display inherited episode info (1 new test)
-- [x] Phase 7: Script viewer — episode badge in header (2 new tests)
-- [x] Phase 8: Full Tier 1 test pass — 519 frontend + 571 backend = 1,090 total
+- [x] Phase 1: Remove "View Productions" button from admin approval page
+- [x] Phase 2: Fix element filter/sort chip active states (CSS cascade layer issue)
+- [x] Phase 3: Backend — processScript accepts extractElements parameter
+- [x] Phase 4: Backend — FDX prop detection from action paragraphs
+- [x] Phase 5: Backend route + frontend API — accept extractElements
+- [x] Phase 6: Frontend — Extract Elements checkbox on upload page
+- [x] Phase 7: Full Tier 1 test pass — 527 frontend + 582 backend = 1,109 total
 
 ## Previously Completed
+
+### Sprint 36: Multi-Episode Script Support (COMPLETE)
+
+**Result:** Episode fields on Script model, upload form, dashboard grouping, revision inheritance, script viewer badge. 1,090 Tier 1 tests passing.
 
 ### Sprint 35: Roadmap Cleanup + Deep Code Review (COMPLETE)
 
