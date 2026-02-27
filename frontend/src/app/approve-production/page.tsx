@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { productionsApi } from '../../lib/api';
 
@@ -42,16 +41,9 @@ function ApproveProductionContent() {
           )}
 
           {status === 'success' && (
-            <div className="space-y-4">
-              <p className="text-center text-sm font-mono text-black">
-                {message}
-              </p>
-              <p className="text-center">
-                <Link href="/productions" className="mac-btn-primary inline-block px-6 py-2">
-                  View Productions
-                </Link>
-              </p>
-            </div>
+            <p className="text-center text-sm font-mono text-black">
+              {message}
+            </p>
           )}
 
           {status === 'error' && (

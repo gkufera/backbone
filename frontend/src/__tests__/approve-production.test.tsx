@@ -46,6 +46,20 @@ describe('Approve Production page', () => {
     expect(await screen.findByText('Production approved successfully')).toBeInTheDocument();
   });
 
+  it('success state does not render View Productions link', async () => {
+    mockedApi.approve.mockResolvedValue({
+      message: 'Production approved successfully',
+      productionTitle: 'My Film',
+    });
+
+    render(<ApproveProductionPage />);
+
+    await screen.findByText('Production approved successfully');
+
+    expect(screen.queryByText(/view productions/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
   it('shows error message on failure', async () => {
     mockedApi.approve.mockRejectedValue(new Error('Invalid token'));
 
