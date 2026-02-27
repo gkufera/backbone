@@ -27,6 +27,13 @@ const parser = new XMLParser({
 
 export function parseFdx(buffer: Buffer): ParsedFdx {
   const xmlString = buffer.toString('utf-8');
+
+  // Validate that the content looks like XML before attempting to parse
+  const trimmed = xmlString.replace(/^\uFEFF/, '').trimStart();
+  if (!trimmed.startsWith('<?xml') && !trimmed.startsWith('<')) {
+    throw new Error('Invalid FDX: not a valid XML document');
+  }
+
   const doc = parser.parse(xmlString);
 
   const finalDraft = doc.FinalDraft;

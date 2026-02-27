@@ -162,4 +162,21 @@ describe('FDX Parser', () => {
 
     expect(result.paragraphs[0].text).toBe('The door opens slowly.');
   });
+
+  it('throws clear error for non-XML buffer', () => {
+    const buffer = Buffer.from('This is not XML at all');
+    expect(() => parseFdx(buffer)).toThrow('Invalid FDX: not a valid XML document');
+  });
+
+  it('throws clear error for binary data', () => {
+    const buffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]); // PNG header
+    expect(() => parseFdx(buffer)).toThrow('Invalid FDX: not a valid XML document');
+  });
+
+  it('accepts valid XML with BOM', () => {
+    const bom = '\uFEFF';
+    const xml = bom + wrapFdx(makeParagraph('Scene Heading', 'INT. OFFICE - DAY'));
+    const result = parseFdx(Buffer.from(xml));
+    expect(result.paragraphs.length).toBeGreaterThan(0);
+  });
 });
