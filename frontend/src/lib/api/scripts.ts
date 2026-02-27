@@ -19,7 +19,7 @@ export const scriptsApi = {
 
   create(
     productionId: string,
-    data: { title: string; fileName: string; s3Key: string; episodeNumber?: number; episodeTitle?: string },
+    data: { title: string; fileName: string; s3Key: string; episodeNumber?: number; episodeTitle?: string; extractElements?: boolean },
   ): Promise<{ script: ScriptResponse }> {
     return request(`/api/productions/${productionId}/scripts`, {
       method: 'POST',

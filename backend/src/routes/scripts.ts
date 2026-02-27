@@ -43,7 +43,7 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
   try {
     const authReq = req as AuthenticatedRequest;
     const { id } = req.params;
-    const { title, fileName, s3Key, episodeNumber, episodeTitle } = req.body;
+    const { title, fileName, s3Key, episodeNumber, episodeTitle, extractElements } = req.body;
 
     // Check membership
     const membership = await prisma.productionMember.findUnique({
@@ -105,7 +105,7 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
     });
 
     // Fire-and-forget: process the script asynchronously
-    processScript(script.id, s3Key).catch((err) =>
+    processScript(script.id, s3Key, extractElements !== false).catch((err) =>
       console.error('Background script processing failed:', err),
     );
 

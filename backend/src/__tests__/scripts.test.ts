@@ -55,6 +55,16 @@ vi.mock('../lib/s3', () => ({
   getFileBuffer: vi.fn(),
 }));
 
+// Mock script processor
+vi.mock('../services/script-processor', () => ({
+  processScript: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock revision processor
+vi.mock('../services/revision-processor', () => ({
+  processRevision: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Mock notification service
 vi.mock('../services/notification-service', () => ({
   createNotification: vi.fn().mockResolvedValue({ id: 'notif-1' }),
@@ -66,12 +76,14 @@ import { prisma } from '../lib/prisma';
 import { generateUploadUrl, generateDownloadUrl } from '../lib/s3';
 import { getProgress } from '../services/processing-progress';
 import { notifyProductionMembers } from '../services/notification-service';
+import { processScript } from '../services/script-processor';
 
 const mockedPrisma = vi.mocked(prisma);
 const mockedGenerateUploadUrl = vi.mocked(generateUploadUrl);
 const mockedGenerateDownloadUrl = vi.mocked(generateDownloadUrl);
 const mockedGetProgress = vi.mocked(getProgress);
 const mockedNotifyProductionMembers = vi.mocked(notifyProductionMembers);
+const mockedProcessScript = vi.mocked(processScript);
 
 const testUser = {
   userId: 'user-1',
@@ -1105,6 +1117,103 @@ describe('POST /api/productions/:id/scripts/:scriptId/revisions — episode inhe
         }),
       }),
     );
+  });
+});
+
+describe('POST /api/productions/:id/scripts — extractElements', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+  });
+
+  it('passes extractElements=true to processScript when sent', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      status: 'PROCESSING',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      extractElements: true,
+    });
+
+    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/uuid/script.pdf', true);
+  });
+
+  it('passes extractElements=false to processScript when sent', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      status: 'PROCESSING',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      extractElements: false,
+    });
+
+    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/uuid/script.pdf', false);
+  });
+
+  it('defaults extractElements to true when omitted', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      status: 'PROCESSING',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+    });
+
+    expect(mockedProcessScript).toHaveBeenCalledWith('script-1', 'scripts/uuid/script.pdf', true);
   });
 });
 
