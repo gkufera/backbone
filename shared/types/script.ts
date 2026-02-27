@@ -31,6 +31,8 @@ export interface Script {
   version: number;
   parentScriptId: string | null;
   uploadedById: string;
+  episodeNumber: number | null;
+  episodeTitle: string | null;
   sceneData: SceneInfo[] | null;
   createdAt: Date;
   updatedAt: Date;

@@ -43,7 +43,7 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
   try {
     const authReq = req as AuthenticatedRequest;
     const { id } = req.params;
-    const { title, fileName, s3Key } = req.body;
+    const { title, fileName, s3Key, episodeNumber, episodeTitle } = req.body;
 
     // Check membership
     const membership = await prisma.productionMember.findUnique({
@@ -73,6 +73,22 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
       return;
     }
 
+    // Validate episode fields: both or neither
+    const hasEpNumber = episodeNumber !== undefined && episodeNumber !== null;
+    const hasEpTitle = episodeTitle !== undefined && episodeTitle !== null && episodeTitle !== '';
+    if (hasEpNumber !== hasEpTitle) {
+      res.status(400).json({ error: 'episodeNumber and episodeTitle must both be provided or both omitted' });
+      return;
+    }
+    if (hasEpNumber && (!Number.isInteger(episodeNumber) || episodeNumber < 1)) {
+      res.status(400).json({ error: 'episodeNumber must be a positive integer' });
+      return;
+    }
+    if (hasEpTitle && typeof episodeTitle === 'string' && episodeTitle.length > 200) {
+      res.status(400).json({ error: 'episodeTitle must be 200 characters or fewer' });
+      return;
+    }
+
     const format = fileName.toLowerCase().endsWith('.fdx') ? ScriptFormat.FDX : ScriptFormat.PDF;
 
     const script = await prisma.script.create({
@@ -84,6 +100,7 @@ scriptsRouter.post('/api/productions/:id/scripts', requireAuth, async (req, res)
         status: ScriptStatus.PROCESSING,
         format,
         uploadedById: authReq.user.userId,
+        ...(hasEpNumber ? { episodeNumber, episodeTitle } : {}),
       },
     });
 
@@ -289,6 +306,9 @@ scriptsRouter.post(
           version: parentScript.version + 1,
           parentScriptId: scriptId,
           uploadedById: authReq.user.userId,
+          ...(parentScript.episodeNumber != null
+            ? { episodeNumber: parentScript.episodeNumber, episodeTitle: parentScript.episodeTitle }
+            : {}),
         },
       });
 

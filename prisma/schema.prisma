@@ -217,6 +217,8 @@ model Script {
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
+  episodeNumber  Int?             @map("episode_number")
+  episodeTitle   String?          @map("episode_title")
   sceneData      Json?            @map("scene_data")
 
   production      Production       @relation(fields: [productionId], references: [id])
@@ -228,6 +230,7 @@ model Script {
   directorNotes   DirectorNote[]
 
   @@index([productionId, status])
+  @@index([productionId, episodeNumber])
   @@map("scripts")
 }
 

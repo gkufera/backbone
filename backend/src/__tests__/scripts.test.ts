@@ -901,6 +901,213 @@ describe('DELETE /api/elements/:id (soft-delete)', () => {
   });
 });
 
+describe('POST /api/productions/:id/scripts — episode fields', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+  });
+
+  it('creates script with episodeNumber and episodeTitle', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'Pilot',
+      fileName: 'pilot.pdf',
+      s3Key: 'scripts/uuid/pilot.pdf',
+      status: 'PROCESSING',
+      format: 'PDF',
+      episodeNumber: 1,
+      episodeTitle: 'Pilot',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'Pilot',
+      fileName: 'pilot.pdf',
+      s3Key: 'scripts/uuid/pilot.pdf',
+      episodeNumber: 1,
+      episodeTitle: 'Pilot',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.script.episodeNumber).toBe(1);
+    expect(res.body.script.episodeTitle).toBe('Pilot');
+    expect(mockedPrisma.script.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          episodeNumber: 1,
+          episodeTitle: 'Pilot',
+        }),
+      }),
+    );
+  });
+
+  it('returns 400 when episodeNumber provided without episodeTitle', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'Pilot',
+      fileName: 'pilot.pdf',
+      s3Key: 'scripts/uuid/pilot.pdf',
+      episodeNumber: 1,
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/episode/i);
+  });
+
+  it('returns 400 when episodeTitle provided without episodeNumber', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'Pilot',
+      fileName: 'pilot.pdf',
+      s3Key: 'scripts/uuid/pilot.pdf',
+      episodeTitle: 'Pilot',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/episode/i);
+  });
+
+  it('returns 400 when episodeNumber is not a positive integer', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'Pilot',
+      fileName: 'pilot.pdf',
+      s3Key: 'scripts/uuid/pilot.pdf',
+      episodeNumber: -1,
+      episodeTitle: 'Pilot',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/positive/i);
+  });
+
+  it('creates script without episode fields (backwards compatible)', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+      status: 'PROCESSING',
+      format: 'PDF',
+      episodeNumber: null,
+      episodeTitle: null,
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app).post('/api/productions/prod-1/scripts').set(authHeader()).send({
+      title: 'My Script',
+      fileName: 'script.pdf',
+      s3Key: 'scripts/uuid/script.pdf',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.script.episodeNumber).toBeNull();
+    expect(res.body.script.episodeTitle).toBeNull();
+  });
+});
+
+describe('POST /api/productions/:id/scripts/:scriptId/revisions — episode inheritance', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', tokenVersion: 0, emailVerified: true } as any);
+    mockedPrisma.production.findUnique.mockResolvedValue({ id: 'prod-1', status: 'ACTIVE' } as any);
+  });
+
+  it('inherits episodeNumber and episodeTitle from parent script', async () => {
+    mockedPrisma.productionMember.findUnique.mockResolvedValue({
+      id: 'member-1',
+      productionId: 'prod-1',
+      userId: 'user-1',
+      role: 'ADMIN',
+    } as any);
+
+    mockedPrisma.script.findUnique.mockResolvedValue({
+      id: 'script-1',
+      productionId: 'prod-1',
+      title: 'Pilot',
+      status: 'READY',
+      version: 1,
+      episodeNumber: 1,
+      episodeTitle: 'Pilot',
+    } as any);
+
+    mockedPrisma.script.create.mockResolvedValue({
+      id: 'script-2',
+      productionId: 'prod-1',
+      title: 'Pilot',
+      fileName: 'pilot-v2.pdf',
+      s3Key: 'scripts/uuid/pilot-v2.pdf',
+      status: 'PROCESSING',
+      format: 'PDF',
+      version: 2,
+      parentScriptId: 'script-1',
+      episodeNumber: 1,
+      episodeTitle: 'Pilot',
+      uploadedById: 'user-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const res = await request(app)
+      .post('/api/productions/prod-1/scripts/script-1/revisions')
+      .set(authHeader())
+      .send({
+        title: 'Pilot',
+        fileName: 'pilot-v2.pdf',
+        s3Key: 'scripts/uuid/pilot-v2.pdf',
+      });
+
+    expect(res.status).toBe(201);
+    expect(mockedPrisma.script.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          episodeNumber: 1,
+          episodeTitle: 'Pilot',
+        }),
+      }),
+    );
+  });
+});
+
 describe('POST /api/productions/:id/scripts — notification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
