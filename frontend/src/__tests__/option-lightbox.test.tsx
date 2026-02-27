@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { OptionLightbox } from '../components/option-lightbox';
 
@@ -372,6 +372,51 @@ describe('OptionLightbox', () => {
     const counter = screen.getByTestId('asset-counter');
     expect(counter).toBeInTheDocument();
     expect(counter).toHaveTextContent('1 / 3');
+  });
+
+  it('resets carousel index when option prop changes', () => {
+    (useMediaUrl as ReturnType<typeof vi.fn>).mockReturnValue('https://s3.example.com/img.jpg');
+
+    const optionA = {
+      ...baseOption,
+      id: 'opt-A',
+      assets: [
+        { id: 'a1', s3Key: 'options/uuid/a1.jpg', fileName: 'a1.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-A', createdAt: new Date().toISOString() },
+        { id: 'a2', s3Key: 'options/uuid/a2.jpg', fileName: 'a2.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 1, optionId: 'opt-A', createdAt: new Date().toISOString() },
+        { id: 'a3', s3Key: 'options/uuid/a3.jpg', fileName: 'a3.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 2, optionId: 'opt-A', createdAt: new Date().toISOString() },
+      ],
+    };
+
+    const optionB = {
+      ...baseOption,
+      id: 'opt-B',
+      assets: [
+        { id: 'b1', s3Key: 'options/uuid/b1.jpg', fileName: 'b1.jpg', thumbnailS3Key: null, mediaType: 'IMAGE', sortOrder: 0, optionId: 'opt-B', createdAt: new Date().toISOString() },
+      ],
+    };
+
+    const props = {
+      productionId: 'prod-1',
+      onClose: vi.fn(),
+      onApprove: vi.fn(),
+    };
+
+    // Render with option A (3 assets)
+    const { rerender } = render(<OptionLightbox option={optionA} {...props} />);
+
+    // Navigate to last asset (index 2)
+    fireEvent.click(screen.getByRole('button', { name: 'Next asset' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next asset' }));
+    expect(screen.getByTestId('asset-counter')).toHaveTextContent('3 / 3');
+
+    // Rerender with option B (1 asset) — index should reset
+    act(() => {
+      rerender(<OptionLightbox option={optionB} {...props} />);
+    });
+
+    // Option B has 1 asset, so no counter is shown and title should reflect b1.jpg
+    expect(screen.queryByTestId('asset-counter')).not.toBeInTheDocument();
+    expect(screen.getByText('b1.jpg')).toBeInTheDocument();
   });
 
   it('renders approval history when approvals are provided', () => {

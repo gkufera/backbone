@@ -32,6 +32,11 @@ export function OptionLightbox({
 }: OptionLightboxProps) {
   const assets = option.assets ?? [];
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [option.id]);
+
   const currentAsset: OptionAssetResponse | undefined = assets[currentIndex];
   const mediaUrl = useMediaUrl(currentAsset?.s3Key ?? null);
 
